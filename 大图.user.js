@@ -3,9 +3,11 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  try to take over the world!
-// @author       You
-// @include     https://www.javbus.com/*
-// @exclude    https://www.javbus.com/actresses/*
+// @author       kygo233
+
+// @include      https://www.javbus.com/*
+// @exclude      https://www.javbus.com/actresses/*
+
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -18,32 +20,20 @@
 (function() {
     'use strict';
     let columnNum = GM_getValue('bigImg_columnNum', 2);
-     let IMG_SUFFIX="-bigimg-tag";
+    let IMG_SUFFIX="-bigimg-tag";
     let MAGNET_SUFFIX="-magnet-tag";
-
-
     GM_addStyle([
         '#waterfall {height: initial !important;width: initial !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
         '#waterfall .item{position: relative !important;top: initial !important;left: initial !important;float: none;}',
-        '#waterfall .movie-box,#waterfall .avatar-box {width: initial !important;height: initial !important;display: flex;flex-direction: column;}',
+        '#waterfall .movie-box  {width: initial !important;height: initial !important;display: flex;flex-direction: column;}',
+        '#waterfall .avatar-box {width: auto !important;height: initial !important;display: flex;flex-direction: row;}',
         '#waterfall .movie-box .photo-frame {width:initial !important;height:initial!important; flex-grow:1 !important;}',
         '#waterfall .movie-box .photo-info { flex-grow:1 !important;}',
         '#waterfall .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
-        '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;}',
+        '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
+        '.big-img-a{float:right;cursor:pointer;margin-left:10px;}',
     ].join(''));
-    GM_addStyle('#waterfall .item.item { flex: '+100/columnNum+'%;}');
-
-    function parsetext(text) {
-        var doc = null;
-        try {
-            doc = document.implementation.createHTMLDocument('');
-            doc.documentElement.innerHTML = text;
-            return doc;
-        }
-        catch (e) {
-            alert('parse error');
-        }
-    };
+    GM_addStyle('#waterfall .item{ flex: '+100/columnNum+'%;}');
 
     function ajaxGet(url,fn) {
         let xhr=new XMLHttpRequest();
@@ -56,27 +46,28 @@
         }
     }
     $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
-                     +'<div class="modal-dialog" style="width:auto !important;" role="document" id="magnettablediv" >'
-                     +'</div></div>');
-    var waterfallScrollStatus=1;
-    var a3= $( '<select class="form-control" id="inputGroupSelect01">'
-              + ' <option value="1">1列</option>'
-              + ' <option value="2">2列</option>'
-              + ' <option value="3">3列</option>'
-              + ' <option value="4">4列</option>'
-              + ' <option value="5">5列</option>'
-              + '  </select>');
+                     +'<div class="modal-dialog" style="width:50% !important;" role="document" id="magnettablediv" ></div>');
+    var select_tag= $( '<select class="form-control " style="margin-top: 8px;" id="inputGroupSelect01">'
+                      + ' <option value="1">1列</option>'
+                      + ' <option value="2">2列</option>'
+                      + ' <option value="3">3列</option>'
+                      + ' <option value="4">4列</option>'
+                      + ' <option value="5">5列</option>'
+                      + '  </select>');
     let li_elem = document.createElement('li');
-    $(li_elem).append($(a3));
-    $(a3).find("option[value='"+columnNum+"']").attr("selected",true);
-    $(a3).change(function(){
+    $(li_elem).append($(select_tag));
+    $(select_tag).find("option[value='"+columnNum+"']").attr("selected",true);
+    $(select_tag).change(function(){
         GM_setValue('bigImg_columnNum', $(this).val());
         GM_addStyle('#waterfall .item.item { flex: '+100/columnNum+'%;}');
         window.location.reload();
     });
 
     $(".visible-md-block").closest(".dropdown").after($(li_elem));
-    function setBigImg(){
+
+    //设置点击标签
+    function setTag(){
+        //判断是否有瀑布流
         if(!$('#waterfall').length){
             return;
         }
@@ -101,17 +92,16 @@
             var AVIDDiv=$(infoDiv).find("date")[0];
             var AVID=$(AVIDDiv).text();
 
-            var bigDivTag=$('<a href="javascript:;">视频截图</a>');
-            bigDivTag.attr("style","float:right;cursor:pointer;");
-            var downloadDiv=$('<a href="javascript:;">下载封面</a>');
-            downloadDiv.attr("style","float:right;cursor:pointer;margin-right:10px;");
-            var magnetDivTag=$('<a href="javascript:;" >磁力链接</a>');
-            magnetDivTag.attr("style","float:right;cursor:pointer;margin-right:10px;");
+            var bigDivTag=$('<a href="javascript:;" class="big-img-a" >视频截图</a>');
+            var downloadDiv=$('<a href="javascript:;" class="big-img-a" >下载封面</a>');
+            var magnetDivTag=$('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
             $(spanTag).append(bigDivTag);
             $(spanTag).append(downloadDiv);
             $(spanTag).append(magnetDivTag);
             bigDivTag.click(function(){
-                showBigImg(AVID,bigDivTag);
+                if(bigDivTag.text()=="视频截图"){
+                    showBigImg(AVID,bigDivTag);
+                }
             });
             downloadDiv.click(function(){
                 GM_download(src,AVID+".jpg");
@@ -122,82 +112,61 @@
         });
     }
 
+    window.bbimg =function (o){
 
+    }
 
     function showBigImg(avid,bigDivTag){
-        var img_id="#"+avid+"-bigimg";
-         $('.pop-up-tag').hide();
-        if($(img_id).length>0){
-            $(img_id).show();
+        var img_id=avid+IMG_SUFFIX;
+        $('.pop-up-tag').hide();
+        if($("#"+img_id).length>0){
+            $("#"+img_id).show();
             $('#myModal').modal();
         }else{
-            getAvImg2(avid);
+            getAvImg(avid,bigDivTag);
         }
     }
 
-    function getAvImg2(avid){
-        var src="https://img44.pixhost.to/images/497/158602061_1508na_heyzo_hd_2326_full.jpg";
-        var windowW = $(window).width();//获取当前窗口宽度
-        var windowH = $(window).height();//获取当前窗口高度
-        var scale = 0.8;//缩放尺寸，当图片真实宽度和高度大于窗口宽度和高度时进行缩放
-        var img_tag=$('<img class="pop-up-tag" id="'+avid+IMG_SUFFIX+'" width="'+windowW*scale+'px"  height="auto"  src="'+src+'" />');
-        img_tag.append(img_tag);
-        $('#magnettablediv').append(img_tag);
-        $('#myModal').modal();
-    }
-
-    function getAvImg(avid,bigDiv){
-        bigDiv.text('加载中..');
+    function getAvImg(avid,bigDivTag){
+        bigDivTag.text('加载中..');
         //异步请求搜索blogjav.net的番号
         GM_xmlhttpRequest({
             method: "GET",
             url: 'http://blogjav.net/?s='+avid,
             onload: function(result) {
-                var doc = parsetext(result.responseText);
+                var doc = result.responseText;
                 let a_array = $(doc).find(".more-link");
-                let a = a_array[0];
+                let imgUrl;
                 for(let i = 0; i < a_array.length ; i ++){
-                    var fhd_idx = a_array[i].innerHTML.search(/FHD/);
-                    //debugger;
-                    if(fhd_idx > 0){
-                        a = a_array[i];
-                        break;
-                    }
+                    imgUrl = a_array[i].href;
+                    var fhd_idx = a_array[i].href.search(/FHD/g);
+                    if(fhd_idx > 0) { break;}
                 }
-                if (a) {
-                    //异步请求调用内页详情的访问地址
+                if (imgUrl) {
                     GM_xmlhttpRequest({
                         method: "GET",
-                        //大图地址
-                        url: a.href,
+                        url: imgUrl,
                         headers:{
                             referrer:  "http://pixhost.to/" //绕过防盗图的关键
                         },
                         onload: function(XMLHttpRequest) {
                             var bodyStr = XMLHttpRequest.responseText;
-                            var yixieBody = bodyStr.substring(bodyStr.search(/<span id="more-(\S*)"><\/span>/),bodyStr.search(/<div class="category/));
-                            var img_start_idx = yixieBody.search(/"><img .*src="https*:\/\/(\S*)pixhost.to\/thumbs\//);
-                            //如果找到内容大图
-                            if( img_start_idx > 0)
+                            var img_src_arr =/<img .*src="https*:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
+                            if( img_src_arr[0]) //如果找到内容大图
                             {
-                                var new_img_src = yixieBody.substring(yixieBody.indexOf('src',img_start_idx) + 5,yixieBody.indexOf('alt') - 2);
-                                var targetImgUrl = new_img_src.replace('thumbs','images').replace('//t','//img').replace('"','');
-                                console.log(targetImgUrl);
-                                imgShow(targetImgUrl);
+                                var src = $(img_src_arr[0]).attr("src").replace('thumbs','images').replace('//t','//img').replace('"','');
+                                console.log(src);
+                                var img_tag=$('<img class="pop-up-tag  carousel-inner"   id="'+avid+IMG_SUFFIX+'"    src="'+src+'" />');
+                                $('#magnettablediv').append(img_tag);
+                                $('#myModal').modal();
                             }else{
+                                bigDivTag.text('无大图');
                                 alert('无大图');
                             }
-                            bigDiv.text('视频截图');
-
-                        },
-                        onerror: function(e) {
-                            console.log(e);
+                            bigDivTag.text('视频截图');
                         }
                     });//end  GM_xmlhttpRequest
                 }
-            },
-            onerror: function(e) {
-                console.log(e);
             }
         });//end  GM_xmlhttpRequest
     };
@@ -207,6 +176,7 @@
         $('.pop-up-tag').hide();
         if($(table_id).length>0){
             $(table_id).show();
+            $('#magnettablediv').css("width","50%");
             $('#myModal').modal();
         }else{
             getMagnet(avid,src);
@@ -221,7 +191,7 @@
             url= 'https://www.javbus.com/ajax/uncledatoolsbyajax.php?gid='+gid+'&lang=zh&img='+src+'&uc=0&floor='+Math.floor(Math.random() * 1e3 + 1);
             ajaxGet(url,function(responseText){
                 var table_html=responseText.substring(0,responseText.indexOf('<script')).trim();
-                var table_tag=$('<table class="table pop-up-tag"  style="background-color:#FFFFFF;width:50%" id="'+avid+MAGNET_SUFFIX+'"></table>');
+                var table_tag=$('<table class="table pop-up-tag"  style="background-color:#FFFFFF" id="'+avid+MAGNET_SUFFIX+'"></table>');
                 table_tag.append(table_html);
                 $('#magnettablediv').append(table_tag);
                 $('#myModal').modal();
@@ -229,6 +199,6 @@
             });
         });
     };
-    setBigImg();
+    setTag();
     // Your code here...
 })();
