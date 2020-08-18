@@ -1,4 +1,4 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @name         大图
 // @namespace    http://tampermonkey.net/
 // @version      0.1
@@ -46,7 +46,7 @@
         }
     }
     $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
-                     +'<div class="modal-dialog" style="width:50% !important;" role="document" id="magnettablediv" ></div>');
+                     +'<div class="modal-dialog" style="width:60% !important;" role="document" id="magnettablediv" ></div>');
     var select_tag= $( '<select class="form-control " style="margin-top: 8px;" id="inputGroupSelect01">'
                       + ' <option value="1">1列</option>'
                       + ' <option value="2">2列</option>'
@@ -161,11 +161,12 @@
                                 $('#myModal').modal();
                             }else{
                                 bigDivTag.text('无大图');
-                                alert('无大图');
                             }
                             bigDivTag.text('视频截图');
                         }
                     });//end  GM_xmlhttpRequest
+                }else{
+                     bigDivTag.text('无大图');
                 }
             }
         });//end  GM_xmlhttpRequest
@@ -176,7 +177,6 @@
         $('.pop-up-tag').hide();
         if($(table_id).length>0){
             $(table_id).show();
-            $('#magnettablediv').css("width","50%");
             $('#myModal').modal();
         }else{
             getMagnet(avid,src);
