@@ -1,40 +1,28 @@
 ﻿// ==UserScript==
-// @name         大图
+// @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  try to take over the world!
+// @description  改编自脚本 JAV老司机
 // @author       kygo233
 
 // @include      https://www.javbus.com/*
-// @exclude      https://www.javbus.com/actresses/*
+// @exclude      https://www.javbus.com/actresses*
 
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_download
+// @grant        GM_setClipboard
 // @grant        GM_notification
 // @connect *
 // ==/UserScript==
 
 (function() {
     'use strict';
-    let columnNum = GM_getValue('bigImg_columnNum', 2);
+    let columnNum = GM_getValue('bigImg_columnNum', 3);
     let IMG_SUFFIX="-bigimg-tag";
     let MAGNET_SUFFIX="-magnet-tag";
-    GM_addStyle([
-        '#waterfall {height: initial !important;width: initial !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
-        '#waterfall .item{position: relative !important;top: initial !important;left: initial !important;float: none;}',
-        '#waterfall .movie-box  {width: initial !important;height: initial !important;display: flex;flex-direction: column;}',
-        '#waterfall .avatar-box {width: auto !important;height: initial !important;display: flex;flex-direction: row;}',
-        '#waterfall .movie-box .photo-frame {width:initial !important;height:initial!important; flex-grow:1 !important;}',
-        '#waterfall .movie-box .photo-info { flex-grow:1 !important;}',
-        '#waterfall .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
-        '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
-        '.big-img-a{float:right;cursor:pointer;margin-left:10px;}',
-    ].join(''));
-    GM_addStyle('#waterfall .item{ flex: '+100/columnNum+'%;}');
-
     function ajaxGet(url,fn) {
         let xhr=new XMLHttpRequest();
         xhr.open("GET",url);
@@ -45,25 +33,41 @@
             }
         }
     }
-    $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
-                     +'<div class="modal-dialog" style="width:60% !important;" role="document" id="magnettablediv" ></div>');
-    var select_tag= $( '<select class="form-control " style="margin-top: 8px;" id="inputGroupSelect01">'
-                      + ' <option value="1">1列</option>'
-                      + ' <option value="2">2列</option>'
-                      + ' <option value="3">3列</option>'
-                      + ' <option value="4">4列</option>'
-                      + ' <option value="5">5列</option>'
-                      + '  </select>');
-    let li_elem = document.createElement('li');
-    $(li_elem).append($(select_tag));
-    $(select_tag).find("option[value='"+columnNum+"']").attr("selected",true);
-    $(select_tag).change(function(){
-        GM_setValue('bigImg_columnNum', $(this).val());
-        GM_addStyle('#waterfall .item.item { flex: '+100/columnNum+'%;}');
-        window.location.reload();
-    });
 
-    $(".visible-md-block").closest(".dropdown").after($(li_elem));
+    function addTag(){
+        GM_addStyle([
+            '#waterfall {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
+            '#waterfall .item{position: relative !important;top: auto !important;left: auto !important;float: none;}',
+            '#waterfall .movie-box  {width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
+            '#waterfall .movie-box .photo-frame {width:auto !important;height:auto!important; flex-grow:1 !important;}',
+            '#waterfall .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
+            '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
+            '.big-img-a{float:right;cursor:pointer;margin-left:10px;}',
+        ].join(''));
+        GM_addStyle('#waterfall .item{ flex: '+100/columnNum+'%;}');
+
+        //添加bootstrap弹出框，用于显示磁力表格和视频截图，
+        $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
+                         +'<div class="modal-dialog" style="width:60% !important;" role="document" id="magnettablediv" ></div>');
+        //列数下拉框,
+        var select_tag= $( '<select class="form-control " style="margin-top: 8px;" id="inputGroupSelect01">'
+                          + ' <option value="1">1列</option>'
+                          + ' <option value="2">2列</option>'
+                          + ' <option value="3">3列</option>'
+                          + ' <option value="4">4列</option>'
+                          + ' <option value="5">5列</option>'
+                          + '  </select>');
+        let li_elem = document.createElement('li');
+        $(li_elem).append($(select_tag));
+        $(select_tag).find("option[value='"+columnNum+"']").attr("selected",true);
+        $(select_tag).change(function(){
+            GM_setValue('bigImg_columnNum', $(this).val());
+            GM_addStyle('#waterfall .item.item { flex: '+100/columnNum+'%;}');
+            window.location.reload();
+        });
+        $(".visible-md-block").closest(".dropdown").after($(li_elem));
+    }
+
 
     //设置点击标签
     function setTag(){
@@ -72,6 +76,7 @@
             return;
         }
         $("a[class='movie-box']").each(function(){
+            //替换封面为大图 Begin
             var photoDiv=$(this).children("div.photo-frame")[0];
             $(photoDiv).hide();
             var img = $(photoDiv).children("img")[0];
@@ -86,7 +91,7 @@
             $(photoDiv).append(bigimg);
             img.remove();
             $(photoDiv).show();
-
+            //替换封面为大图 end
             var infoDiv=$(this).children("div.photo-info")[0];
             var spanTag=$(infoDiv).find("span")[0];
             var AVIDDiv=$(infoDiv).find("date")[0];
@@ -112,10 +117,7 @@
         });
     }
 
-    window.bbimg =function (o){
-
-    }
-
+    //显示视频截图
     function showBigImg(avid,bigDivTag){
         var img_id=avid+IMG_SUFFIX;
         $('.pop-up-tag').hide();
@@ -126,7 +128,7 @@
             getAvImg(avid,bigDivTag);
         }
     }
-
+    //获取视频截图
     function getAvImg(avid,bigDivTag){
         bigDivTag.text('加载中..');
         //异步请求搜索blogjav.net的番号
@@ -166,12 +168,12 @@
                         }
                     });//end  GM_xmlhttpRequest
                 }else{
-                     bigDivTag.text('无大图');
+                    bigDivTag.text('无大图');
                 }
             }
         });//end  GM_xmlhttpRequest
     };
-
+    //显示磁力表格
     function showMagnetTable(avid,src){
         var table_id="#"+avid+MAGNET_SUFFIX;
         $('.pop-up-tag').hide();
@@ -182,7 +184,7 @@
             getMagnet(avid,src);
         }
     }
-
+    //ajax 获取磁力链接
     function getMagnet(avid,src){
         var url= 'https://www.javbus.com/'+avid;
         ajaxGet(url,function(responseText){
@@ -192,13 +194,31 @@
             ajaxGet(url,function(responseText){
                 var table_html=responseText.substring(0,responseText.indexOf('<script')).trim();
                 var table_tag=$('<table class="table pop-up-tag"  style="background-color:#FFFFFF" id="'+avid+MAGNET_SUFFIX+'"></table>');
-                table_tag.append(table_html);
+                var tbody_jq= $(table_html);
+                table_tag.append(tbody_jq);
                 $('#magnettablediv').append(table_tag);
-                $('#myModal').modal();
 
+                $('#'+avid+MAGNET_SUFFIX).find("tr").each(function(i){ // 遍历 tr
+                    var me=this;
+                    var copyButton = $('<button>复制</button>');
+                    var magent_url = $(me).find('a')[0].href;
+                    copyButton.click(function(){
+                        var btn=this;
+                        btn.innerHTML = '成功';
+                        GM_setClipboard(magent_url);
+                        setTimeout(function() {
+                            btn.innerHTML = '复制';
+                        }, 1000);
+                    });
+                    var td_tag=$('<td></td>');
+                    td_tag.append(copyButton);
+                    $(me).prepend(td_tag);
+                });
+                $('#myModal').modal();
             });
         });
     };
+    addTag();
     setTag();
     // Your code here...
 })();
