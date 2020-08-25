@@ -1,26 +1,27 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
-
 // @include      https://www.javbus.com/*
-// @exclude      https://www.javbus.com/actresses*
-
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_download
 // @grant        GM_setClipboard
-// @grant        GM_notification
 // @connect *
+
+// 2020-08-26 添加瀑布流
+// 2020-08-24 第一版：封面大图、下载封面、查看视频截图
 // ==/UserScript==
 
 (function() {
     'use strict';
 
+    // 瀑布流状态：1：开启、0：关闭
+    let waterfallScrollStatus = GM_getValue('scroll_status', 1);
     let columnNum = GM_getValue('bigImg_columnNum', 3);
     let IMG_SUFFIX="-bigimg-tag";
     let MAGNET_SUFFIX="-magnet-tag";
@@ -35,18 +36,17 @@
         }
     }
 
-    function addTag(){
+    function addStyle(){
         GM_addStyle([
-            '#waterfall {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
-            '#waterfall .item{position: relative !important;top: auto !important;left: auto !important;float: none;}',
-            '#waterfall .movie-box  {width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
-            '#waterfall .movie-box .photo-frame {width:auto !important;height:auto!important; flex-grow:1 !important;}',
-            '#waterfall .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
+            '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
+            '#waterfall_h .item{position: relative !important;top: auto !important;left: auto !important;float: none;}',
+            '#waterfall_h .movie-box  {width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
+            '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; flex-grow:1 !important;}',
+            '#waterfall_h .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
             '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
             '.big-img-a{float:right;cursor:pointer;margin-left:10px;}',
         ].join(''));
-        GM_addStyle('#waterfall .item{ flex: '+100/columnNum+'%;}');
-
+        GM_addStyle('#waterfall_h .item{ flex: '+100/columnNum+'%;}');
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
         $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
                          +'<div class="modal-dialog" style="width:60% !important;" role="document" id="magnettablediv" ></div>');
@@ -58,64 +58,59 @@
                           + ' <option value="4">4列</option>'
                           + ' <option value="5">5列</option>'
                           + '  </select>');
-        let li_elem = document.createElement('li');
-        $(li_elem).append($(select_tag));
         $(select_tag).find("option[value='"+columnNum+"']").attr("selected",true);
         $(select_tag).change(function(){
             GM_setValue('bigImg_columnNum', $(this).val());
             GM_addStyle('#waterfall .item.item { flex: '+100/columnNum+'%;}');
             window.location.reload();
         });
-        $(".visible-md-block").closest(".dropdown").after($(li_elem));
+        let li_elem = document.createElement('li');
+        $(li_elem).append($(select_tag));
+        $("#navbar ul.nav").first().append($(li_elem));
     }
 
 
     //设置点击标签
-    function setTag(){
-        //判断是否有瀑布流
-        if(!$('#waterfall').length){
-            return;
+    function setTag(tag){
+        //替换封面为大图 Begin
+        var photoDiv=$(tag).find("div.photo-frame")[0];
+        $(photoDiv).hide();
+        var img = $(photoDiv).children("img")[0];
+        var src= img.src;
+        if(src.match(/pics.dmm.co.jp/)){
+            src=src.replace(/ps.jpg/,"pl.jpg");
+        }else {
+            src=src.replace(/thumbs/,"cover").replace(/thumb/,"cover").replace(/.jpg/,"_b.jpg");
         }
-        $("a[class='movie-box']").each(function(){
-            //替换封面为大图 Begin
-            var photoDiv=$(this).children("div.photo-frame")[0];
-            $(photoDiv).hide();
-            var img = $(photoDiv).children("img")[0];
-            var src= img.src;
-            if(src.match(/pics.dmm.co.jp/)){
-                src=src.replace(/ps.jpg/,"pl.jpg");
-            }else {
-                src=src.replace(/thumbs/,"cover").replace(/thumb/,"cover").replace(/.jpg/,"_b.jpg");
-            }
-            var bigimg= new Image();
-            bigimg.src=src;
-            $(photoDiv).append(bigimg);
-            img.remove();
-            $(photoDiv).show();
-            //替换封面为大图 end
-            var infoDiv=$(this).children("div.photo-info")[0];
-            var spanTag=$(infoDiv).find("span")[0];
-            var AVIDDiv=$(infoDiv).find("date")[0];
-            var AVID=$(AVIDDiv).text();
+        var bigimg= new Image();
+        bigimg.src=src;
+        $(photoDiv).append(bigimg);
+        img.remove();
+        $(photoDiv).show();
+        //替换封面为大图 end
+        var infoDiv=$(tag).find("div.photo-info")[0];
+        var spanTag=$(infoDiv).find("span")[0];
+        var AVIDDiv=$(infoDiv).find("date")[0];
+        var AVID=$(AVIDDiv).text();
 
-            var bigDivTag=$('<a href="javascript:;" class="big-img-a" >视频截图</a>');
-            var downloadDiv=$('<a href="javascript:;" class="big-img-a" >下载封面</a>');
-            var magnetDivTag=$('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
-            $(spanTag).append(bigDivTag);
-            $(spanTag).append(downloadDiv);
-            $(spanTag).append(magnetDivTag);
-            bigDivTag.click(function(){
-                if(bigDivTag.text()=="视频截图"){
-                    showBigImg(AVID,bigDivTag);
-                }
-            });
-            downloadDiv.click(function(){
-                GM_download(src,AVID+".jpg");
-            });
-            magnetDivTag.click(function(){
-                showMagnetTable(AVID,src);
-            });
+        var bigDivTag=$('<a href="javascript:;" class="big-img-a" >视频截图</a>');
+        var downloadDiv=$('<a href="javascript:;" class="big-img-a" >下载封面</a>');
+        var magnetDivTag=$('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
+        $(spanTag).append(bigDivTag);
+        $(spanTag).append(downloadDiv);
+        $(spanTag).append(magnetDivTag);
+        bigDivTag.click(function(){
+            if(bigDivTag.text()=="视频截图"){
+                showBigImg(AVID,bigDivTag);
+            }
         });
+        downloadDiv.click(function(){
+            GM_download(src,AVID+".jpg");
+        });
+        magnetDivTag.click(function(){
+            showMagnetTable(AVID,src);
+        });
+
     }
 
     //显示视频截图
@@ -233,48 +228,26 @@
     }
 
     function waterfallScrollInit() {
-        var w = new waterfall({});
-
-        // javbus.com、avmo.pw、avso.pw
         var $pages = $('div#waterfall div.item');
         if ($pages.length) {
-            w = new waterfall({
-                next: 'a#next',
-                item: 'div#waterfall div.item',
-                cont: '.masonry',
-                pagi: '.pagination-lg',
-            });
+            if(!location.pathname.includes('/actresses')){
+                GM_addStyle('#waterfall_h .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}');
+                $('#waterfall')[0].id="waterfall_h";
+                addStyle();
+            }
+            waterfallButton();
+            var w = new waterfall({});
         }
-        w.setSecondCallback(function (cont, elems) {
-            if (location.pathname.includes('/star/') && elems) {
-                cont.append(elems.slice(1));
-            } else {
-                cont.append(elems);
-            }
-        });
-        w.setFourthCallback(function (elems) { // todo 20190404
-            if(((/(JavBus|AVMOO|AVSOX)/g).test(document.title) || $("footer:contains('JavBus')").length) && elems) {
-                if(!location.pathname.includes('/actresses')){//排除actresses页面
-                    for (let i = 0; i < elems.length; i++) {
-                        if($(elems[i]).find("div.avatar-box").length > 0) continue;
-                        let spanEle = $(elems[i]).find("div.photo-info span")[0];
-                    }
-                }
-            }
-        });
-
 
     };
-
-
     function waterfall(selectorcfg = {}){
         this.lock = new Lock();
         this.baseURI = this.getBaseURI();
         this.selector = {
-            next: 'a.next',
-            item: '',
-            cont: '#waterfall', //container
-            pagi: '.pagination',
+            next: 'a#next',
+            item: 'div#waterfall div.item',
+            cont: '.masonry',
+            pagi: '.pagination-lg',
         };
         Object.assign(this.selector, selectorcfg);
         this.pagegen = this.fetchSync(location.href);
@@ -284,16 +257,31 @@
             cont.empty().append(elems);
         };
         this._2func = function (cont, elems) {
-            cont.append(elems);
+            if (location.pathname.includes('/star/') && elems) {
+                cont.append(elems.slice(1));
+            } else {
+                cont.append(elems);
+            }
         };
+        this._3func = function ( elems) {
+            if(!location.pathname.includes('/actresses')){//排除actresses页面
+                for (let i = 0; i < elems.length; i++) {
+                    if($(elems[i]).find("div.avatar-box").length > 0) continue;
+                    setTag(elems[i]);
+                }
+            }
+        };
+
 
         if ($(this.selector.item).length) {
             // 开启关闭瀑布流判断
-            document.addEventListener('scroll', this.scroll.bind(this));
-            document.addEventListener('wheel', this.wheel.bind(this));
-
+            if(waterfallScrollStatus > 0) {
+                document.addEventListener('scroll', this.scroll.bind(this));
+                document.addEventListener('wheel', this.wheel.bind(this));
+            }
             this.appendElems(this._1func);
         }
+
     }
 
 
@@ -316,7 +304,6 @@
             let $doc = $(doc);
             let href = $doc.find(this.selector.next).attr('href');
             let nextURL = href ? this.getNextURL(href) : undefined;
-            debugger
             let elems = $doc.find(this.selector.item);
             return {
                 nextURL,
@@ -347,25 +334,19 @@
                 return elems;
             }).catch((err) => {
                 // Locked!
-            }
-                    )
-            ;
+            });
         } while (url);
     };
     // 瀑布流脚本
     waterfall.prototype.appendElems = function () {
-        debugger
         let nextpage = this.pagegen.next();
         if (!nextpage.done) {
             nextpage.value.then(elems => {
-                debugger
                 const cb = (this._count === 0) ? this._1func : this._2func;
                 cb($(this.selector.cont), elems);
                 this._count += 1;
-                // hobby mod script
-                this._4func(elems);
-            })
-            ;
+                this._3func(elems);
+            }) ;
         }
         return nextpage.done;
     };
@@ -389,19 +370,23 @@
             this.end();
         }
     };
-    waterfall.prototype.setFirstCallback = function (f) {
-        this._1func = f;
-    };
-    waterfall.prototype.setSecondCallback = function (f) {
-        this._2func = f;
-    };
 
-    waterfall.prototype.setFourthCallback = function (f) {
-        this._4func = f;
-    };
-
-
+    function waterfallButton() {
+        // 瀑布流ui按钮
+        var checkbox = $('<label style="margin-top:8px" >瀑布流<input  name="status" type="checkbox"  /></label>');
+        checkbox.checked=waterfallScrollStatus > 0?true:false;
+        checkbox.click(function () {
+            if ($(this).find("input")[0].checked==true) {
+                 GM_setValue('scroll_status', 1);
+            } else {
+                 GM_setValue('scroll_status', 0);
+            }
+            window.location.reload();
+        });
+        let li_elem = document.createElement('li');
+        $(li_elem).append(checkbox);
+        $("#navbar ul.nav").first().append($(li_elem));
+    }
     waterfallScrollInit();
-
     // Your code here...
 })();
