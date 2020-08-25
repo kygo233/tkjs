@@ -21,7 +21,7 @@
     'use strict';
 
     // 瀑布流状态：1：开启、0：关闭
-    let waterfallScrollStatus = GM_getValue('scroll_status', 1);
+    let waterfallScrollStatus = GM_getValue('scroll_status', 0);
     let columnNum = GM_getValue('bigImg_columnNum', 3);
     let IMG_SUFFIX="-bigimg-tag";
     let MAGNET_SUFFIX="-magnet-tag";
@@ -38,15 +38,15 @@
 
     function addStyle(){
         GM_addStyle([
-            '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
-            '#waterfall_h .item{position: relative !important;top: auto !important;left: auto !important;float: none;}',
+            '#waterfall_h {width: initial !important;height: initial !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
+            '#waterfall_h .item{position: relative !important;top: auto !important;left: auto !important;}',
             '#waterfall_h .movie-box  {width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
-            '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; flex-grow:1 !important;}',
+            '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; }',
             '#waterfall_h .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
             '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
             '.big-img-a{float:right;cursor:pointer;margin-left:10px;}',
         ].join(''));
-        GM_addStyle('#waterfall_h .item{ flex: '+100/columnNum+'%;}');
+        GM_addStyle('#waterfall_h .item{ width: '+100/columnNum+'%;}');
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
         $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
                          +'<div class="modal-dialog" style="width:60% !important;" role="document" id="magnettablediv" ></div>');
@@ -278,6 +278,7 @@
             if(waterfallScrollStatus > 0) {
                 document.addEventListener('scroll', this.scroll.bind(this));
                 document.addEventListener('wheel', this.wheel.bind(this));
+
             }
             this.appendElems(this._1func);
         }
@@ -339,6 +340,7 @@
     };
     // 瀑布流脚本
     waterfall.prototype.appendElems = function () {
+
         let nextpage = this.pagegen.next();
         if (!nextpage.done) {
             nextpage.value.then(elems => {
@@ -372,9 +374,8 @@
     };
 
     function waterfallButton() {
-        // 瀑布流ui按钮
-        var checkbox = $('<label style="margin-top:8px" >瀑布流<input  name="status" type="checkbox"  /></label>');
-        checkbox.checked=waterfallScrollStatus > 0?true:false;
+        var checkbox = $('<a href="javascript:;" >瀑布流<input  type="checkbox"  /></a>');
+        checkbox.find("input")[0].checked=waterfallScrollStatus > 0?true:false;
         checkbox.click(function () {
             if ($(this).find("input")[0].checked==true) {
                  GM_setValue('scroll_status', 1);
