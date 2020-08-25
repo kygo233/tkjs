@@ -20,6 +20,7 @@
 
 (function() {
     'use strict';
+
     let columnNum = GM_getValue('bigImg_columnNum', 3);
     let IMG_SUFFIX="-bigimg-tag";
     let MAGNET_SUFFIX="-magnet-tag";
@@ -218,7 +219,189 @@
             });
         });
     };
-    addTag();
-    setTag();
+
+    class Lock {
+        constructor(d = false) {
+            this.locked = d;
+        }
+        lock() {
+            this.locked = true;
+        }
+        unlock() {
+            this.locked = false;
+        }
+    }
+
+    function waterfallScrollInit() {
+        var w = new waterfall({});
+
+        // javbus.com、avmo.pw、avso.pw
+        var $pages = $('div#waterfall div.item');
+        if ($pages.length) {
+            w = new waterfall({
+                next: 'a#next',
+                item: 'div#waterfall div.item',
+                cont: '.masonry',
+                pagi: '.pagination-lg',
+            });
+        }
+        w.setSecondCallback(function (cont, elems) {
+            if (location.pathname.includes('/star/') && elems) {
+                cont.append(elems.slice(1));
+            } else {
+                cont.append(elems);
+            }
+        });
+        w.setFourthCallback(function (elems) { // todo 20190404
+            if(((/(JavBus|AVMOO|AVSOX)/g).test(document.title) || $("footer:contains('JavBus')").length) && elems) {
+                if(!location.pathname.includes('/actresses')){//排除actresses页面
+                    for (let i = 0; i < elems.length; i++) {
+                        if($(elems[i]).find("div.avatar-box").length > 0) continue;
+                        let spanEle = $(elems[i]).find("div.photo-info span")[0];
+                    }
+                }
+            }
+        });
+
+
+    };
+
+
+    function waterfall(selectorcfg = {}){
+        this.lock = new Lock();
+        this.baseURI = this.getBaseURI();
+        this.selector = {
+            next: 'a.next',
+            item: '',
+            cont: '#waterfall', //container
+            pagi: '.pagination',
+        };
+        Object.assign(this.selector, selectorcfg);
+        this.pagegen = this.fetchSync(location.href);
+        this.anchor = $(this.selector.pagi)[0];
+        this._count = 0;
+        this._1func = function (cont, elems) {
+            cont.empty().append(elems);
+        };
+        this._2func = function (cont, elems) {
+            cont.append(elems);
+        };
+
+        if ($(this.selector.item).length) {
+            // 开启关闭瀑布流判断
+            document.addEventListener('scroll', this.scroll.bind(this));
+            document.addEventListener('wheel', this.wheel.bind(this));
+
+            this.appendElems(this._1func);
+        }
+    }
+
+
+    waterfall.prototype.getBaseURI = function () {
+        let _ = location;
+        return `${_.protocol}//${_.hostname}${(_.port && `:${_.port}`)}`;
+    };
+    waterfall.prototype.getNextURL = function (href) {
+        let a = document.createElement('a');
+        a.href = href;
+        return `${this.baseURI}${a.pathname}${a.search}`;
+    };
+    // 瀑布流脚本
+    waterfall.prototype.fetchURL = function (url) {
+        console.log(`fetchUrl = ${url}`);
+        const fetchwithcookie = fetch(url, {credentials: 'same-origin'});
+        return fetchwithcookie.then(response => response.text())
+            .then(html => new DOMParser().parseFromString(html, 'text/html'))
+            .then(doc => {
+            let $doc = $(doc);
+            let href = $doc.find(this.selector.next).attr('href');
+            let nextURL = href ? this.getNextURL(href) : undefined;
+            debugger
+            let elems = $doc.find(this.selector.item);
+            return {
+                nextURL,
+                elems
+            };
+        });
+    };
+    // 瀑布流脚本
+    waterfall.prototype.fetchSync = function* (urli) {
+        let url = urli;
+        do {
+            yield new Promise((resolve, reject) => {
+                if (this.lock.locked) {
+                    reject();
+                }
+                else {
+                    this.lock.lock();
+                    resolve();
+                }
+            }).then(() => {
+                return this.fetchURL(url).then(info => {
+                    url = info.nextURL;
+                    return info.elems;
+                })
+                ;
+            }).then(elems => {
+                this.lock.unlock();
+                return elems;
+            }).catch((err) => {
+                // Locked!
+            }
+                    )
+            ;
+        } while (url);
+    };
+    // 瀑布流脚本
+    waterfall.prototype.appendElems = function () {
+        debugger
+        let nextpage = this.pagegen.next();
+        if (!nextpage.done) {
+            nextpage.value.then(elems => {
+                debugger
+                const cb = (this._count === 0) ? this._1func : this._2func;
+                cb($(this.selector.cont), elems);
+                this._count += 1;
+                // hobby mod script
+                this._4func(elems);
+            })
+            ;
+        }
+        return nextpage.done;
+    };
+    // 瀑布流脚本
+    waterfall.prototype.end = function () {
+        document.removeEventListener('scroll', this.scroll.bind(this));
+        document.removeEventListener('wheel', this.wheel.bind(this));
+        let $end = $(`<h1>The End</h1>`);
+        $(this.anchor).replaceWith($end);
+    };
+    waterfall.prototype.reachBottom = function (elem, limit) {
+        return (elem.getBoundingClientRect().top - $(window).height()) < limit;
+    };
+    waterfall.prototype.scroll = function () {
+        if (this.reachBottom(this.anchor, 500) && this.appendElems(this._2func)) {
+            this.end();
+        }
+    };
+    waterfall.prototype.wheel = function () {
+        if (this.reachBottom(this.anchor, 1000) && this.appendElems(this._2func)) {
+            this.end();
+        }
+    };
+    waterfall.prototype.setFirstCallback = function (f) {
+        this._1func = f;
+    };
+    waterfall.prototype.setSecondCallback = function (f) {
+        this._2func = f;
+    };
+
+    waterfall.prototype.setFourthCallback = function (f) {
+        this._4func = f;
+    };
+
+
+    waterfallScrollInit();
+
     // Your code here...
 })();
