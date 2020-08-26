@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 // @include      https://www.javbus.com/*
@@ -12,7 +12,7 @@
 // @grant        GM_download
 // @grant        GM_setClipboard
 // @connect *
-
+// 2020-08-26 修复查询结果为1个时，item宽度为100%的问题
 // 2020-08-26 添加瀑布流
 // 2020-08-24 第一版：封面大图、下载封面、查看视频截图
 // ==/UserScript==
@@ -38,7 +38,7 @@
 
     function addStyle(){
         GM_addStyle([
-            '#waterfall_h {width: initial !important;height: initial !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
+            '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
             '#waterfall_h .item{position: relative !important;top: auto !important;left: auto !important;}',
             '#waterfall_h .movie-box  {width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
             '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; }',
