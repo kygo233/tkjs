@@ -19,7 +19,6 @@
 
 (function() {
     'use strict';
-
     // 瀑布流状态：1：开启、0：关闭
     let waterfallScrollStatus = GM_getValue('scroll_status', 0);
     let columnNum = GM_getValue('bigImg_columnNum', 3);
@@ -35,12 +34,11 @@
             }
         }
     }
-
     function addStyle(){
         GM_addStyle([
             '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
             '#waterfall_h .item{position: relative !important;top: auto !important;left: auto !important;}',
-            '#waterfall_h .movie-box  {width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
+            '#waterfall_h .movie-box  {margin:6px!important;width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
             '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; }',
             '#waterfall_h .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
             '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
@@ -229,7 +227,7 @@
 
     function waterfallScrollInit() {
         var $pages = $('div#waterfall div.item');
-        if ($pages.length) {
+        if ($pages .length) {
             if(!location.pathname.includes('/actresses')){
                 GM_addStyle('#waterfall_h .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}');
                 $('#waterfall')[0].id="waterfall_h";
@@ -237,8 +235,8 @@
             }
             waterfallButton();
             var w = new waterfall({});
-        }
 
+        }
     };
     function waterfall(selectorcfg = {}){
         this.lock = new Lock();
@@ -253,9 +251,6 @@
         this.pagegen = this.fetchSync(location.href);
         this.anchor = $(this.selector.pagi)[0];
         this._count = 0;
-        this._1func = function (cont, elems) {
-            cont.empty().append(elems);
-        };
         this._2func = function (cont, elems) {
             if (location.pathname.includes('/star/') && elems) {
                 cont.append(elems.slice(1));
@@ -271,21 +266,15 @@
                 }
             }
         };
-
-
         if ($(this.selector.item).length) {
             // 开启关闭瀑布流判断
             if(waterfallScrollStatus > 0) {
                 document.addEventListener('scroll', this.scroll.bind(this));
                 document.addEventListener('wheel', this.wheel.bind(this));
-
             }
-            this.appendElems(this._1func);
+            this.appendElems();
         }
-
     }
-
-
     waterfall.prototype.getBaseURI = function () {
         let _ = location;
         return `${_.protocol}//${_.hostname}${(_.port && `:${_.port}`)}`;
@@ -340,17 +329,21 @@
     };
     // 瀑布流脚本
     waterfall.prototype.appendElems = function () {
-
-        let nextpage = this.pagegen.next();
-        if (!nextpage.done) {
-            nextpage.value.then(elems => {
-                const cb = (this._count === 0) ? this._1func : this._2func;
-                cb($(this.selector.cont), elems);
-                this._count += 1;
-                this._3func(elems);
-            }) ;
+        if(this._count === 0){
+             var elems=$('div#waterfall_h div.item');
+             $(this.selector.cont).empty().append(elems);
+             this._count += 1;
+             this._3func(elems);
+        }else{
+            let nextpage = this.pagegen.next();
+            if (!nextpage.done) {
+                nextpage.value.then(elems => {
+                    this._2func($(this.selector.cont), elems);
+                    this._count += 1;
+                    this._3func(elems);
+                }) ;
+            }
         }
-        return nextpage.done;
     };
     // 瀑布流脚本
     waterfall.prototype.end = function () {
@@ -378,9 +371,9 @@
         checkbox.find("input")[0].checked=waterfallScrollStatus > 0?true:false;
         checkbox.click(function () {
             if ($(this).find("input")[0].checked==true) {
-                 GM_setValue('scroll_status', 1);
+                GM_setValue('scroll_status', 1);
             } else {
-                 GM_setValue('scroll_status', 0);
+                GM_setValue('scroll_status', 0);
             }
             window.location.reload();
         });
