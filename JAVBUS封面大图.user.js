@@ -1,10 +1,13 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
-// @include      https://www.javbus.com/*
+// @include      https://*.javbus.*/*
+// @include      https://*.busfan.*/*
+// @include      https://*.fanbus.*/*
+
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -12,6 +15,8 @@
 // @grant        GM_download
 // @grant        GM_setClipboard
 // @connect *
+// 2020-09-20 收藏界面的适配
+// 2020-08-27 适配更多界面
 // 2020-08-26 修复查询结果为1个时，item宽度为100%的问题
 // 2020-08-26 添加瀑布流
 // 2020-08-24 第一版：封面大图、下载封面、查看视频截图
@@ -36,26 +41,23 @@
     }
     function addStyle(){
         GM_addStyle([
-            '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;}',
+            '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
             '#waterfall_h .item{position: relative !important;top: auto !important;left: auto !important;}',
-            '#waterfall_h .movie-box  {margin:6px!important;width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
+            '#waterfall_h .movie-box  {margin:5px !important; width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
+            '#waterfall_h .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}',
             '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; }',
             '#waterfall_h .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
             '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
-            '.big-img-a{float:right;cursor:pointer;margin-left:10px;}',
+            '.big-img-a{float:right;cursor:pointer !important;margin-left:5px;}',
         ].join(''));
         GM_addStyle('#waterfall_h .item{ width: '+100/columnNum+'%;}');
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
         $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
-                         +'<div class="modal-dialog" style="width:60% !important;" role="document" id="magnettablediv" ></div>');
+                         +'<div class="modal-dialog" style="width:70% !important;" id="magnettablediv" ></div>');
         //列数下拉框,
-        var select_tag= $( '<select class="form-control " style="margin-top: 8px;" id="inputGroupSelect01">'
-                          + ' <option value="1">1列</option>'
-                          + ' <option value="2">2列</option>'
-                          + ' <option value="3">3列</option>'
-                          + ' <option value="4">4列</option>'
-                          + ' <option value="5">5列</option>'
-                          + '  </select>');
+        var select_tag= $( '<select class="form-control" style="margin-top: 8px;padding:0;" id="inputGroupSelect01">'
+                          + ' <option value="1">1列</option><option value="2">2列</option><option value="3">3列</option>'
+                          + ' <option value="4">4列</option><option value="5">5列</option></select>');
         $(select_tag).find("option[value='"+columnNum+"']").attr("selected",true);
         $(select_tag).change(function(){
             GM_setValue('bigImg_columnNum', $(this).val());
@@ -66,8 +68,6 @@
         $(li_elem).append($(select_tag));
         $("#navbar ul.nav").first().append($(li_elem));
     }
-
-
     //设置点击标签
     function setTag(tag){
         //替换封面为大图 Begin
@@ -97,22 +97,14 @@
         $(spanTag).append(bigDivTag);
         $(spanTag).append(downloadDiv);
         $(spanTag).append(magnetDivTag);
-        bigDivTag.click(function(){
-            if(bigDivTag.text()=="视频截图"){
-                showBigImg(AVID,bigDivTag);
-            }
-        });
-        downloadDiv.click(function(){
-            GM_download(src,AVID+".jpg");
-        });
-        magnetDivTag.click(function(){
-            showMagnetTable(AVID,src);
-        });
-
+        bigDivTag.click(function(){showBigImg(AVID,bigDivTag);});
+        downloadDiv.click(function(){GM_download(src,AVID+".jpg");});
+        magnetDivTag.click(function(){ showMagnetTable(AVID,src);});
     }
 
     //显示视频截图
     function showBigImg(avid,bigDivTag){
+        if(bigDivTag.text()!="视频截图"){return;}
         var img_id=avid+IMG_SUFFIX;
         $('.pop-up-tag').hide();
         if($("#"+img_id).length>0){
@@ -125,11 +117,15 @@
     //获取视频截图
     function getAvImg(avid,bigDivTag){
         bigDivTag.text('加载中..');
-        //异步请求搜索blogjav.net的番号
+
         GM_xmlhttpRequest({
             method: "GET",
             url: 'http://blogjav.net/?s='+avid,
             onload: function(result) {
+                if(result.status!==200)
+                { alert('blogjav.net此网站暂时无法响应');
+                 bigDivTag.text('视频截图');
+                 return;}
                 var doc = result.responseText;
                 let a_array = $(doc).find(".more-link");
                 let imgUrl;
@@ -152,7 +148,7 @@
                             {
                                 var src = $(img_src_arr[0]).attr("src").replace('thumbs','images').replace('//t','//img').replace('"','');
                                 console.log(src);
-                                var img_tag=$('<img class="pop-up-tag  carousel-inner"   id="'+avid+IMG_SUFFIX+'"    src="'+src+'" />');
+                                var img_tag=$('<img class="pop-up-tag   carousel-inner"   id="'+avid+IMG_SUFFIX+'"    src="'+src+'" />');
                                 $('#magnettablediv').append(img_tag);
                                 $('#myModal').modal();
                             }else{
@@ -180,62 +176,71 @@
     }
     //ajax 获取磁力链接
     function getMagnet(avid,src){
-        var url= 'https://www.javbus.com/'+avid;
+        var basehref=`${location.protocol}//${location.hostname}/`;
+        avid=avid.replace(/\./g,'-');
+        var url= basehref+avid;
+        //有码和欧美 0  无码 1
+        var uc_code=location.pathname.search(/uncensored/) < 1?0:1;
         ajaxGet(url,function(responseText){
             var str=/var\s+gid\s+=\s+(\d{1,})/.exec(responseText);
             var gid=str[1];
-            url= 'https://www.javbus.com/ajax/uncledatoolsbyajax.php?gid='+gid+'&lang=zh&img='+src+'&uc=0&floor='+Math.floor(Math.random() * 1e3 + 1);
+            url= basehref+ 'ajax/uncledatoolsbyajax.php?gid='+gid+'&lang=zh&img='+src+'&uc='+uc_code+'&floor='+Math.floor(Math.random() * 1e3 + 1);
             ajaxGet(url,function(responseText){
                 var table_html=responseText.substring(0,responseText.indexOf('<script')).trim();
                 var table_tag=$('<table class="table pop-up-tag"  style="background-color:#FFFFFF" id="'+avid+MAGNET_SUFFIX+'"></table>');
                 var tbody_jq= $(table_html);
                 table_tag.append(tbody_jq);
                 $('#magnettablediv').append(table_tag);
-
                 $('#'+avid+MAGNET_SUFFIX).find("tr").each(function(i){ // 遍历 tr
                     var me=this;
-                    var copyButton = $('<button>复制</button>');
+                    if($(me).find('a').length==0){ return true;}
                     var magent_url = $(me).find('a')[0].href;
-                    copyButton.click(function(){
-                        var btn=this;
-                        btn.innerHTML = '成功';
-                        GM_setClipboard(magent_url);
-                        setTimeout(function() {
-                            btn.innerHTML = '复制';
-                        }, 1000);
-                    });
-                    var td_tag=$('<td></td>');
-                    td_tag.append(copyButton);
-                    $(me).prepend(td_tag);
+                    addCopybutton(me,magent_url);
                 });
                 $('#myModal').modal();
             });
         });
     };
-
+    function addCopybutton(tag,text){
+        var copyButton = $('<button>复制</button>');
+        copyButton.click(function(){
+            var btn=this;
+            btn.innerHTML = '成功';
+            GM_setClipboard(text);
+            setTimeout(function() {
+                btn.innerHTML = '复制';
+            }, 1000);
+        });
+        var td_tag=$('<td></td>');
+        td_tag.append(copyButton);
+        $(tag).prepend(td_tag);
+    }
     class Lock {
-        constructor(d = false) {
-            this.locked = d;
-        }
-        lock() {
-            this.locked = true;
-        }
-        unlock() {
-            this.locked = false;
-        }
+        constructor(d = false) { this.locked = d; }
+        lock() { this.locked = true;}
+        unlock() { this.locked = false; }
     }
 
     function waterfallScrollInit() {
-        var $pages = $('div#waterfall div.item');
-        if ($pages .length) {
-            if(!location.pathname.includes('/actresses')){
-                GM_addStyle('#waterfall_h .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}');
-                $('#waterfall')[0].id="waterfall_h";
-                addStyle();
-            }
-            waterfallButton();
-            var w = new waterfall({});
 
+        if ($('div#waterfall div.item').length) {
+            if(!location.pathname.includes('/actresses') && !location.pathname.includes('mdl=favor&sort=4')){
+                $('#waterfall')[0].id="waterfall_h";
+            }
+            addStyle();
+            waterfallButton();
+            if(waterfallScrollStatus > 0) {
+                var w = new waterfall({});
+            }else{
+                var elems = $('div#waterfall_h div.item');
+                if(!elems.length){return;};
+                $('.masonry').empty().append(elems);
+                for (let i = 0; i < elems.length; i++) {
+                    if($(elems[i]).find(".avatar-box").length > 0) continue;
+                    setTag(elems[i]);
+                }
+
+            }
         }
     };
     function waterfall(selectorcfg = {}){
@@ -251,6 +256,9 @@
         this.pagegen = this.fetchSync(location.href);
         this.anchor = $(this.selector.pagi)[0];
         this._count = 0;
+        this._1func = function (cont, elems) {
+            cont.empty().append(elems);
+        };
         this._2func = function (cont, elems) {
             if (location.pathname.includes('/star/') && elems) {
                 cont.append(elems.slice(1));
@@ -259,20 +267,17 @@
             }
         };
         this._3func = function ( elems) {
-            if(!location.pathname.includes('/actresses')){//排除actresses页面
+            if(!location.pathname.includes('/actresses') && elems){//排除actresses页面
                 for (let i = 0; i < elems.length; i++) {
-                    if($(elems[i]).find("div.avatar-box").length > 0) continue;
+                    if($(elems[i]).find(".avatar-box").length > 0) continue;
                     setTag(elems[i]);
                 }
             }
         };
-        if ($(this.selector.item).length) {
-            // 开启关闭瀑布流判断
-            if(waterfallScrollStatus > 0) {
-                document.addEventListener('scroll', this.scroll.bind(this));
-                document.addEventListener('wheel', this.wheel.bind(this));
-            }
-            this.appendElems();
+        if ($('div#waterfall_h div.item').length>0 || $('div#waterfall div.item').length>0) {
+            document.addEventListener('scroll', this.scroll.bind(this));
+            document.addEventListener('wheel', this.wheel.bind(this));
+            this.appendElems(this._1func);
         }
     }
     waterfall.prototype.getBaseURI = function () {
@@ -304,46 +309,32 @@
     // 瀑布流脚本
     waterfall.prototype.fetchSync = function* (urli) {
         let url = urli;
-        do {
-            yield new Promise((resolve, reject) => {
-                if (this.lock.locked) {
-                    reject();
-                }
-                else {
-                    this.lock.lock();
-                    resolve();
-                }
-            }).then(() => {
-                return this.fetchURL(url).then(info => {
-                    url = info.nextURL;
-                    return info.elems;
-                })
-                ;
-            }).then(elems => {
-                this.lock.unlock();
-                return elems;
-            }).catch((err) => {
-                // Locked!
+        do { yield new Promise((resolve, reject) => {
+            if (this.lock.locked) { reject(); }
+            else {this.lock.lock();resolve(); }
+        }).then(() => {
+            return this.fetchURL(url).then(info => {
+                url = info.nextURL;
+                return info.elems;
             });
-        } while (url);
+        }).then(elems => {
+            this.lock.unlock();
+            return elems;
+        }).catch((err) => { });
+           } while (url);
     };
     // 瀑布流脚本
     waterfall.prototype.appendElems = function () {
-        if(this._count === 0){
-             var elems=$('div#waterfall_h div.item');
-             $(this.selector.cont).empty().append(elems);
-             this._count += 1;
-             this._3func(elems);
-        }else{
-            let nextpage = this.pagegen.next();
-            if (!nextpage.done) {
-                nextpage.value.then(elems => {
-                    this._2func($(this.selector.cont), elems);
-                    this._count += 1;
-                    this._3func(elems);
-                }) ;
-            }
+        let nextpage = this.pagegen.next();
+        if (!nextpage.done) {
+            nextpage.value.then(elems => {
+                const cb = (this._count === 0) ? this._1func : this._2func;
+                cb($(this.selector.cont), elems);
+                this._count += 1;
+                this._3func(elems);
+            }) ;
         }
+        return nextpage.done;
     };
     // 瀑布流脚本
     waterfall.prototype.end = function () {
@@ -365,16 +356,11 @@
             this.end();
         }
     };
-
     function waterfallButton() {
-        var checkbox = $('<a href="javascript:;" >瀑布流<input  type="checkbox"  /></a>');
+        var checkbox = $('<div style="padding-top:15px;padding-left:10px;"><label for="pbl_input" >瀑布流</label><input  type="checkbox" id="pbl_input" /></div>');
         checkbox.find("input")[0].checked=waterfallScrollStatus > 0?true:false;
         checkbox.click(function () {
-            if ($(this).find("input")[0].checked==true) {
-                GM_setValue('scroll_status', 1);
-            } else {
-                GM_setValue('scroll_status', 0);
-            }
+            ($(this).find("input")[0].checked==true)?GM_setValue('scroll_status', 1): GM_setValue('scroll_status', 0);
             window.location.reload();
         });
         let li_elem = document.createElement('li');
