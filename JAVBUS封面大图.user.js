@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 // @include      https://*.javbus.*/*
@@ -15,6 +15,8 @@
 // @grant        GM_download
 // @grant        GM_setClipboard
 // @connect *
+
+// 2020-10-13 收藏界面只匹配影片；下载图片文件名添加标题；新增复制番号、标题功能；视频截图文件下载；增加样式开关
 // 2020-09-20 收藏界面的适配
 // 2020-08-27 适配更多界面
 // 2020-08-26 修复查询结果为1个时，item宽度为100%的问题
@@ -25,7 +27,11 @@
 (function() {
     'use strict';
     // 瀑布流状态：1：开启、0：关闭
-    let waterfallScrollStatus = GM_getValue('scroll_status', 0);
+    let waterfallScrollStatus = GM_getValue('waterfall_status', 0);
+    let copyBtnStatus = GM_getValue('copyBtn_status', 1);
+    let aTagStatus = GM_getValue('aTag_status', 1);
+    let itemTagStatus = GM_getValue('itemTag_status', 1);
+
     let columnNum = GM_getValue('bigImg_columnNum', 3);
     let IMG_SUFFIX="-bigimg-tag";
     let MAGNET_SUFFIX="-magnet-tag";
@@ -39,6 +45,7 @@
             }
         }
     }
+
     function addStyle(){
         GM_addStyle([
             '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
@@ -48,7 +55,11 @@
             '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; }',
             '#waterfall_h .movie-box img {width: 100% !important;; height: 100% !important;object-fit: contain !important;}',
             '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;display: block;}',
-            '.big-img-a{float:right;cursor:pointer !important;margin-left:5px;}',
+            '.big-img-a{float:right;cursor:pointer !important;margin-left:5px;color:gray;opacity:.7;}',
+            '.big-img-a:hover{opacity:1}',
+            '.download-icon{font-size:50px;color:black;position:absolute;right:0;z-index:2;cursor:pointer }',
+            '.copyBtn-icon{font-size:18px;opacity:0.4;top:3px !important;}',
+            '.copyBtn:hover{color:red;opacity:1;}',
         ].join(''));
         GM_addStyle('#waterfall_h .item{ width: '+100/columnNum+'%;}');
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
@@ -67,6 +78,30 @@
         let li_elem = document.createElement('li');
         $(li_elem).append($(select_tag));
         $("#navbar ul.nav").first().append($(li_elem));
+
+        var other_select_tag= $('<li class="dropdown">'
+                                +' <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" '
+                                +' data-hover="dropdown"  aria-haspopup="true" aria-expanded="true">样式开关<span class="caret"></span></a>'
+                                +' <ul class="dropdown-menu">'
+                                +'</ul> </li>');
+        var ul =$(other_select_tag).children("ul")[0];
+        $(ul).append(creatCheckbox("waterfall","瀑布流"));
+        $(ul).append(creatCheckbox("copyBtn","复制图标"));
+        $(ul).append(creatCheckbox("aTag","功能链接"));
+        $(ul).append(creatCheckbox("itemTag","高清图标"));
+        $("#navbar ul.nav").first().append($(other_select_tag));
+
+    }
+    function creatCheckbox(tagName,name){
+         var checkbox = $('<li><div style="padding-left:10px"><label for="'+tagName+'_checkbox" >'+name+'</label><input  type="checkbox" id="'+tagName+'_checkbox" /></div></li>');
+         var status=tagName+"_status";
+         checkbox.find("input")[0].checked=GM_getValue(status) > 0?true:false;
+         checkbox.click(function () {
+            ($(this).find("input")[0].checked==true)?GM_setValue(status, 1): GM_setValue(status, 0);
+            window.location.reload();
+        });
+        return checkbox;
+
     }
     //设置点击标签
     function setTag(tag){
@@ -88,22 +123,47 @@
         //替换封面为大图 end
         var infoDiv=$(tag).find("div.photo-info")[0];
         var spanTag=$(infoDiv).find("span")[0];
+
+        var title=$(spanTag).html().split("<br")[0].trim();//标题
+        //  $(spanTag).html($(spanTag).html().replace(/.*?<br>/,title));
         var AVIDDiv=$(infoDiv).find("date")[0];
-        var AVID=$(AVIDDiv).text();
-
-        var bigDivTag=$('<a href="javascript:;" class="big-img-a" >视频截图</a>');
-        var downloadDiv=$('<a href="javascript:;" class="big-img-a" >下载封面</a>');
-        var magnetDivTag=$('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
-        $(spanTag).append(bigDivTag);
-        $(spanTag).append(downloadDiv);
-        $(spanTag).append(magnetDivTag);
-        bigDivTag.click(function(){showBigImg(AVID,bigDivTag);});
-        downloadDiv.click(function(){GM_download(src,AVID+".jpg");});
-        magnetDivTag.click(function(){ showMagnetTable(AVID,src);});
+        var AVID=$(AVIDDiv).text(); //番号
+        if(itemTagStatus<1){
+           $(spanTag).children(".item-tag").remove();
+        }
+        if(copyBtnStatus > 0){
+            addCopyATagPre(spanTag,title);
+            addCopyATagPre(AVIDDiv,AVID);
+        }
+        if(aTagStatus> 0){
+            var bigDivTag=$('<a href="javascript:;" class="big-img-a" >视频截图</a>');
+            var downloadDiv=$('<a href="javascript:;" class="big-img-a" >下载封面</a>');
+            var magnetDivTag=$('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
+            $(spanTag).append(bigDivTag);
+            $(spanTag).append(downloadDiv);
+            $(spanTag).append(magnetDivTag);
+            bigDivTag.click(function(){showBigImg(AVID,title,bigDivTag);});
+            downloadDiv.click(function(){GM_download(src,AVID+" "+title+".jpg");});
+            magnetDivTag.click(function(){ showMagnetTable(AVID,src);});
+        }
     }
-
+    function addCopyATagPre(tag,text){
+        var copyATag = $('<span class="glyphicon glyphicon-copy copyBtn copyBtn-icon"></span>');
+        copyATag.click(function(){
+            var span=this;
+            $(span).removeClass("glyphicon glyphicon-copy").addClass('glyphicon glyphicon-ok');
+            //btn.innerHTML = '成功>';
+            GM_setClipboard(text);
+            setTimeout(function() {
+                $(span).removeClass("glyphicon glyphicon-ok").addClass('glyphicon glyphicon-copy');
+                //   btn.innerHTML = '复制>';
+            }, 1000);
+            return false;
+        });
+        $(tag).prepend(copyATag);
+    }
     //显示视频截图
-    function showBigImg(avid,bigDivTag){
+    function showBigImg(avid,title,bigDivTag){
         if(bigDivTag.text()!="视频截图"){return;}
         var img_id=avid+IMG_SUFFIX;
         $('.pop-up-tag').hide();
@@ -111,11 +171,11 @@
             $("#"+img_id).show();
             $('#myModal').modal();
         }else{
-            getAvImg(avid,bigDivTag);
+            getAvImg(avid,title,bigDivTag);
         }
     }
     //获取视频截图
-    function getAvImg(avid,bigDivTag){
+    function getAvImg(avid,title,bigDivTag){
         bigDivTag.text('加载中..');
 
         GM_xmlhttpRequest({
@@ -148,7 +208,12 @@
                             {
                                 var src = $(img_src_arr[0]).attr("src").replace('thumbs','images').replace('//t','//img').replace('"','');
                                 console.log(src);
-                                var img_tag=$('<img class="pop-up-tag   carousel-inner"   id="'+avid+IMG_SUFFIX+'"    src="'+src+'" />');
+                                var img_tag=$('<div id="'+avid+IMG_SUFFIX+'" class="pop-up-tag" ><img class="carousel-inner" src="'+src+'" /></div>');
+                                var downloadBtn = $('<span class="glyphicon glyphicon-download-alt download-icon copyBtn" ></span>');
+                                downloadBtn.click(function(){
+                                    GM_download(src,avid+" 截图.jpg");
+                                });
+                                $(img_tag).prepend(downloadBtn);
                                 $('#magnettablediv').append(img_tag);
                                 $('#myModal').modal();
                             }else{
@@ -163,6 +228,7 @@
             }
         });//end  GM_xmlhttpRequest
     };
+
     //显示磁力表格
     function showMagnetTable(avid,src){
         var table_id="#"+avid+MAGNET_SUFFIX;
@@ -224,11 +290,10 @@
     function waterfallScrollInit() {
 
         if ($('div#waterfall div.item').length) {
-            if(!location.pathname.includes('/actresses') && !location.pathname.includes('mdl=favor&sort=4')){
+            if(!location.pathname.includes('/actresses') && !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/)>0) ){
                 $('#waterfall')[0].id="waterfall_h";
             }
             addStyle();
-            waterfallButton();
             if(waterfallScrollStatus > 0) {
                 var w = new waterfall({});
             }else{
@@ -356,17 +421,7 @@
             this.end();
         }
     };
-    function waterfallButton() {
-        var checkbox = $('<div style="padding-top:15px;padding-left:10px;"><label for="pbl_input" >瀑布流</label><input  type="checkbox" id="pbl_input" /></div>');
-        checkbox.find("input")[0].checked=waterfallScrollStatus > 0?true:false;
-        checkbox.click(function () {
-            ($(this).find("input")[0].checked==true)?GM_setValue('scroll_status', 1): GM_setValue('scroll_status', 0);
-            window.location.reload();
-        });
-        let li_elem = document.createElement('li');
-        $(li_elem).append(checkbox);
-        $("#navbar ul.nav").first().append($(li_elem));
-    }
+
     waterfallScrollInit();
     // Your code here...
 })();
