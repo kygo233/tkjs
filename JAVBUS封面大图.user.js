@@ -16,7 +16,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2020-10-16 解决和"JAV老司机"同时运行时样式冲突问题，最好关闭老司机的瀑布流
+// 2020-10-16 解决和"JAV老司机"同时运行时样式冲突问题，需关闭老司机的瀑布流
 // 2020-10-14 收藏界面只匹配影片；下载图片文件名添加标题；新增复制番号、标题功能；视频截图文件下载；封面显示半图；增加样式开关
 // 2020-09-20 收藏界面的适配
 // 2020-08-27 适配更多界面
@@ -63,6 +63,11 @@
             '.download-icon{font-size:50px;color:black;position:absolute;right:0;z-index:2;cursor:pointer }',
             '.copyBtn-icon{font-size:18px;opacity:0.4;top:3px !important;}',
             '.copyBtn:hover{color:red;opacity:1;}',
+             '.switch_div { cursor:pointer ;display: flex;flex-direction: row;flex-wrap: wrap;}',
+             '.switch_div:hover{background-color:#E6E6FA;}',
+             '.switch_div label {cursor:pointer;width: 50%;text-align: right;}',
+             '.switch_div input {cursor:pointer;width: 50%;}',
+
         ].join(''));
         //判断是否为半图显示
         if(halfImgStatus>0){
@@ -90,22 +95,27 @@
         $("#navbar ul.nav").first().append($(li_elem));
 
         var other_select_tag= $('<li class="dropdown">'
-                                +' <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" '
-                                +' data-hover="dropdown"  aria-haspopup="true" aria-expanded="true">样式开关<span class="caret"></span></a>'
-                                +' <ul class="dropdown-menu">'
+                                +' <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-hover="dropdown" >样式开关<span class="caret"></span></a>'
+                                +' <ul class="dropdown-menu" role="menu">'
                                 +'</ul> </li>');
+        $(other_select_tag).mouseover(function() {
+             $(this).addClass('open');
+        }).mouseout(function() {
+            $(this).removeClass('open');
+         });
         var ul =$(other_select_tag).children("ul")[0];
         $(ul).append(creatCheckbox("waterfall","瀑布流"));
         $(ul).append(creatCheckbox("copyBtn","复制图标"));
         $(ul).append(creatCheckbox("aTag","功能链接"));
         $(ul).append(creatCheckbox("itemTag","高清图标"));
         $(ul).append(creatCheckbox("halfImg","封面半图"));
+        $(ul).append('<div style="padding:4px;">和"JAV老司机"同时运行时，请关闭老司机的瀑布流<div>');
         $("#navbar ul.nav").first().append($(other_select_tag));
 
     }
     //根据id、name生成勾选框
     function creatCheckbox(tagName,name){
-        var checkbox = $('<li><div style="padding-left:10px;cursor:pointer"><label style="cursor:pointer" for="'+tagName+'_checkbox" >'+name+'</label><input  type="checkbox" id="'+tagName+'_checkbox" /></div></li>');
+        var checkbox = $('<li><div class="switch_div"><label   for="'+tagName+'_checkbox" >'+name+'</label><input  type="checkbox" id="'+tagName+'_checkbox" /></div></li>');
         var status=tagName+"_status";
         checkbox.find("input")[0].checked=GM_getValue(status) > 0?true:false;
         checkbox.click(function () {
