@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 // @include      https://*.javbus.*/*
@@ -16,6 +16,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2020-10-16 解决和"JAV老司机"同时运行时样式冲突问题，最好关闭老司机的瀑布流
 // 2020-10-14 收藏界面只匹配影片；下载图片文件名添加标题；新增复制番号、标题功能；视频截图文件下载；封面显示半图；增加样式开关
 // 2020-09-20 收藏界面的适配
 // 2020-08-27 适配更多界面
@@ -48,13 +49,14 @@
         }
     }
 
+    //添加全局样式 导航栏功能按钮
     function addStyle(){
          GM_addStyle([
-            '#waterfall_h {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
-            '#waterfall_h .item{position: relative !important;top: auto !important;left: auto !important;}',
-            '#waterfall_h .movie-box  {margin:5px !important; width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
-            '#waterfall_h .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}',
-            '#waterfall_h .movie-box .photo-frame {width:auto !important;height:auto!important; }',
+            '#waterfall_h1 {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
+            '#waterfall_h1 .item{position: relative !important;top: auto !important;left: auto !important;}',
+            '#waterfall_h1 .movie-box  {margin:5px !important; width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
+            '#waterfall_h1 .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}',
+            '#waterfall_h1 .movie-box .photo-frame {width:auto !important;height:auto!important; }',
             '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;}',
             '.big-img-a{float:right;cursor:pointer !important;margin-left:5px;color:black;opacity:0.8;}',
             '.big-img-a:hover{color:blue;}',
@@ -62,13 +64,14 @@
             '.copyBtn-icon{font-size:18px;opacity:0.4;top:3px !important;}',
             '.copyBtn:hover{color:red;opacity:1;}',
         ].join(''));
+        //判断是否为半图显示
         if(halfImgStatus>0){
-            GM_addStyle('#waterfall_h .movie-box img {position: relative;left:-110.5%;width: 210% !important;; height: 100% !important;}');
+            GM_addStyle('#waterfall_h1 .movie-box img {position: relative;left:-110.5%;width: 210% !important;; height: 100% !important;}');
         }else{
-            GM_addStyle('#waterfall_h .movie-box img {width: 100% !important;; height: 100% !important;}');
+            GM_addStyle('#waterfall_h1 .movie-box img {width: 100% !important;; height: 100% !important;}');
         }
         var columnNum=halfImgStatus>0?columnNum_half:columnNum_full;
-        GM_addStyle('#waterfall_h .item{ width: '+100/columnNum+'%;}');
+        GM_addStyle('#waterfall_h1 .item{ width: '+100/columnNum+'%;}');
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
         $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
                          +'<div class="modal-dialog" style="width:80% !important;"  id="magnettablediv" > </div>');
@@ -100,6 +103,7 @@
         $("#navbar ul.nav").first().append($(other_select_tag));
 
     }
+    //根据id、name生成勾选框
     function creatCheckbox(tagName,name){
         var checkbox = $('<li><div style="padding-left:10px;cursor:pointer"><label style="cursor:pointer" for="'+tagName+'_checkbox" >'+name+'</label><input  type="checkbox" id="'+tagName+'_checkbox" /></div></li>');
         var status=tagName+"_status";
@@ -109,7 +113,6 @@
             window.location.reload();
         });
         return checkbox;
-
     }
     //设置点击标签
     function setTag(tag){
@@ -155,6 +158,7 @@
             magnetDivTag.click(function(){ showMagnetTable(AVID,src);});
         }
     }
+    //添加复制图标
     function addCopyATagPre(tag,text){
         var copyATag = $('<span class="glyphicon glyphicon-copy copyBtn copyBtn-icon"></span>');
         copyATag.click(function(){
@@ -300,18 +304,25 @@
     }
 
     function waterfallScrollInit() {
-
         if ($('div#waterfall div.item').length) {
             if(!location.pathname.includes('/actresses') && !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/)>0) ){
-                $('#waterfall')[0].id="waterfall_h";
+                $('#waterfall')[0].id="waterfall_h1";
+
+                //解决和"JAV老司机"同时运行时样式冲突问题--begin
+                $('.masonry').addClass("masonry2");
+                $('.masonry').removeClass("masonry");
+                if($('#waterfall_h').length>0){
+                  $('#waterfall_h')[0].id="waterfall_h1";
+                }
+                //解决和"JAV老司机"同时运行时样式冲突问题--end
             }
             addStyle();
             if(waterfallScrollStatus > 0) {
                 var w = new waterfall({});
             }else{
-                var elems = $('div#waterfall_h div.item');
+                var elems = $('div#waterfall_h1 div.item');
                 if(!elems.length){return;};
-                $('.masonry').empty().append(elems);
+                $('.masonry2').empty().append(elems);
                 for (let i = 0; i < elems.length; i++) {
                     if($(elems[i]).find(".avatar-box").length > 0) continue;
                     setTag(elems[i]);
@@ -326,7 +337,7 @@
         this.selector = {
             next: 'a#next',
             item: 'div#waterfall div.item',
-            cont: '.masonry',
+            cont: '.masonry2',
             pagi: '.pagination-lg',
         };
         Object.assign(this.selector, selectorcfg);
@@ -351,7 +362,7 @@
                 }
             }
         };
-        if ($('div#waterfall_h div.item').length>0 || $('div#waterfall div.item').length>0) {
+        if ($('div#waterfall_h1 div.item').length>0 || $('div#waterfall div.item').length>0) {
             document.addEventListener('scroll', this.scroll.bind(this));
             document.addEventListener('wheel', this.wheel.bind(this));
             this.appendElems(this._1func);
