@@ -51,7 +51,7 @@
 
     //添加全局样式 导航栏功能按钮
     function addStyle(){
-         GM_addStyle([
+        GM_addStyle([
             '#waterfall_h1 {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
             '#waterfall_h1 .item{position: relative !important;top: auto !important;left: auto !important;}',
             '#waterfall_h1 .movie-box  {margin:5px !important; width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
@@ -63,10 +63,10 @@
             '.download-icon{font-size:50px;color:black;position:absolute;right:0;z-index:2;cursor:pointer }',
             '.copyBtn-icon{font-size:18px;opacity:0.4;top:3px !important;}',
             '.copyBtn:hover{color:red;opacity:1;}',
-             '.switch_div { cursor:pointer ;display: flex;flex-direction: row;flex-wrap: wrap;}',
-             '.switch_div:hover{background-color:#E6E6FA;}',
-             '.switch_div label {cursor:pointer;width: 50%;text-align: right;}',
-             '.switch_div input {cursor:pointer;width: 50%;}',
+            '.switch_div { cursor:pointer ;display: flex;flex-direction: row;flex-wrap: wrap;}',
+            '.switch_div:hover{background-color:#E6E6FA;}',
+            '.switch_div label {cursor:pointer;width: 50%;text-align: right;}',
+            '.switch_div input {cursor:pointer;width: 50%;}',
 
         ].join(''));
         //判断是否为半图显示
@@ -99,10 +99,10 @@
                                 +' <ul class="dropdown-menu" role="menu">'
                                 +'</ul> </li>');
         $(other_select_tag).mouseover(function() {
-             $(this).addClass('open');
+            $(this).addClass('open');
         }).mouseout(function() {
             $(this).removeClass('open');
-         });
+        });
         var ul =$(other_select_tag).children("ul")[0];
         $(ul).append(creatCheckbox("waterfall","瀑布流"));
         $(ul).append(creatCheckbox("copyBtn","复制图标"));
@@ -280,8 +280,8 @@
                 var length=table_tag.find("tr").length;
                 var HEIGHT=window.innerHeight;
                 if( HEIGHT>=35*length){
-                   table_tag.css("margin-top",(HEIGHT-35*length)/2-40);
-                 }
+                    table_tag.css("margin-top",(HEIGHT-35*length)/2-40);
+                }
                 $('#magnettablediv').append(table_tag);
                 $('#'+avid+MAGNET_SUFFIX).find("tr").each(function(i){ // 遍历 tr
                     var me=this;
@@ -314,31 +314,36 @@
     }
 
     function waterfallScrollInit() {
-        if ($('div#waterfall div.item').length) {
-            if(!location.pathname.includes('/actresses') && !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/)>0) ){
+        if(!location.pathname.includes('/actresses') &&
+           !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/)>0) &&
+           $('div#waterfall div.item').length){
                 $('#waterfall')[0].id="waterfall_h1";
-
                 //解决和"JAV老司机"同时运行时样式冲突问题--begin
-                $('.masonry').addClass("masonry2");
-                $('.masonry').removeClass("masonry");
+                if($('.masonry').length>0){
+                    $('.masonry').addClass("masonry2");
+                    $('.masonry').removeClass("masonry");
+                }
                 if($('#waterfall_h').length>0){
-                  $('#waterfall_h')[0].id="waterfall_h1";
+                    $('#waterfall_h')[0].id="waterfall_h1";
+                }
+                //解决 JAV老司机 第619行 $pages[0].parentElement.parentElement.id = "waterfall_h";
+                //收藏界面样式变形的问题
+                if($('#waterfall_h1.row').length>0){
+                    $('#waterfall_h1.row').removeAttr("id");
                 }
                 //解决和"JAV老司机"同时运行时样式冲突问题--end
-            }
-            addStyle();
-            if(waterfallScrollStatus > 0) {
-                var w = new waterfall({});
-            }else{
-                var elems = $('div#waterfall_h1 div.item');
-                if(!elems.length){return;};
-                $('.masonry2').empty().append(elems);
-                for (let i = 0; i < elems.length; i++) {
-                    if($(elems[i]).find(".avatar-box").length > 0) continue;
-                    setTag(elems[i]);
+                addStyle();
+                if(waterfallScrollStatus > 0) {
+                    var w = new waterfall({});
+                }else{
+                    var elems = $('div#waterfall_h1 div.item');
+                    if(!elems.length){return;};
+                    $('.masonry2').empty().append(elems);
+                    for (let i = 0; i < elems.length; i++) {
+                        if($(elems[i]).find(".avatar-box").length > 0) continue;
+                        setTag(elems[i]);
+                    }
                 }
-
-            }
         }
     };
     function waterfall(selectorcfg = {}){
