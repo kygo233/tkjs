@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.7
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 // @include      https://*.javbus.*/*
@@ -16,6 +16,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2020-10-16 解决功能开关取默认值为undefined的bug
 // 2020-10-16 解决和"JAV老司机"同时运行时样式冲突问题，需关闭老司机的瀑布流
 // 2020-10-14 收藏界面只匹配影片；下载图片文件名添加标题；新增复制番号、标题功能；视频截图文件下载；封面显示半图；增加样式开关
 // 2020-09-20 收藏界面的适配
@@ -34,6 +35,12 @@
     let itemTagStatus = GM_getValue('itemTag_status', 1);
     let halfImgStatus = GM_getValue('halfImg_status', 0);
 
+    let statusDefaultMap = new Map(); // 空Map
+    statusDefaultMap.set('waterfall', 0); //
+    statusDefaultMap.set('copyBtn', 1); //
+    statusDefaultMap.set('aTag', 1);
+    statusDefaultMap.set('itemTag', 1);
+    statusDefaultMap.set('halfImg', 0);
     let columnNum_full = GM_getValue('bigImg_columnNum_full', 3);
     let columnNum_half = GM_getValue('bigImg_columnNum_half', 4);
     let IMG_SUFFIX="-bigimg-tag";
@@ -117,7 +124,7 @@
     function creatCheckbox(tagName,name){
         var checkbox = $('<li><div class="switch_div"><label   for="'+tagName+'_checkbox" >'+name+'</label><input  type="checkbox" id="'+tagName+'_checkbox" /></div></li>');
         var status=tagName+"_status";
-        checkbox.find("input")[0].checked=GM_getValue(status) > 0?true:false;
+        checkbox.find("input")[0].checked=GM_getValue(status,statusDefaultMap.get(tagName)) > 0?true:false;
         checkbox.click(function () {
             ($(this).find("input")[0].checked==true)?GM_setValue(status, 1): GM_setValue(status, 0);
             window.location.reload();
@@ -333,6 +340,10 @@
                 }
                 //解决和"JAV老司机"同时运行时样式冲突问题--end
                 addStyle();
+                //样式比瀑布流先生效，所以先隐藏掉原图
+                if($('#waterfall_h1 .movie-box img').length>0){
+                   $('#waterfall_h1 .movie-box img').hide();
+                }
                 if(waterfallScrollStatus > 0) {
                     var w = new waterfall({});
                 }else{
