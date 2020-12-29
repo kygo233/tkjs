@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.7
+// @version      0.8
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 // @include      https://*.javbus.*/*
@@ -16,6 +16,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2020-12-29 解决半图模式下 竖图显示不全的问题
 // 2020-10-16 解决功能开关取默认值为undefined的bug
 // 2020-10-16 解决和"JAV老司机"同时运行时样式冲突问题，需关闭老司机的瀑布流
 // 2020-10-14 收藏界面只匹配影片；下载图片文件名添加标题；新增复制番号、标题功能；视频截图文件下载；封面显示半图；增加样式开关
@@ -74,14 +75,10 @@
             '.switch_div:hover{background-color:#E6E6FA;}',
             '.switch_div label {cursor:pointer;width: 50%;text-align: right;}',
             '.switch_div input {cursor:pointer;width: 50%;}',
-
+            '.fullImgCSS {width: 100% !important;; height: 100% !important;}',
+            '.halfImgCSS {position: relative;left:-110.5%;width: 210% !important;; height: 100% !important;}',
         ].join(''));
-        //判断是否为半图显示
-        if(halfImgStatus>0){
-            GM_addStyle('#waterfall_h1 .movie-box img {position: relative;left:-110.5%;width: 210% !important;; height: 100% !important;}');
-        }else{
-            GM_addStyle('#waterfall_h1 .movie-box img {width: 100% !important;; height: 100% !important;}');
-        }
+      
         var columnNum=halfImgStatus>0?columnNum_half:columnNum_full;
         GM_addStyle('#waterfall_h1 .item{ width: '+100/columnNum+'%;}');
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
@@ -94,7 +91,6 @@
         $(select_tag).find("option[value='"+columnNum+"']").attr("selected",true);
         $(select_tag).change(function(){
             GM_setValue('bigImg_columnNum_'+(halfImgStatus>0?'half':'full'), $(this).val());
-            GM_addStyle('#waterfall .item.item { flex: '+100/columnNum+'%;}');
             window.location.reload();
         });
         let li_elem = document.createElement('li');
@@ -145,6 +141,16 @@
         }
         var bigimg= new Image();
         bigimg.src=src;
+      //判断是否为半图显示
+        if(halfImgStatus>0){
+            if(bigimg.height>bigimg.width){
+               $(bigimg).addClass("fullImgCSS");
+            }else{
+              $(bigimg).addClass("halfImgCSS");
+            }
+        }else{
+           $(bigimg).addClass("fullImgCSS");
+        }
         $(photoDiv).append(bigimg);
         img.remove();
         $(photoDiv).show();
