@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.8
+// @version      0.9
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 // @include      https://*.javbus.*/*
