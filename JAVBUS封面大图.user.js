@@ -16,7 +16,8 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2020-12-29 解决半图模式下 竖图显示不全的问题
+// 2021-01-01 新增宽度调整功能;
+// 2020-12-29 解决半图模式下 竖图显示不全的问题;
 // 2020-10-16 解决功能开关取默认值为undefined的bug
 // 2020-10-16 解决和"JAV老司机"同时运行时样式冲突问题，需关闭老司机的瀑布流
 // 2020-10-14 收藏界面只匹配影片；下载图片文件名添加标题；新增复制番号、标题功能；视频截图文件下载；封面显示半图；增加样式开关
@@ -35,6 +36,7 @@
     let aTagStatus = GM_getValue('aTag_status', 1);
     let itemTagStatus = GM_getValue('itemTag_status', 1);
     let halfImgStatus = GM_getValue('halfImg_status', 0);
+    let waterfallWidth = GM_getValue('waterfallWidth', 100);
 
     let statusDefaultMap = new Map(); // 空Map
     statusDefaultMap.set('waterfall', 0); //
@@ -60,7 +62,7 @@
     //添加全局样式 导航栏功能按钮
     function addStyle(){
         GM_addStyle([
-            '#waterfall_h1 {width: auto !important;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
+            '#waterfall_h1 {margin:0 auto;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
             '#waterfall_h1 .item{position: relative !important;top: auto !important;left: auto !important;}',
             '#waterfall_h1 .movie-box  {margin:5px !important; width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
             '#waterfall_h1 .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}',
@@ -77,10 +79,15 @@
             '.switch_div input {cursor:pointer;width: 50%;}',
             '.fullImgCSS {width: 100% !important;; height: 100% !important;}',
             '.halfImgCSS {position: relative;left:-110.5%;width: 210% !important;; height: 100% !important;}',
+            '.range_div {display: flex;flex-direction: row;flex-wrap: wrap;}',
+            '.range_div input{cursor:pointer ;width: 80%;}',
+            '.range_div span{  width: 20%;text-align: center;}',
         ].join(''));
-      
+
         var columnNum=halfImgStatus>0?columnNum_half:columnNum_full;
         GM_addStyle('#waterfall_h1 .item{ width: '+100/columnNum+'%;}');
+
+        $("#waterfall_h1").css("width",waterfallWidth+"%");
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
         $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
                          +'<div class="modal-dialog" style="width:80% !important;"  id="magnettablediv" > </div>');
@@ -107,11 +114,23 @@
             $(this).removeClass('open');
         });
         var ul =$(other_select_tag).children("ul")[0];
+         $(ul).on("click","[data-stopPropagation]",function(e) {
+           e.stopPropagation();
+        });
         $(ul).append(creatCheckbox("waterfall","瀑布流"));
         $(ul).append(creatCheckbox("copyBtn","复制图标"));
         $(ul).append(creatCheckbox("aTag","功能链接"));
         $(ul).append(creatCheckbox("itemTag","高清图标"));
         $(ul).append(creatCheckbox("halfImg","封面半图"));
+        var range=$('<li data-stopPropagation="true" ><div  class="range_div"><input type="range"   min="1" max="100" step="1" value="'+waterfallWidth+'"  /><span>'+waterfallWidth+'</span></div></li>');
+        $(range).bind('input propertychange', function() {
+            var val=$(this).find("input").eq(0).val();
+            $("#waterfall_h1").css("width",val+"%");
+    	    $(this).find("span").eq(0).html(val);
+            GM_setValue("waterfallWidth", val);
+		});
+        $(ul).append( range);
+
         $(ul).append('<div style="padding:4px;">和"JAV老司机"同时运行时，请关闭老司机的瀑布流<div>');
         $("#navbar ul.nav").first().append($(other_select_tag));
 
