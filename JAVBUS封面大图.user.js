@@ -162,11 +162,13 @@
         bigimg.src=src;
       //判断是否为半图显示
         if(halfImgStatus>0){
-            if(bigimg.height>bigimg.width){
-               $(bigimg).addClass("fullImgCSS");
-            }else{
-              $(bigimg).addClass("halfImgCSS");
-            }
+             $(bigimg).addClass("halfImgCSS");
+             $(bigimg).load(function(){
+               if(bigimg.height>bigimg.width){
+                   $(bigimg).removeClass("halfImgCSS");
+                   $(bigimg).addClass("fullImgCSS");
+               }
+             });
         }else{
            $(bigimg).addClass("fullImgCSS");
         }
