@@ -28,7 +28,7 @@
 // 2020-08-24 第一版：封面大图、下载封面、查看视频截图
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
     // 瀑布流状态：1：开启、0：关闭
     let waterfallScrollStatus = GM_getValue('waterfall_status', 0);
@@ -46,21 +46,22 @@
     statusDefaultMap.set('halfImg', 0);
     let columnNum_full = GM_getValue('bigImg_columnNum_full', 3);
     let columnNum_half = GM_getValue('bigImg_columnNum_half', 4);
-    let IMG_SUFFIX="-bigimg-tag";
-    let MAGNET_SUFFIX="-magnet-tag";
-    function ajaxGet(url,fn) {
-        let xhr=new XMLHttpRequest();
-        xhr.open("GET",url);
+    let IMG_SUFFIX = "-bigimg-tag";
+    let MAGNET_SUFFIX = "-magnet-tag";
+
+    function ajaxGet(url, fn) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
         xhr.send();
-        xhr.onreadystatechange=function () {
-            if (xhr.readyState==4&&xhr.status==200) {
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
                 fn(xhr.responseText);
             }
         }
     }
 
     //添加全局样式 导航栏功能按钮
-    function addStyle(){
+    function addStyle() {
         GM_addStyle([
             '#waterfall_h1 {margin:0 auto;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
             '#waterfall_h1 .item{position: relative !important;top: auto !important;left: auto !important;}',
@@ -84,133 +85,139 @@
             '.range_div span{  width: 20%;text-align: center;}',
         ].join(''));
 
-        var columnNum=halfImgStatus>0?columnNum_half:columnNum_full;
-        GM_addStyle('#waterfall_h1 .item{ width: '+100/columnNum+'%;}');
+        var columnNum = halfImgStatus > 0 ? columnNum_half : columnNum_full;
+        GM_addStyle('#waterfall_h1 .item{ width: ' + 100 / columnNum + '%;}');
 
-        $("#waterfall_h1").css("width",waterfallWidth+"%");
+        $("#waterfall_h1").css("width", waterfallWidth + "%");
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
-        $('body').append('<div class="modal fade" id="myModal"  role="dialog" >'
-                         +'<div class="modal-dialog" style="width:80% !important;"  id="magnettablediv" > </div>');
+        $('body').append('<div class="modal fade" id="myModal"  role="dialog" >' +
+            '<div class="modal-dialog" style="width:80% !important;"  id="magnettablediv" > </div>');
         //列数下拉框,
-        var select_tag= $( '<select class="form-control" style="margin-top: 8px;padding:0;" id="inputGroupSelect01">'
-                          + ' <option value="1">1列</option><option value="2">2列</option><option value="3">3列</option>'
-                          + ' <option value="4">4列</option><option value="5">5列</option><option value="6">6列</option></select>');
-        $(select_tag).find("option[value='"+columnNum+"']").attr("selected",true);
-        $(select_tag).change(function(){
-            GM_setValue('bigImg_columnNum_'+(halfImgStatus>0?'half':'full'), $(this).val());
+        var select_tag = $('<select class="form-control" style="margin-top: 8px;padding:0;" id="inputGroupSelect01">' +
+            ' <option value="1">1列</option><option value="2">2列</option><option value="3">3列</option>' +
+            ' <option value="4">4列</option><option value="5">5列</option><option value="6">6列</option></select>');
+        $(select_tag).find("option[value='" + columnNum + "']").attr("selected", true);
+        $(select_tag).change(function () {
+            GM_setValue('bigImg_columnNum_' + (halfImgStatus > 0 ? 'half' : 'full'), $(this).val());
             window.location.reload();
         });
         let li_elem = document.createElement('li');
         $(li_elem).append($(select_tag));
         $("#navbar ul.nav").first().append($(li_elem));
 
-        var other_select_tag= $('<li class="dropdown">'
-                                +' <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-hover="dropdown" >样式开关<span class="caret"></span></a>'
-                                +' <ul class="dropdown-menu" role="menu">'
-                                +'</ul> </li>');
-        $(other_select_tag).mouseover(function() {
+        var other_select_tag = $('<li class="dropdown">' +
+            ' <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-hover="dropdown" >样式开关<span class="caret"></span></a>' +
+            ' <ul class="dropdown-menu" role="menu">' +
+            '</ul> </li>');
+        $(other_select_tag).mouseover(function () {
             $(this).addClass('open');
-        }).mouseout(function() {
+        }).mouseout(function () {
             $(this).removeClass('open');
         });
-        var ul =$(other_select_tag).children("ul")[0];
-         $(ul).on("click","[data-stopPropagation]",function(e) {
-           e.stopPropagation();
+        var ul = $(other_select_tag).children("ul")[0];
+        $(ul).on("click", "[data-stopPropagation]", function (e) {
+            e.stopPropagation();
         });
-        $(ul).append(creatCheckbox("waterfall","瀑布流"));
-        $(ul).append(creatCheckbox("copyBtn","复制图标"));
-        $(ul).append(creatCheckbox("aTag","功能链接"));
-        $(ul).append(creatCheckbox("itemTag","高清图标"));
-        $(ul).append(creatCheckbox("halfImg","封面半图"));
-        var range=$('<li data-stopPropagation="true" ><div  class="range_div"><input type="range"   min="1" max="100" step="1" value="'+waterfallWidth+'"  /><span>'+waterfallWidth+'</span></div></li>');
-        $(range).bind('input propertychange', function() {
-            var val=$(this).find("input").eq(0).val();
-            $("#waterfall_h1").css("width",val+"%");
-    	    $(this).find("span").eq(0).html(val);
+        $(ul).append(creatCheckbox("waterfall", "瀑布流"));
+        $(ul).append(creatCheckbox("copyBtn", "复制图标"));
+        $(ul).append(creatCheckbox("aTag", "功能链接"));
+        $(ul).append(creatCheckbox("itemTag", "高清图标"));
+        $(ul).append(creatCheckbox("halfImg", "封面半图"));
+        var range = $('<li data-stopPropagation="true" ><div  class="range_div"><input type="range"   min="1" max="100" step="1" value="' + waterfallWidth + '"  /><span>' + waterfallWidth + '</span></div></li>');
+        $(range).bind('input propertychange', function () {
+            var val = $(this).find("input").eq(0).val();
+            $("#waterfall_h1").css("width", val + "%");
+            $(this).find("span").eq(0).html(val);
             GM_setValue("waterfallWidth", val);
-		});
-        $(ul).append( range);
+        });
+        $(ul).append(range);
 
         $(ul).append('<div style="padding:4px;">和"JAV老司机"同时运行时，请关闭老司机的瀑布流<div>');
         $("#navbar ul.nav").first().append($(other_select_tag));
 
     }
     //根据id、name生成勾选框
-    function creatCheckbox(tagName,name){
-        var checkbox = $('<li><div class="switch_div"><label   for="'+tagName+'_checkbox" >'+name+'</label><input  type="checkbox" id="'+tagName+'_checkbox" /></div></li>');
-        var status=tagName+"_status";
-        checkbox.find("input")[0].checked=GM_getValue(status,statusDefaultMap.get(tagName)) > 0?true:false;
+    function creatCheckbox(tagName, name) {
+        var checkbox = $('<li><div class="switch_div"><label   for="' + tagName + '_checkbox" >' + name + '</label><input  type="checkbox" id="' + tagName + '_checkbox" /></div></li>');
+        var status = tagName + "_status";
+        checkbox.find("input")[0].checked = GM_getValue(status, statusDefaultMap.get(tagName)) > 0 ? true : false;
         checkbox.click(function () {
-            ($(this).find("input")[0].checked==true)?GM_setValue(status, 1): GM_setValue(status, 0);
+            ($(this).find("input")[0].checked == true) ? GM_setValue(status, 1): GM_setValue(status, 0);
             window.location.reload();
         });
         return checkbox;
     }
     //设置点击标签
-    function setTag(tag){
+    function setTag(tag) {
         //替换封面为大图 Begin
-        var photoDiv=$(tag).find("div.photo-frame")[0];
+        var photoDiv = $(tag).find("div.photo-frame")[0];
         $(photoDiv).hide();
         var img = $(photoDiv).children("img")[0];
-        var src= img.src;
-        if(src.match(/pics.dmm.co.jp/)){
-            src=src.replace(/ps.jpg/,"pl.jpg");
-        }else {
-            src=src.replace(/thumbs/,"cover").replace(/thumb/,"cover").replace(/.jpg/,"_b.jpg");
+        var src = img.src;
+        if (src.match(/pics.dmm.co.jp/)) {
+            src = src.replace(/ps.jpg/, "pl.jpg");
+        } else {
+            src = src.replace(/thumbs/, "cover").replace(/thumb/, "cover").replace(/.jpg/, "_b.jpg");
         }
-        var bigimg= new Image();
-        bigimg.src=src;
-      //判断是否为半图显示
-        if(halfImgStatus>0){
-             $(bigimg).addClass("halfImgCSS");
-             $(bigimg).load(function(){
-               if(bigimg.height>bigimg.width){
-                   $(bigimg).removeClass("halfImgCSS");
-                   $(bigimg).addClass("fullImgCSS");
-               }
-             });
-        }else{
-           $(bigimg).addClass("fullImgCSS");
+        var bigimg = new Image();
+        bigimg.src = src;
+        //判断是否为半图显示
+        if (halfImgStatus > 0) {
+            $(bigimg).addClass("halfImgCSS");
+            $(bigimg).load(function () {
+                if (bigimg.height > bigimg.width) {
+                    $(bigimg).removeClass("halfImgCSS");
+                    $(bigimg).addClass("fullImgCSS");
+                }
+            });
+        } else {
+            $(bigimg).addClass("fullImgCSS");
         }
         $(photoDiv).append(bigimg);
         img.remove();
         $(photoDiv).show();
         //替换封面为大图 end
-        var infoDiv=$(tag).find("div.photo-info")[0];
-        var spanTag=$(infoDiv).find("span")[0];
+        var infoDiv = $(tag).find("div.photo-info")[0];
+        var spanTag = $(infoDiv).find("span")[0];
 
-        var title=$(spanTag).html().split("<br")[0].trim();//标题
+        var title = $(spanTag).html().split("<br")[0].trim(); //标题
         //  $(spanTag).html($(spanTag).html().replace(/.*?<br>/,title));
-        var AVIDDiv=$(infoDiv).find("date")[0];
-        var AVID=$(AVIDDiv).text(); //番号
-        if(itemTagStatus<1){
+        var AVIDDiv = $(infoDiv).find("date")[0];
+        var AVID = $(AVIDDiv).text(); //番号
+        if (itemTagStatus < 1) {
             $(spanTag).children("div").remove();
         }
-        if(copyBtnStatus > 0){
-            addCopyATagPre(spanTag,title);
-            addCopyATagPre(AVIDDiv,AVID);
+        if (copyBtnStatus > 0) {
+            addCopyATagPre(spanTag, title);
+            addCopyATagPre(AVIDDiv, AVID);
         }
-        if(aTagStatus> 0){
-            var bigDivTag=$('<a href="javascript:;" class="big-img-a" >视频截图</a>');
-            var downloadDiv=$('<a href="javascript:;" class="big-img-a" >下载封面</a>');
-            var magnetDivTag=$('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
+        if (aTagStatus > 0) {
+            var bigDivTag = $('<a href="javascript:;" class="big-img-a" >视频截图</a>');
+            var downloadDiv = $('<a href="javascript:;" class="big-img-a" >下载封面</a>');
+            var magnetDivTag = $('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
             $(spanTag).append(bigDivTag);
             $(spanTag).append(downloadDiv);
             $(spanTag).append(magnetDivTag);
-            bigDivTag.click(function(){showBigImg(AVID,title,bigDivTag);});
-            downloadDiv.click(function(){GM_download(src,AVID+" "+title+".jpg");});
-            magnetDivTag.click(function(){ showMagnetTable(AVID,src);});
+            bigDivTag.click(function () {
+                showBigImg(AVID, title, bigDivTag);
+            });
+            downloadDiv.click(function () {
+                GM_download(src, AVID + " " + title + ".jpg");
+            });
+            magnetDivTag.click(function () {
+                showMagnetTable(AVID, src);
+            });
         }
     }
     //添加复制图标
-    function addCopyATagPre(tag,text){
+    function addCopyATagPre(tag, text) {
         var copyATag = $('<span class="glyphicon glyphicon-copy copyBtn copyBtn-icon"></span>');
-        copyATag.click(function(){
-            var span=this;
+        copyATag.click(function () {
+            var span = this;
             $(span).removeClass("glyphicon glyphicon-copy").addClass('glyphicon glyphicon-ok');
             //btn.innerHTML = '成功>';
             GM_setClipboard(text);
-            setTimeout(function() {
+            setTimeout(function () {
                 $(span).removeClass("glyphicon glyphicon-ok").addClass('glyphicon glyphicon-copy');
                 //   btn.innerHTML = '复制>';
             }, 1000);
@@ -219,172 +226,189 @@
         $(tag).prepend(copyATag);
     }
     //显示视频截图
-    function showBigImg(avid,title,bigDivTag){
-        if(bigDivTag.text()!="视频截图"){return;}
-        var img_id=avid+IMG_SUFFIX;
+    function showBigImg(avid, title, bigDivTag) {
+        if (bigDivTag.text() != "视频截图") {
+            return;
+        }
+        var img_id = avid + IMG_SUFFIX;
         $('.pop-up-tag').hide();
-        if($("#"+img_id).length>0){
-            $("#"+img_id).show();
+        if ($("#" + img_id).length > 0) {
+            $("#" + img_id).show();
             $('#myModal').modal();
-        }else{
-            getAvImg(avid,title,bigDivTag);
+        } else {
+            getAvImg(avid, title, bigDivTag);
         }
     }
     //获取视频截图
-    function getAvImg(avid,title,bigDivTag){
+    function getAvImg(avid, title, bigDivTag) {
         bigDivTag.text('加载中..');
 
         GM_xmlhttpRequest({
             method: "GET",
-            url: 'http://blogjav.net/?s='+avid,
-            onload: function(result) {
-                if(result.status!==200)
-                { alert('blogjav.net此网站暂时无法响应');
-                 bigDivTag.text('视频截图');
-                 return;}
+            url: 'http://blogjav.net/?s=' + avid,
+            onload: function (result) {
+                if (result.status !== 200) {
+                    alert('blogjav.net此网站暂时无法响应');
+                    bigDivTag.text('视频截图');
+                    return;
+                }
                 var doc = result.responseText;
                 let a_array = $(doc).find(".more-link");
                 let imgUrl;
-                for(let i = 0; i < a_array.length ; i ++){
+                for (let i = 0; i < a_array.length; i++) {
                     imgUrl = a_array[i].href;
                     var fhd_idx = a_array[i].href.search(/FHD/g);
-                    if(fhd_idx > 0) { break;}
+                    if (fhd_idx > 0) {
+                        break;
+                    }
                 }
                 if (imgUrl) {
                     GM_xmlhttpRequest({
                         method: "GET",
                         url: imgUrl,
-                        headers:{
-                            referrer:  "http://pixhost.to/" //绕过防盗图的关键
+                        headers: {
+                            referrer: "http://pixhost.to/" //绕过防盗图的关键
                         },
-                        onload: function(XMLHttpRequest) {
+                        onload: function (XMLHttpRequest) {
                             var bodyStr = XMLHttpRequest.responseText;
-                            var img_src_arr =/<img .*src="https*:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
-                            if( img_src_arr[0]) //如果找到内容大图
+                            var img_src_arr = /<img .*src="https*:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
+                            if (img_src_arr[0]) //如果找到内容大图
                             {
-                                var src = $(img_src_arr[0]).attr("src").replace('thumbs','images').replace('//t','//img').replace('"','');
+                                var src = $(img_src_arr[0]).attr("src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
                                 console.log(src);
-                                var img_tag=$('<div id="'+avid+IMG_SUFFIX+'" class="pop-up-tag" ><img class="carousel-inner" src="'+src+'" /></div>');
+                                var img_tag = $('<div id="' + avid + IMG_SUFFIX + '" class="pop-up-tag" ><img class="carousel-inner" src="' + src + '" /></div>');
                                 var downloadBtn = $('<span class="glyphicon glyphicon-download-alt download-icon copyBtn" ></span>');
-                                downloadBtn.click(function(){
-                                    GM_download(src,avid+" 截图.jpg");
+                                downloadBtn.click(function () {
+                                    GM_download(src, avid + " 截图.jpg");
                                 });
                                 $(img_tag).prepend(downloadBtn);
                                 $('#magnettablediv').append(img_tag);
                                 $('#myModal').modal();
-                            }else{
+                            } else {
                                 bigDivTag.text('无大图');
                             }
                             bigDivTag.text('视频截图');
                         }
-                    });//end  GM_xmlhttpRequest
-                }else{
+                    }); //end  GM_xmlhttpRequest
+                } else {
                     bigDivTag.text('无大图');
                 }
             }
-        });//end  GM_xmlhttpRequest
+        }); //end  GM_xmlhttpRequest
     };
 
     //显示磁力表格
-    function showMagnetTable(avid,src){
-        var table_id="#"+avid+MAGNET_SUFFIX;
+    function showMagnetTable(avid, src) {
+        var table_id = "#" + avid + MAGNET_SUFFIX;
         $('.pop-up-tag').hide();
-        if($(table_id).length>0){
+        if ($(table_id).length > 0) {
             $(table_id).show();
             $('#myModal').modal();
-        }else{
-            getMagnet(avid,src);
+        } else {
+            getMagnet(avid, src);
         }
     }
     //ajax 获取磁力链接
-    function getMagnet(avid,src){
-        var basehref=`${location.protocol}//${location.hostname}/`;
-        avid=avid.replace(/\./g,'-');
-        var url= basehref+avid;
+    function getMagnet(avid, src) {
+        var basehref = `${location.protocol}//${location.hostname}/`;
+        avid = avid.replace(/\./g, '-');
+        var url = basehref + avid;
         //有码和欧美 0  无码 1
-        var uc_code=location.pathname.search(/uncensored/) < 1?0:1;
-        ajaxGet(url,function(responseText){
-            var str=/var\s+gid\s+=\s+(\d{1,})/.exec(responseText);
-            var gid=str[1];
-            url= basehref+ 'ajax/uncledatoolsbyajax.php?gid='+gid+'&lang=zh&img='+src+'&uc='+uc_code+'&floor='+Math.floor(Math.random() * 1e3 + 1);
-            ajaxGet(url,function(responseText){
-                var table_html=responseText.substring(0,responseText.indexOf('<script')).trim();
-                var table_tag=$('<table class="table pop-up-tag"  style="background-color:#FFFFFF;" id="'+avid+MAGNET_SUFFIX+'"></table>');
+        var uc_code = location.pathname.search(/uncensored/) < 1 ? 0 : 1;
+        ajaxGet(url, function (responseText) {
+            var str = /var\s+gid\s+=\s+(\d{1,})/.exec(responseText);
+            var gid = str[1];
+            url = basehref + 'ajax/uncledatoolsbyajax.php?gid=' + gid + '&lang=zh&img=' + src + '&uc=' + uc_code + '&floor=' + Math.floor(Math.random() * 1e3 + 1);
+            ajaxGet(url, function (responseText) {
+                var table_html = responseText.substring(0, responseText.indexOf('<script')).trim();
+                var table_tag = $('<table class="table pop-up-tag"  style="background-color:#FFFFFF;" id="' + avid + MAGNET_SUFFIX + '"></table>');
                 table_tag.append($(table_html));
-                var length=table_tag.find("tr").length;
-                var HEIGHT=window.innerHeight;
-                if( HEIGHT>=35*length){
-                    table_tag.css("margin-top",(HEIGHT-35*length)/2-40);
+                var length = table_tag.find("tr").length;
+                var HEIGHT = window.innerHeight;
+                if (HEIGHT >= 35 * length) {
+                    table_tag.css("margin-top", (HEIGHT - 35 * length) / 2 - 40);
                 }
                 $('#magnettablediv').append(table_tag);
-                $('#'+avid+MAGNET_SUFFIX).find("tr").each(function(i){ // 遍历 tr
-                    var me=this;
-                    if($(me).find('a').length==0){ return true;}
+                $('#' + avid + MAGNET_SUFFIX).find("tr").each(function (i) { // 遍历 tr
+                    var me = this;
+                    if ($(me).find('a').length == 0) {
+                        return true;
+                    }
                     var magent_url = $(me).find('a')[0].href;
-                    addCopybutton(me,magent_url);
+                    addCopybutton(me, magent_url);
                 });
                 $('#myModal').modal();
             });
         });
     };
-    function addCopybutton(tag,text){
+
+    function addCopybutton(tag, text) {
         var copyButton = $('<button class="center-block">复制</button>');
-        copyButton.click(function(){
-            var btn=this;
+        copyButton.click(function () {
+            var btn = this;
             btn.innerHTML = '成功';
             GM_setClipboard(text);
-            setTimeout(function() {
+            setTimeout(function () {
                 btn.innerHTML = '复制';
             }, 1000);
         });
-        var td_tag=$('<td></td>');
+        var td_tag = $('<td></td>');
         td_tag.append(copyButton);
         $(tag).prepend(td_tag);
     }
     class Lock {
-        constructor(d = false) { this.locked = d; }
-        lock() { this.locked = true;}
-        unlock() { this.locked = false; }
+        constructor(d = false) {
+            this.locked = d;
+        }
+        lock() {
+            this.locked = true;
+        }
+        unlock() {
+            this.locked = false;
+        }
     }
 
     function waterfallScrollInit() {
-        if(!location.pathname.includes('/actresses') &&
-           !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/)>0) &&
-           $('div#waterfall div.item').length){
-                $('#waterfall')[0].id="waterfall_h1";
-                //解决和"JAV老司机"同时运行时样式冲突问题--begin
-                if($('.masonry').length>0){
-                    $('.masonry').addClass("masonry2");
-                    $('.masonry').removeClass("masonry");
+        if (!location.pathname.includes('/actresses') &&
+            !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/) > 0) &&
+            $('div#waterfall div.item').length) {
+            $('#waterfall')[0].id = "waterfall_h1";
+            //解决和"JAV老司机"同时运行时样式冲突问题--begin
+            if ($('.masonry').length > 0) {
+                $('.masonry').addClass("masonry2");
+                $('.masonry').removeClass("masonry");
+            }
+            if ($('#waterfall_h').length > 0) {
+                $('#waterfall_h')[0].id = "waterfall_h1";
+            }
+            //解决 JAV老司机 第619行 $pages[0].parentElement.parentElement.id = "waterfall_h";
+            //收藏界面样式变形的问题
+            if ($('#waterfall_h1.row').length > 0) {
+                $('#waterfall_h1.row').removeAttr("id");
+            }
+            //解决和"JAV老司机"同时运行时样式冲突问题--end
+            addStyle();
+            //样式比瀑布流先生效，所以先隐藏掉原图
+            if ($('#waterfall_h1 .movie-box img').length > 0) {
+                $('#waterfall_h1 .movie-box img').hide();
+            }
+            if (waterfallScrollStatus > 0) {
+                var w = new waterfall({});
+            } else {
+                var elems = $('div#waterfall_h1 div.item');
+                if (!elems.length) {
+                    return;
+                };
+                $('.masonry2').empty().append(elems);
+                for (let i = 0; i < elems.length; i++) {
+                    if ($(elems[i]).find(".avatar-box").length > 0) continue;
+                    setTag(elems[i]);
                 }
-                if($('#waterfall_h').length>0){
-                    $('#waterfall_h')[0].id="waterfall_h1";
-                }
-                //解决 JAV老司机 第619行 $pages[0].parentElement.parentElement.id = "waterfall_h";
-                //收藏界面样式变形的问题
-                if($('#waterfall_h1.row').length>0){
-                    $('#waterfall_h1.row').removeAttr("id");
-                }
-                //解决和"JAV老司机"同时运行时样式冲突问题--end
-                addStyle();
-                //样式比瀑布流先生效，所以先隐藏掉原图
-                if($('#waterfall_h1 .movie-box img').length>0){
-                   $('#waterfall_h1 .movie-box img').hide();
-                }
-                if(waterfallScrollStatus > 0) {
-                    var w = new waterfall({});
-                }else{
-                    var elems = $('div#waterfall_h1 div.item');
-                    if(!elems.length){return;};
-                    $('.masonry2').empty().append(elems);
-                    for (let i = 0; i < elems.length; i++) {
-                        if($(elems[i]).find(".avatar-box").length > 0) continue;
-                        setTag(elems[i]);
-                    }
-                }
+            }
         }
     };
-    function waterfall(selectorcfg = {}){
+
+    function waterfall(selectorcfg = {}) {
         this.lock = new Lock();
         this.baseURI = this.getBaseURI();
         this.selector = {
@@ -407,15 +431,15 @@
                 cont.append(elems);
             }
         };
-        this._3func = function ( elems) {
-            if(!location.pathname.includes('/actresses') && elems){//排除actresses页面
+        this._3func = function (elems) {
+            if (!location.pathname.includes('/actresses') && elems) { //排除actresses页面
                 for (let i = 0; i < elems.length; i++) {
-                    if($(elems[i]).find(".avatar-box").length > 0) continue;
+                    if ($(elems[i]).find(".avatar-box").length > 0) continue;
                     setTag(elems[i]);
                 }
             }
         };
-        if ($('div#waterfall_h1 div.item').length>0 || $('div#waterfall div.item').length>0) {
+        if ($('div#waterfall_h1 div.item').length > 0 || $('div#waterfall div.item').length > 0) {
             document.addEventListener('scroll', this.scroll.bind(this));
             document.addEventListener('wheel', this.wheel.bind(this));
             this.appendElems(this._1func);
@@ -433,36 +457,43 @@
     // 瀑布流脚本
     waterfall.prototype.fetchURL = function (url) {
         console.log(`fetchUrl = ${url}`);
-        const fetchwithcookie = fetch(url, {credentials: 'same-origin'});
+        const fetchwithcookie = fetch(url, {
+            credentials: 'same-origin'
+        });
         return fetchwithcookie.then(response => response.text())
             .then(html => new DOMParser().parseFromString(html, 'text/html'))
             .then(doc => {
-            let $doc = $(doc);
-            let href = $doc.find(this.selector.next).attr('href');
-            let nextURL = href ? this.getNextURL(href) : undefined;
-            let elems = $doc.find(this.selector.item);
-            return {
-                nextURL,
-                elems
-            };
-        });
+                let $doc = $(doc);
+                let href = $doc.find(this.selector.next).attr('href');
+                let nextURL = href ? this.getNextURL(href) : undefined;
+                let elems = $doc.find(this.selector.item);
+                return {
+                    nextURL,
+                    elems
+                };
+            });
     };
     // 瀑布流脚本
     waterfall.prototype.fetchSync = function* (urli) {
         let url = urli;
-        do { yield new Promise((resolve, reject) => {
-            if (this.lock.locked) { reject(); }
-            else {this.lock.lock();resolve(); }
-        }).then(() => {
-            return this.fetchURL(url).then(info => {
-                url = info.nextURL;
-                return info.elems;
-            });
-        }).then(elems => {
-            this.lock.unlock();
-            return elems;
-        }).catch((err) => { });
-           } while (url);
+        do {
+            yield new Promise((resolve, reject) => {
+                if (this.lock.locked) {
+                    reject();
+                } else {
+                    this.lock.lock();
+                    resolve();
+                }
+            }).then(() => {
+                return this.fetchURL(url).then(info => {
+                    url = info.nextURL;
+                    return info.elems;
+                });
+            }).then(elems => {
+                this.lock.unlock();
+                return elems;
+            }).catch((err) => {});
+        } while (url);
     };
     // 瀑布流脚本
     waterfall.prototype.appendElems = function () {
@@ -473,7 +504,7 @@
                 cb($(this.selector.cont), elems);
                 this._count += 1;
                 this._3func(elems);
-            }) ;
+            });
         }
         return nextpage.done;
     };
