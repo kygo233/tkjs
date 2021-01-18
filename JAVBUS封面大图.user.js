@@ -7,6 +7,7 @@
 // @include      https://*.javbus.*/*
 // @include      https://*.busfan.*/*
 // @include      https://*.fanbus.*/*
+// @include      https://*avmoo.*/*
 
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
@@ -16,6 +17,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;
 // 2021-01-01 新增宽度调整功能;
 // 2020-12-29 解决半图模式下 竖图显示不全的问题;
 // 2020-10-16 解决功能开关取默认值为undefined的bug
@@ -34,7 +36,6 @@
     let waterfallScrollStatus = GM_getValue('waterfall_status', 0);
     let copyBtnStatus = GM_getValue('copyBtn_status', 1);
     let aTagStatus = GM_getValue('aTag_status', 1);
-    let itemTagStatus = GM_getValue('itemTag_status', 1);
     let halfImgStatus = GM_getValue('halfImg_status', 0);
     let waterfallWidth = GM_getValue('waterfallWidth', 100);
 
@@ -42,7 +43,6 @@
     statusDefaultMap.set('waterfall', 0); //
     statusDefaultMap.set('copyBtn', 1); //
     statusDefaultMap.set('aTag', 1);
-    statusDefaultMap.set('itemTag', 1);
     statusDefaultMap.set('halfImg', 0);
     let columnNum_full = GM_getValue('bigImg_columnNum_full', 3);
     let columnNum_half = GM_getValue('bigImg_columnNum_half', 4);
@@ -85,7 +85,7 @@
             '.range_div span{  width: 20%;text-align: center;}',
         ].join(''));
 
-        var columnNum = halfImgStatus > 0 ? columnNum_half : columnNum_full;
+        var columnNum = halfImgStatus > 0 && !halfImg_block ? columnNum_half : columnNum_full;
         GM_addStyle('#waterfall_h1 .item{ width: ' + 100 / columnNum + '%;}');
 
         $("#waterfall_h1").css("width", waterfallWidth + "%");
@@ -98,7 +98,7 @@
             ' <option value="4">4列</option><option value="5">5列</option><option value="6">6列</option></select>');
         $(select_tag).find("option[value='" + columnNum + "']").attr("selected", true);
         $(select_tag).change(function () {
-            GM_setValue('bigImg_columnNum_' + (halfImgStatus > 0 ? 'half' : 'full'), $(this).val());
+            GM_setValue('bigImg_columnNum_' + (halfImgStatus > 0 && !halfImg_block ? 'half' : 'full'), $(this).val());
             window.location.reload();
         });
         let li_elem = document.createElement('li');
@@ -121,8 +121,9 @@
         $(ul).append(creatCheckbox("waterfall", "瀑布流"));
         $(ul).append(creatCheckbox("copyBtn", "复制图标"));
         $(ul).append(creatCheckbox("aTag", "功能链接"));
-        $(ul).append(creatCheckbox("itemTag", "高清图标"));
-        $(ul).append(creatCheckbox("halfImg", "封面半图"));
+        if (!halfImg_block) {
+            $(ul).append(creatCheckbox("halfImg", "竖图模式"));
+        }
         var range = $('<li data-stopPropagation="true" ><div  class="range_div"><input type="range"   min="1" max="100" step="1" value="' + waterfallWidth + '"  /><span>' + waterfallWidth + '</span></div></li>');
         $(range).bind('input propertychange', function () {
             var val = $(this).find("input").eq(0).val();
@@ -148,21 +149,24 @@
         return checkbox;
     }
     //设置点击标签
-    function setTag(tag) {
+    function setTag(elems) {
+        var src_fuc = ConstCode[currentWeb].replaceImgSrc;
+        for (let i = 0; i < elems.length; i++) {
+            if ($(elems[i]).find(".avatar-box").length > 0) continue;
+            add_Tag(elems[i], src_fuc);
+        }
+    }
+
+    function add_Tag(tag, src_fuc) {
         //替换封面为大图 Begin
         var photoDiv = $(tag).find("div.photo-frame")[0];
         $(photoDiv).hide();
         var img = $(photoDiv).children("img")[0];
-        var src = img.src;
-        if (src.match(/pics.dmm.co.jp/)) {
-            src = src.replace(/ps.jpg/, "pl.jpg");
-        } else {
-            src = src.replace(/thumbs/, "cover").replace(/thumb/, "cover").replace(/.jpg/, "_b.jpg");
-        }
+        var src = src_fuc(img.src);
         var bigimg = new Image();
         bigimg.src = src;
         //判断是否为半图显示
-        if (halfImgStatus > 0) {
+        if (halfImgStatus > 0 && !halfImg_block) {
             $(bigimg).addClass("halfImgCSS");
             $(bigimg).load(function () {
                 if (bigimg.height > bigimg.width) {
@@ -181,12 +185,9 @@
         var spanTag = $(infoDiv).find("span")[0];
 
         var title = $(spanTag).html().split("<br")[0].trim(); //标题
-        //  $(spanTag).html($(spanTag).html().replace(/.*?<br>/,title));
         var AVIDDiv = $(infoDiv).find("date")[0];
         var AVID = $(AVIDDiv).text(); //番号
-        if (itemTagStatus < 1) {
-            $(spanTag).children("div").remove();
-        }
+        $(spanTag).children("div").remove();
         if (copyBtnStatus > 0) {
             addCopyATagPre(spanTag, title);
             addCopyATagPre(AVIDDiv, AVID);
@@ -194,7 +195,7 @@
         if (aTagStatus > 0) {
             var bigDivTag = $('<a href="javascript:;" class="big-img-a" >视频截图</a>');
             var downloadDiv = $('<a href="javascript:;" class="big-img-a" >下载封面</a>');
-            var magnetDivTag = $('<a href="javascript:;"  class="big-img-a" >磁力链接</a>');
+            var magnetDivTag = $('<a href="javascript:;"  class="big-img-a"  style="visibility:'+(currentWeb=='avmoo'?'hidden':'visible')+'">磁力链接</a>');
             $(spanTag).append(bigDivTag);
             $(spanTag).append(downloadDiv);
             $(spanTag).append(magnetDivTag);
@@ -368,7 +369,7 @@
         }
     }
 
-    function waterfallScrollInit() {
+    function waterfallScrollInit(pageItem) {
         if (!location.pathname.includes('/actresses') &&
             !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/) > 0) &&
             $('div#waterfall div.item').length) {
@@ -393,17 +394,14 @@
                 $('#waterfall_h1 .movie-box img').hide();
             }
             if (waterfallScrollStatus > 0) {
-                var w = new waterfall({});
+                var w = new waterfall(pageItem);
             } else {
                 var elems = $('div#waterfall_h1 div.item');
                 if (!elems.length) {
                     return;
                 };
                 $('.masonry2').empty().append(elems);
-                for (let i = 0; i < elems.length; i++) {
-                    if ($(elems[i]).find(".avatar-box").length > 0) continue;
-                    setTag(elems[i]);
-                }
+                setTag(elems);
             }
         }
     };
@@ -433,10 +431,7 @@
         };
         this._3func = function (elems) {
             if (!location.pathname.includes('/actresses') && elems) { //排除actresses页面
-                for (let i = 0; i < elems.length; i++) {
-                    if ($(elems[i]).find(".avatar-box").length > 0) continue;
-                    setTag(elems[i]);
-                }
+                setTag(elems);
             }
         };
         if ($('div#waterfall_h1 div.item').length > 0 || $('div#waterfall div.item').length > 0) {
@@ -529,6 +524,55 @@
         }
     };
 
-    waterfallScrollInit();
+    let currentWeb = "";
+    let halfImg_block = false;
+    let ConstCode = {
+        javbus: {
+            domainReg: /(javbus|cdnbus|busfun)\./i,
+            replaceImgSrc: function (src) {
+                if (src.match(/pics.dmm.co.jp/)) {
+                    src = src.replace(/ps.jpg/, "pl.jpg");
+                } else {
+                    src = src.replace(/thumbs/, "cover").replace(/thumb/, "cover").replace(/.jpg/, "_b.jpg");
+                }
+                return src;
+            },
+            pageItem: {
+                next: 'a#next',
+                item: 'div#waterfall div.item',
+                cont: '.masonry2',
+                pagi: '.pagination-lg'
+            },
+            uncensored: 0
+        },
+        avmoo: {
+            domainReg: /avmoo\./i,
+            replaceImgSrc: function (src) {
+                src = src.replace(/ps.jpg/, "pl.jpg");
+                return src;
+            },
+            pageItem: {
+                next: 'a[name="nextpage"]',
+                item: 'div#waterfall div.item',
+                cont: '#waterfall_h1',
+                pagi: '.pagination'
+            }
+        }
+    };
+
+    function jsInit() {
+        //判断页面的地址, 加载对应的参数
+        for (var key in ConstCode) {
+            var domainReg = ConstCode[key].domainReg;
+            if (domainReg && domainReg.test(location.href)) {
+                currentWeb = key;
+                break;
+            }
+        }
+        //无码和欧美类 屏蔽 竖图模式
+        if (location.href.includes('/uncensored') || location.href.includes('javbus.one')) halfImg_block = true;
+        waterfallScrollInit(ConstCode[currentWeb].pageItem);
+    }
+    jsInit();
     // Your code here...
 })();
