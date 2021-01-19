@@ -1,13 +1,12 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.9
+// @version      0.9.1
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
-// @include      https://*.javbus.*/*
-// @include      https://*.busfan.*/*
-// @include      https://*.fanbus.*/*
-// @include      https://*avmoo.*/*
+
+// @include     /^https:\/\/.*\.(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
+// @include      https://*avmoo.*
 
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
@@ -17,7 +16,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;
+// 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;调整域名匹配规则
 // 2021-01-01 新增宽度调整功能;
 // 2020-12-29 解决半图模式下 竖图显示不全的问题;
 // 2020-10-16 解决功能开关取默认值为undefined的bug
@@ -524,11 +523,11 @@
         }
     };
 
-    let currentWeb = "";
+    let currentWeb = "javbus";//默认为javbus
     let halfImg_block = false;
     let ConstCode = {
         javbus: {
-            domainReg: /(javbus|cdnbus|busfun)\./i,
+            domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\./i,
             replaceImgSrc: function (src) {
                 if (src.match(/pics.dmm.co.jp/)) {
                     src = src.replace(/ps.jpg/, "pl.jpg");
