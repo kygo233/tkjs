@@ -254,7 +254,7 @@
                     return;
                 }
                 var doc = result.responseText;
-                let a_array = $(doc).find(".more-link");
+                let a_array = $(doc).find(".entry-title a");
                 let imgUrl;
                 for (let i = 0; i < a_array.length; i++) {
                     imgUrl = a_array[i].href;
