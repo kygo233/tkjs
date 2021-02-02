@@ -7,7 +7,7 @@
 
 // @include     /^https:\/\/.*\.(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      https://*avmoo.*
-
+// @include      http://localhost/
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -47,7 +47,7 @@
     let columnNum_half = GM_getValue('bigImg_columnNum_half', 4);
     let IMG_SUFFIX = "-bigimg-tag";
     let MAGNET_SUFFIX = "-magnet-tag";
-
+    let SAMPLE_SUFFIX = "-sample-tag";
     function ajaxGet(url, fn) {
         let xhr = new XMLHttpRequest();
         xhr.open("GET", url);
@@ -59,56 +59,98 @@
         }
     }
 
+    let func_List={
+        select_tag : {
+            change:function(columnNum){
+                GM_setValue('bigImg_columnNum_' + (halfImgStatus > 0 && !halfImg_block ? 'half' : 'full'),columnNum );
+                $("#waterfall_h1 .item").css("width",100 / columnNum + "%");
+            }
+        },
+        waterfall : {
+            checkbox : function (){
+                window.location.reload();
+            }
+        } ,
+        copyBtn:{
+            checkbox : function (){
+                $(".copyBtn-icon").toggleClass("hidden");
+            }
+        },
+        aTag:{
+            checkbox : function (){
+                $(".func-div").toggleClass("hidden");
+            }
+        },
+        halfImg :{
+            checkbox : function (){
+                var status=GM_getValue('halfImg_status', 0) ;
+                $("#waterfall_h1 .movie-box-b img").each(function(){
+                    if (status> 0 && !halfImg_block) {
+                        $(this).removeClass("fullImgCSS").addClass("halfImgCSS");
+                        var src=this.src+"?t="+Math.random();
+                        $(this).attr("src",src);
+                        $(this).load(function () {
+                            if (this.height > this.width) {
+                                $(this).removeClass("halfImgCSS");
+                                $(this).addClass("fullImgCSS");
+                            }
+                        });
+                    } else {
+                        $(this).removeClass("halfImgCSS").addClass("fullImgCSS");
+                    }
+
+                });
+            }
+        }
+    };
+
     //添加全局样式 导航栏功能按钮
     function addStyle() {
-        GM_addStyle([
-            '#waterfall_h1 {margin:0 auto;height: auto !important;display: flex;flex-direction: row;flex-wrap: wrap;padding:10px;}',
-            '#waterfall_h1 .item{position: relative !important;top: auto !important;left: auto !important;}',
-            '#waterfall_h1 .movie-box  {margin:5px !important; width: auto !important;height: auto !important;display: flex;flex-direction: column;}',
-            '#waterfall_h1 .avatar-box {width: auto !important;height: auto !important;display: flex;flex-direction: row;}',
-            '#waterfall_h1 .movie-box .photo-frame {width:auto !important;height:auto!important; }',
-           ' #waterfall_h1 .photo-info span { display:block;white-space:nowrap;text-overflow: ellipsis;overflow:hidden;  }',
-            '.pop-up-tag{ margin-left:auto  !important;margin-right:auto  !important;}',
-            '.big-img-a{float:right;cursor:pointer !important;margin-left:5px;color:black;opacity:0.8;}',
-            '.big-img-a:hover{color:blue;}',
-            '.download-icon{font-size:50px;color:black;position:absolute;right:0;z-index:2;cursor:pointer }',
-            '.copyBtn-icon{display: inline !important;font-size:18px;opacity:0.4;top:3px !important;}',
-            '.copyBtn:hover{color:red;opacity:1;}',
-            '.switch_div { cursor:pointer ;display: flex;flex-direction: row;flex-wrap: wrap;}',
-            '.switch_div:hover{background-color:#E6E6FA;}',
-            '.switch_div label {cursor:pointer;width: 50%;text-align: right;}',
-            '.switch_div input {cursor:pointer;width: 50%;}',
-            '.fullImgCSS {width: 100% !important;; height: 100% !important;}',
-            '.halfImgCSS {position: relative;left:-110.5%;width: 210% !important;; height: 100% !important;}',
-            '.range_div {display: flex;flex-direction: row;flex-wrap: wrap;}',
-            '.range_div input{cursor:pointer ;width: 80%;}',
-            '.range_div span{  width: 20%;text-align: center;}',
-        ].join(''));
-
+        GM_addStyle(css_waterfall);
         var columnNum = halfImgStatus > 0 && !halfImg_block ? columnNum_half : columnNum_full;
         GM_addStyle('#waterfall_h1 .item{ width: ' + 100 / columnNum + '%;}');
 
         $("#waterfall_h1").css("width", waterfallWidth + "%");
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
         $('body').append('<div class="modal fade" id="myModal"  role="dialog" >' +
-            '<div class="modal-dialog" style="width:80% !important;"  id="magnettablediv" > </div>');
+                         '<div class="modal-dialog" style="width:80% !important;"  id="modal-div" > </div>');
+        $('#myModal').magnificPopup({
+            delegate: 'a',
+            type: 'image',
+            closeOnContentClick: false,
+            closeBtnInside: false,
+            mainClass: 'mfp-with-zoom mfp-img-mobile',
+            image: {
+                verticalFit: true
+            },
+            gallery: {
+                enabled: true
+            },
+            zoom: {
+                enabled: true,
+                duration: 300,
+                opener: function(element) {
+                    return element.find('img');
+                }
+            }
+
+        });
         //列数下拉框,
         var select_tag = $('<select class="form-control" style="margin-top: 8px;padding:0;" id="inputGroupSelect01">' +
-            ' <option value="1">1列</option><option value="2">2列</option><option value="3">3列</option>' +
-            ' <option value="4">4列</option><option value="5">5列</option><option value="6">6列</option></select>');
+                           ' <option value="1">1列</option><option value="2">2列</option><option value="3">3列</option>' +
+                           ' <option value="4">4列</option><option value="5">5列</option><option value="6">6列</option></select>');
         $(select_tag).find("option[value='" + columnNum + "']").attr("selected", true);
-        $(select_tag).change(function () {
-            GM_setValue('bigImg_columnNum_' + (halfImgStatus > 0 && !halfImg_block ? 'half' : 'full'), $(this).val());
-            window.location.reload();
+        $(select_tag).change(function(){
+            func_List.select_tag.change($(this).val());
         });
         let li_elem = document.createElement('li');
         $(li_elem).append($(select_tag));
         $("#navbar ul.nav").first().append($(li_elem));
 
         var other_select_tag = $('<li class="dropdown">' +
-            ' <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-hover="dropdown" >样式开关<span class="caret"></span></a>' +
-            ' <ul class="dropdown-menu" role="menu">' +
-            '</ul> </li>');
+                                 ' <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-hover="dropdown" >样式开关<span class="caret"></span></a>' +
+                                 ' <ul class="dropdown-menu" role="menu">' +
+                                 '</ul> </li>');
         $(other_select_tag).mouseover(function () {
             $(this).addClass('open');
         }).mouseout(function () {
@@ -139,32 +181,92 @@
     }
     //根据id、name生成勾选框
     function creatCheckbox(tagName, name) {
-        var checkbox = $('<li><div class="switch_div"><label   for="' + tagName + '_checkbox" >' + name + '</label><input  type="checkbox" id="' + tagName + '_checkbox" /></div></li>');
+        var checkbox = $('<li data-stopPropagation="true"><div class="switch_div"><label   for="' + tagName + '_checkbox" >' + name + '</label><input  type="checkbox" id="' + tagName + '_checkbox" /></div></li>');
         var status = tagName + "_status";
         checkbox.find("input")[0].checked = GM_getValue(status, statusDefaultMap.get(tagName)) > 0 ? true : false;
         checkbox.click(function () {
             ($(this).find("input")[0].checked == true) ? GM_setValue(status, 1): GM_setValue(status, 0);
-            window.location.reload();
+            func_List[tagName].checkbox();
         });
         return checkbox;
     }
+    function showSample(avid) {
+        var sample_id = "#" + avid + SAMPLE_SUFFIX;
+        $('.pop-up-tag').hide();
+        if ($(sample_id).length > 0) {
+            $(sample_id).show();
+            $('#myModal').modal();
+        } else {
+            getsample(avid,sample_id);
+        }
+    }
+
+    //获取 本站视频截图
+    function getsample(avid,sample_id) {
+        var basehref = `${location.protocol}//${location.hostname}/`;
+        avid = avid.replace(/\./g, '-');
+        var url = basehref + avid;
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: url,
+            onload: function (result) {
+                var doc = result.responseText;
+                var sample_div = $($.parseHTML(doc)).find("#sample-waterfall");
+                var magnet_table = $($.parseHTML(doc)).find("#magnet-table");
+                var avatar_waterfall = $($.parseHTML(doc)).find("#avatar-waterfall");
+
+                sample_div[0].id = sample_id;
+                sample_div.addClass("pop-up-tag");
+                sample_div.find("a").attr("data-group",avid);
+                sample_div.find("a").addClass("sample-a-zdy");
+
+                $('#modal-div').append(avatar_waterfall.find('a'));
+                $('#modal-div').append(sample_div);
+                $('#myModal').modal();
+            }
+        });
+    };
     //设置点击标签
     function setTag(elems) {
         var src_fuc = ConstCode[currentWeb].replaceImgSrc;
         for (let i = 0; i < elems.length; i++) {
-            if ($(elems[i]).find(".avatar-box").length > 0) continue;
+            if ($(elems[i]).find(".avatar-box").length > 0) {
+                $(elems).find(".avatar-box").addClass("avatar-box-b").removeClass("avatar-box");
+                continue;
+            }
             add_Tag(elems[i], src_fuc);
         }
+    }
+
+    //自定义item 模板
+    function getTemplate(elem,href,src,title,avid,date) {
+        var template=`<div class="movie-box-b">
+                                <div class="photo-frame-b">
+                                    <a  href="${href}"><img src="${src}"></a>
+                                </div>
+                                <div class="photo-info-b">
+                                      <a name="av_title" href="${href}"><span>${title}</span></a>
+                                      <date name="avid">${avid}</date> / <date>${date}</date>
+                                      <div class="func-div"></div>
+                                </div>
+                     </div>`;
+        return template;
     }
 
     function add_Tag(tag, src_fuc) {
         //替换封面为大图 Begin
         var photoDiv = $(tag).find("div.photo-frame")[0];
-        $(photoDiv).hide();
+
+        var href=$(tag).find("a")[0].href;//跳转链接
         var img = $(photoDiv).children("img")[0];
-        var src = src_fuc(img.src);
-        var bigimg = new Image();
-        bigimg.src = src;
+        var src = src_fuc(img.src);//获取大图地址
+        var title = img.title; //标题
+
+        var AVID = $(tag).find("date").eq(0).text(); //番号
+        var date = $(tag).find("date").eq(1).text(); //日期
+        $(tag).html(getTemplate(tag,href,src,title,AVID,date));
+
+        var bigimg = $(tag).find("img")[0];
         //判断是否为半图显示
         if (halfImgStatus > 0 && !halfImg_block) {
             $(bigimg).addClass("halfImgCSS");
@@ -177,80 +279,69 @@
         } else {
             $(bigimg).addClass("fullImgCSS");
         }
-        $(photoDiv).append(bigimg);
-        img.remove();
-        $(photoDiv).show();
         //替换封面为大图 end
-        var infoDiv = $(tag).find("div.photo-info")[0];
-        var spanTag = $(infoDiv).find("span")[0];
 
-        var title = $(spanTag).html().split("<br")[0].trim(); //标题
-        var AVIDDiv = $(infoDiv).find("date")[0];
-        var AVID = $(AVIDDiv).text(); //番号
-        $(spanTag).children("div").remove();
-        if (copyBtnStatus > 0) {
-            addCopyATagPre(spanTag, title);
-            addCopyATagPre(AVIDDiv, AVID);
+        addCopyATagPre($(tag).find("a[name='av_title']").eq(0), title);
+        addCopyATagPre($(tag).find("date[name='avid']").eq(0), AVID);
+        var func_div=$(tag).find(".func-div").eq(0);
+
+        var magnetDivTag =$('<span class="glyphicon glyphicon-magnet func-span" style="transform: rotate(90deg);"></span>');
+        var downloadDiv =$('<span class="glyphicon glyphicon-download func-span"></span>');
+        var bigDivTag = $('<span class="glyphicon glyphicon-picture func-span"></span>');
+
+        $(func_div).append(bigDivTag); $(func_div).append(downloadDiv); $(func_div).append(magnetDivTag);
+        if(aTagStatus<1){
+            $(func_div).addClass("hidden");
         }
-        if (aTagStatus > 0) {
-            var bigDivTag = $('<a href="javascript:;" class="big-img-a" >视频截图</a>');
-            var downloadDiv = $('<a href="javascript:;" class="big-img-a" >下载封面</a>');
-            var magnetDivTag = $('<a href="javascript:;"  class="big-img-a"  style="visibility:'+(currentWeb=='avmoo'?'hidden':'visible')+'">磁力链接</a>');
-            $(spanTag).append(bigDivTag);
-            $(spanTag).append(downloadDiv);
-            $(spanTag).append(magnetDivTag);
-            bigDivTag.click(function () {
-                showBigImg(AVID, title, bigDivTag);
-            });
-            downloadDiv.click(function () {
-                GM_download(src, AVID + " " + title + ".jpg");
-            });
-            magnetDivTag.click(function () {
-                showMagnetTable(AVID, src);
-            });
-        }
+        bigDivTag.click(function () {
+            //showBigImg(AVID, bigDivTag);
+            showSample(AVID);
+        });
+        downloadDiv.click(function () {
+            GM_download(src, AVID + " " + title + ".jpg");
+        });
+        magnetDivTag.click(function () {
+            showMagnetTable(AVID, src);
+        });
     }
+
     //添加复制图标
     function addCopyATagPre(tag, text) {
-        var copyATag = $('<span class="glyphicon glyphicon-copy copyBtn copyBtn-icon"></span>');
+        var copyATag = $('<span class="glyphicon glyphicon-bookmark copyBtn-icon" ></span>');
+        if(copyBtnStatus<1){
+            copyATag.addClass("hidden");
+        }
         copyATag.click(function () {
             var span = this;
-            $(span).removeClass("glyphicon glyphicon-copy").addClass('glyphicon glyphicon-ok');
-            //btn.innerHTML = '成功>';
+            $(span).removeClass("glyphicon-bookmark").addClass('glyphicon-ok');
             GM_setClipboard(text);
             setTimeout(function () {
-                $(span).removeClass("glyphicon glyphicon-ok").addClass('glyphicon glyphicon-copy');
-                //   btn.innerHTML = '复制>';
+                $(span).removeClass("glyphicon-ok").addClass('glyphicon-bookmark');
             }, 1000);
             return false;
         });
         $(tag).prepend(copyATag);
     }
     //显示视频截图
-    function showBigImg(avid, title, bigDivTag) {
-        if (bigDivTag.text() != "视频截图") {
-            return;
-        }
+    function showBigImg(avid, bigDivTag) {
         var img_id = avid + IMG_SUFFIX;
         $('.pop-up-tag').hide();
         if ($("#" + img_id).length > 0) {
             $("#" + img_id).show();
             $('#myModal').modal();
         } else {
-            getAvImg(avid, title, bigDivTag);
+            getAvImg(avid, bigDivTag);
         }
     }
     //获取视频截图
-    function getAvImg(avid, title, bigDivTag) {
-        bigDivTag.text('加载中..');
-
+    function getAvImg(avid,bigDivTag) {
         GM_xmlhttpRequest({
             method: "GET",
             url: 'http://blogjav.net/?s=' + avid,
             onload: function (result) {
                 if (result.status !== 200) {
                     alert('blogjav.net此网站暂时无法响应');
-                    bigDivTag.text('视频截图');
+
                     return;
                 }
                 var doc = result.responseText;
@@ -283,7 +374,7 @@
                                     GM_download(src, avid + " 截图.jpg");
                                 });
                                 $(img_tag).prepend(downloadBtn);
-                                $('#magnettablediv').append(img_tag);
+                                $('#modal-div').append(img_tag);
                                 $('#myModal').modal();
                             } else {
                                 bigDivTag.text('无大图');
@@ -309,6 +400,7 @@
             getMagnet(avid, src);
         }
     }
+
     //ajax 获取磁力链接
     function getMagnet(avid, src) {
         var basehref = `${location.protocol}//${location.hostname}/`;
@@ -329,7 +421,7 @@
                 if (HEIGHT >= 35 * length) {
                     table_tag.css("margin-top", (HEIGHT - 35 * length) / 2 - 40);
                 }
-                $('#magnettablediv').append(table_tag);
+                $('#modal-div').append(table_tag);
                 $('#' + avid + MAGNET_SUFFIX).find("tr").each(function (i) { // 遍历 tr
                     var me = this;
                     if ($(me).find('a').length == 0) {
@@ -400,6 +492,7 @@
                 if (!elems.length) {
                     return;
                 };
+                elems.attr("style","");
                 $('.masonry2').empty().append(elems);
                 setTag(elems);
             }
@@ -458,15 +551,15 @@
         return fetchwithcookie.then(response => response.text())
             .then(html => new DOMParser().parseFromString(html, 'text/html'))
             .then(doc => {
-                let $doc = $(doc);
-                let href = $doc.find(this.selector.next).attr('href');
-                let nextURL = href ? this.getNextURL(href) : undefined;
-                let elems = $doc.find(this.selector.item);
-                return {
-                    nextURL,
-                    elems
-                };
-            });
+            let $doc = $(doc);
+            let href = $doc.find(this.selector.next).attr('href');
+            let nextURL = href ? this.getNextURL(href) : undefined;
+            let elems = $doc.find(this.selector.item);
+            return {
+                nextURL,
+                elems
+            };
+        });
     };
     // 瀑布流脚本
     waterfall.prototype.fetchSync = function* (urli) {
@@ -573,6 +666,142 @@
         if (location.href.includes('/uncensored') || location.href.includes('javbus.one')) halfImg_block = true;
         waterfallScrollInit(ConstCode[currentWeb].pageItem);
     }
+
+    const css_waterfall=`
+#waterfall_h1 {
+    margin: 10px auto;
+    height: auto !important;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+#waterfall_h1 .item {
+    margin-bottom: 15px;
+    padding :0 6px;
+}
+#waterfall_h1 .movie-box-b  {
+    border-radius: 4px;
+    display: flex;height: 100%;
+    background-color:white;
+    flex-direction: column;
+    box-shadow: 0px 1px 2px #888888;
+}
+#waterfall_h1 .avatar-box-b {
+    display: flex;
+    flex-direction: row;
+    background-color:white;
+    border-radius: 4px;
+    align-items:center;
+    justify-content:space-around;
+}
+#waterfall_h1 .movie-box-b .photo-frame-b{
+    padding:2px;
+}
+#waterfall_h1 .movie-box-b .photo-frame-b a{
+     display:block;
+     overflow:hidden;
+     border-top-right-radius: 4px;
+     border-top-left-radius: 4px;
+}
+#waterfall_h1 .movie-box-b .photo-info-b {
+    padding: 10px;
+}
+#waterfall_h1 .movie-box-b .photo-info-b  a{
+    color: #333;
+    display:block;
+}
+#waterfall_h1 .movie-box-b .photo-info-b  a:hover{
+    color: #23527c;
+}
+#waterfall_h1 date:first-of-type{
+    font-size: 18px;
+}
+.func-div{
+   float:right;
+   background: #f5f5f5;
+   border-radius: 4px;
+}
+.pop-up-tag {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.func-span {
+    float: right;
+    cursor: pointer ;
+    font-size:21px;
+    opacity: 0.4;
+    padding:0 5px;
+
+}
+.func-span:hover {
+   opacity: 1;
+}
+.download-icon {
+    font-size: 50px;
+    color: black;
+    position: absolute;
+    right: 0;
+    z-index: 2;
+    cursor: pointer
+}
+.copyBtn-icon {
+    font-size: 15px;
+    opacity: 0.4;
+    top: 3px !important;
+}
+.copyBtn-icon:hover {
+    color: red;
+    opacity: 1;
+}
+.switch_div {
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.switch_div:hover {
+    background-color: #E6E6FA;
+}
+.switch_div label {
+    cursor: pointer;
+    width: 50%;
+    text-align: right;
+}
+.switch_div input {
+    cursor: pointer;
+    width: 50%;
+}
+.fullImgCSS {
+    width: 100% !important;
+    height: 100% !important;
+}
+.halfImgCSS {
+    position: relative;
+    left: -112%;
+    width: 212% !important;
+    height: 100% !important;
+}
+.range_div {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.range_div input {
+    cursor: pointer;
+    width: 80%;
+}
+.range_div span {
+    width: 20%;
+    text-align: center;
+}
+.sample-a-zdy {
+    display: inline-block;
+    background-color: #fff;
+    overflow: hidden;
+    margin: 5px;
+    width: 140px;
+}
+`;
     jsInit();
     // Your code here...
 })();
