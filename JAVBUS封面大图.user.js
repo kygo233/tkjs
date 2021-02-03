@@ -5,6 +5,7 @@
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 
+// @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.0/dist/lazyload.min.js
 // @include     /^https:\/\/.*\.(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      https://*avmoo.*
 // @include      http://localhost/
@@ -29,6 +30,11 @@
 // 2020-08-24 第一版：封面大图、下载封面、查看视频截图
 // ==/UserScript==
 
+
+// 懒加载 done
+// promise加载内容
+// 无缝瀑布流
+// 底部对齐 low
 (function () {
     'use strict';
     // 瀑布流状态：1：开启、0：关闭
@@ -45,9 +51,9 @@
     statusDefaultMap.set('halfImg', 0);
     let columnNum_full = GM_getValue('bigImg_columnNum_full', 3);
     let columnNum_half = GM_getValue('bigImg_columnNum_half', 4);
-    let IMG_SUFFIX = "-bigimg-tag";
-    let MAGNET_SUFFIX = "-magnet-tag";
-    let SAMPLE_SUFFIX = "-sample-tag";
+    const IMG_SUFFIX = "-bigimg-tag";
+    const MAGNET_SUFFIX = "-magnet-tag";
+    const SAMPLE_SUFFIX = "-sample-tag";
     function ajaxGet(url, fn) {
         let xhr = new XMLHttpRequest();
         xhr.open("GET", url);
@@ -59,11 +65,21 @@
         }
     }
 
+    let lazyLoad = new LazyLoad({
+        callback_loaded: function(bigimg){
+            console.log(bigimg.height > bigimg.width);
+            if ( GM_getValue('halfImg_status', 0) > 0 && !halfImg_block && bigimg.height > bigimg.width) {
+                $(bigimg).removeClass("halfImgCSS");
+                $(bigimg).addClass("fullImgCSS");
+            }
+        }
+    });
+
     let func_List={
         select_tag : {
             change:function(columnNum){
-                GM_setValue('bigImg_columnNum_' + (halfImgStatus > 0 && !halfImg_block ? 'half' : 'full'),columnNum );
-                $("#waterfall_h1 .item").css("width",100 / columnNum + "%");
+                GM_setValue('bigImg_columnNum_' + (GM_getValue('halfImg_status', 0) > 0 && !halfImg_block ? 'half' : 'full'),columnNum );
+                GM_addStyle('#waterfall_h1 .item{ width: ' + 100 / columnNum + '%;}');
             }
         },
         waterfall : {
@@ -85,21 +101,19 @@
             checkbox : function (){
                 var status=GM_getValue('halfImg_status', 0) ;
                 $("#waterfall_h1 .movie-box-b img").each(function(){
+                    $(this).removeClass("fullImgCSS").addClass("halfImgCSS");
+                    var src=$(this).data("src").split("?t=")[0]+"?t="+Math.random();
+                    $(this).attr("data-src",src);
+                    $(this).removeAttr("data-ll-status");
+                    $(this).removeClass("entered");
+                     $(this).removeClass("loaded");
                     if (status> 0 && !halfImg_block) {
                         $(this).removeClass("fullImgCSS").addClass("halfImgCSS");
-                        var src=this.src+"?t="+Math.random();
-                        $(this).attr("src",src);
-                        $(this).load(function () {
-                            if (this.height > this.width) {
-                                $(this).removeClass("halfImgCSS");
-                                $(this).addClass("fullImgCSS");
-                            }
-                        });
                     } else {
                         $(this).removeClass("halfImgCSS").addClass("fullImgCSS");
                     }
-
                 });
+                lazyLoad.update();
             }
         }
     };
@@ -107,10 +121,9 @@
     //添加全局样式 导航栏功能按钮
     function addStyle() {
         GM_addStyle(css_waterfall);
-        var columnNum = halfImgStatus > 0 && !halfImg_block ? columnNum_half : columnNum_full;
+        GM_addStyle('#waterfall_h1 { width: ' + waterfallWidth + '%;}');
+        var columnNum = GM_getValue('halfImg_status', 0) > 0 && !halfImg_block ? columnNum_half : columnNum_full;
         GM_addStyle('#waterfall_h1 .item{ width: ' + 100 / columnNum + '%;}');
-
-        $("#waterfall_h1").css("width", waterfallWidth + "%");
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
         $('body').append('<div class="modal fade" id="myModal"  role="dialog" >' +
                          '<div class="modal-dialog" style="width:80% !important;"  id="modal-div" > </div>');
@@ -236,13 +249,14 @@
             }
             add_Tag(elems[i], src_fuc);
         }
+        lazyLoad.update();
     }
 
     //自定义item 模板
     function getTemplate(elem,href,src,title,avid,date) {
         var template=`<div class="movie-box-b">
                                 <div class="photo-frame-b">
-                                    <a  href="${href}"><img src="${src}"></a>
+                                    <a  href="${href}"><img class="lazy"  data-src="${src}" ></a>
                                 </div>
                                 <div class="photo-info-b">
                                       <a name="av_title" href="${href}"><span>${title}</span></a>
@@ -270,12 +284,6 @@
         //判断是否为半图显示
         if (halfImgStatus > 0 && !halfImg_block) {
             $(bigimg).addClass("halfImgCSS");
-            $(bigimg).load(function () {
-                if (bigimg.height > bigimg.width) {
-                    $(bigimg).removeClass("halfImgCSS");
-                    $(bigimg).addClass("fullImgCSS");
-                }
-            });
         } else {
             $(bigimg).addClass("fullImgCSS");
         }
@@ -289,7 +297,7 @@
         var downloadDiv =$('<span class="glyphicon glyphicon-download func-span"></span>');
         var bigDivTag = $('<span class="glyphicon glyphicon-picture func-span"></span>');
 
-        $(func_div).append(bigDivTag); $(func_div).append(downloadDiv); $(func_div).append(magnetDivTag);
+       
         if(aTagStatus<1){
             $(func_div).addClass("hidden");
         }
@@ -300,9 +308,14 @@
         downloadDiv.click(function () {
             GM_download(src, AVID + " " + title + ".jpg");
         });
-        magnetDivTag.click(function () {
-            showMagnetTable(AVID, src);
-        });
+      //  magnetDivTag.click(function () {
+      //      debugger
+      //      showMagnetTable(AVID, src);
+     //   });
+         magnetDivTag.on("click",function(){
+            alert(0);
+         });
+        $(func_div).append(bigDivTag); $(func_div).append(downloadDiv); $(func_div).append(magnetDivTag);
     }
 
     //添加复制图标
@@ -492,9 +505,9 @@
                 if (!elems.length) {
                     return;
                 };
-                elems.attr("style","");
+                elems.attr("style","");setTag(elems);
                 $('.masonry2').empty().append(elems);
-                setTag(elems);
+
             }
         }
     };
@@ -653,6 +666,7 @@
         }
     };
 
+
     function jsInit() {
         //判断页面的地址, 加载对应的参数
         for (var key in ConstCode) {
@@ -694,6 +708,9 @@
     align-items:center;
     justify-content:space-around;
 }
+#waterfall_h1 .avatar-box-b p,psan{
+   margin:0!important;
+}
 #waterfall_h1 .movie-box-b .photo-frame-b{
     padding:2px;
 }
@@ -718,8 +735,6 @@
 }
 .func-div{
    float:right;
-   background: #f5f5f5;
-   border-radius: 4px;
 }
 .pop-up-tag {
     margin-left: auto !important;
@@ -729,7 +744,7 @@
     float: right;
     cursor: pointer ;
     font-size:21px;
-    opacity: 0.4;
+    opacity: 0.2;
     padding:0 5px;
 
 }
