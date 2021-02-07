@@ -7,7 +7,7 @@
 
 // @include     /^https:\/\/.*\.(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      https://*avmoo.*
-// @include      http://localhost/
+
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.0/dist/lazyload.min.js
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
@@ -124,7 +124,6 @@
                 var columnNum = GetData.getColumnNum();
                 GM_addStyle('#waterfall_h1 .item{ width: ' + 100 / columnNum + '%;}');
                 $("#inputGroupSelect01").val(columnNum);
-
             }
         },
         avInfo:{
@@ -133,6 +132,7 @@
             }
         },
     };
+    //显示提示框
     function showAlert(msg){
         var $alet = $("#alert-error");
         if(!$alet.length){
@@ -151,15 +151,13 @@
         GM_addStyle('#waterfall_h1 { width: ' + waterfallWidth + '% !important;}');
         GM_addStyle('#waterfall_h1 .item{ width: ' + 100 / columnNum + '%;}');
         //添加bootstrap弹出框，用于显示磁力表格和视频截图，
-        var myModal=$('<div class="modal fade" id="myModal"  role="dialog" >' +
-                      '<div class="modal-dialog" style="width:80% !important;"  id="modal-div" > </div>');
+        var myModal=$('<div class="modal fade" id="myModal"  role="dialog" ><div class="modal-dialog" style="width:80% !important;"  id="modal-div" > </div></div>');
         $('body').append(myModal);
         myModal.on('show.bs.modal', function(){
-             var $modal_dialog = $(this).find('.modal-dialog');
-               $(this).css('display', 'block');
-               $modal_dialog.css({'margin-top': Math.max(0, ($(window).height() - $modal_dialog.height()) / 2) });
+            var $modal_dialog = $(this).find('.modal-dialog');
+            $(this).css('display', 'block');
+            $modal_dialog.css({'margin-top': Math.max(0, ($(window).height() - $modal_dialog.height()) / 2) });
         });
-
         //启用图片浏览插件
         myModal.magnificPopup({
             delegate: '.sample-a-zdy',
@@ -213,7 +211,10 @@
         if (!halfImg_block) {
             $(ul).append(creatCheckbox("halfImg", "竖图模式"));
         }
-        $(ul).append(creatCheckbox("avInfo", "演员表&样品图"));
+        //avmoo 屏蔽此按钮
+        if(currentWeb!='avmoo') {
+            $(ul).append(creatCheckbox("avInfo", "演员表&样品图"));
+        }
         var range = $('<li data-stopPropagation="true" ><div  class="range_div"><input type="range"   min="1" max="100" step="1" value="' + waterfallWidth + '"  /><span>' + waterfallWidth + '</span></div></li>');
         $(range).bind('input propertychange', function () {
             var val = $(this).find("input").eq(0).val();
@@ -269,31 +270,27 @@
             .then(doc => {
             var str = /var\s+gid\s+=\s+(\d{1,})/.exec(doc);
             var gid = str[1];
-            var sample_waterfall = $($.parseHTML(doc)).find("#sample-waterfall");
-            var avatar_waterfall = $($.parseHTML(doc)).find("#avatar-waterfall");
-            if(sample_waterfall.length>0){
-                sample_waterfall[0].id = "#" + avid + SAMPLE_SUFFIX;;
-                sample_waterfall.addClass("pop-up-tag").addClass("avInfo");
-                sample_waterfall.attr("name",avid + AVINFO_SUFFIX);
-                sample_waterfall.find("a").attr("data-group",avid);
-                sample_waterfall.find("a.sample-box").removeClass("sample-box").addClass("sample-a-zdy");
-                if(GM_getValue('avInfo_status', 1)<1){
-                    sample_waterfall.addClass("hidden");
-                }
-            }
-            if(avatar_waterfall.length>0){
-                avatar_waterfall[0].id = "#" + avid + AVATAR_SUFFIX;;
-                avatar_waterfall.addClass("pop-up-tag").addClass("avInfo");
-                avatar_waterfall.attr("name",avid + AVINFO_SUFFIX);
-                avatar_waterfall.find("a.avatar-box").removeClass("avatar-box").addClass("avatar-box-zdy");
-                if(GM_getValue('avInfo_status', 1)<1){
-                    avatar_waterfall.addClass("hidden");
-                }
-            }
             var avInfo_c=new AvInfo(avid);
             avInfo_c.gid=gid;
-            avInfo_c.sample_waterfall=sample_waterfall;
-            avInfo_c.avatar_waterfall=avatar_waterfall;
+            if(GM_getValue('avInfo_status', 1)>0){
+                var sample_waterfall = $($.parseHTML(doc)).find("#sample-waterfall");
+                var avatar_waterfall = $($.parseHTML(doc)).find("#avatar-waterfall");
+                if(sample_waterfall.length>0){
+                    sample_waterfall[0].id = "#" + avid + SAMPLE_SUFFIX;;
+                    sample_waterfall.addClass("pop-up-tag").addClass("avInfo");
+                    sample_waterfall.attr("name",avid + AVINFO_SUFFIX);
+                    sample_waterfall.find("a").attr("data-group",avid);
+                    sample_waterfall.find("a.sample-box").removeClass("sample-box").addClass("sample-a-zdy");
+                }
+                if(avatar_waterfall.length>0){
+                    avatar_waterfall[0].id = "#" + avid + AVATAR_SUFFIX;;
+                    avatar_waterfall.addClass("pop-up-tag").addClass("avInfo");
+                    avatar_waterfall.attr("name",avid + AVINFO_SUFFIX);
+                    avatar_waterfall.find("a.avatar-box").removeClass("avatar-box").addClass("avatar-box-zdy");
+                }
+                avInfo_c.sample_waterfall=sample_waterfall;
+                avInfo_c.avatar_waterfall=avatar_waterfall;
+            }
             avInfo.set(avid,avInfo_c);
             return avInfo_c;
         }).catch(err => alert(err));
@@ -903,6 +900,6 @@
     border-top: 1px solid #F2F2F2;
 }
 `;
-    jsInit();
-    // Your code here...
+jsInit();
+// Your code here...
 })();
