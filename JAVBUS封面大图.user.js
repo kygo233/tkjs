@@ -7,7 +7,7 @@
 
 // @include     /^https:\/\/.*\.(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      https://*avmoo.*
-
+// @include      http://localhost/
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.0/dist/lazyload.min.js
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
@@ -17,7 +17,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；
+// 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；磁力界面新增演员表样品图显示；
 // 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;调整域名匹配规则
 // 2021-01-01 新增宽度调整功能;
 // 2020-12-29 解决半图模式下 竖图显示不全的问题;
@@ -45,6 +45,7 @@
     let copyBtnStatus = GM_getValue('copyBtn_status', 1);
     let aTagStatus = GM_getValue('aTag_status', 1);
     let halfImgStatus = GM_getValue('halfImg_status', 0);
+    let avInfoStatus = GM_getValue('avInfo_status', 1);
     let waterfallWidth = GM_getValue('waterfallWidth', 100);
 
     let statusDefaultMap = new Map(); // 空Map
@@ -52,6 +53,7 @@
     statusDefaultMap.set('copyBtn', 1); //
     statusDefaultMap.set('aTag', 1);
     statusDefaultMap.set('halfImg', 0);
+    statusDefaultMap.set('avInfo', 1);
     let columnNum_full = GM_getValue('bigImg_columnNum_full', 3);
     let columnNum_half = GM_getValue('bigImg_columnNum_half', 4);
     const IMG_SUFFIX = "-bigimg-tag";
@@ -124,7 +126,12 @@
                 $("#inputGroupSelect01").val(columnNum);
 
             }
-        }
+        },
+        avInfo:{
+            checkbox : function (){
+                $("#modal-div .avInfo").toggleClass("hidden");
+            }
+        },
     };
     function showAlert(msg){
         var $alet = $("#alert-error");
@@ -147,6 +154,11 @@
         var myModal=$('<div class="modal fade" id="myModal"  role="dialog" >' +
                       '<div class="modal-dialog" style="width:80% !important;"  id="modal-div" > </div>');
         $('body').append(myModal);
+        myModal.on('show.bs.modal', function(){
+             var $modal_dialog = $(this).find('.modal-dialog');
+               $(this).css('display', 'block');
+               $modal_dialog.css({'margin-top': Math.max(0, ($(window).height() - $modal_dialog.height()) / 2) });
+        });
 
         //启用图片浏览插件
         myModal.magnificPopup({
@@ -201,6 +213,7 @@
         if (!halfImg_block) {
             $(ul).append(creatCheckbox("halfImg", "竖图模式"));
         }
+        $(ul).append(creatCheckbox("avInfo", "演员表&样品图"));
         var range = $('<li data-stopPropagation="true" ><div  class="range_div"><input type="range"   min="1" max="100" step="1" value="' + waterfallWidth + '"  /><span>' + waterfallWidth + '</span></div></li>');
         $(range).bind('input propertychange', function () {
             var val = $(this).find("input").eq(0).val();
@@ -212,18 +225,21 @@
 
         $(ul).append('<div style="padding:4px;">和"JAV老司机"同时运行时，请关闭老司机的瀑布流<div>');
         $("#navbar ul.nav").first().append($(other_select_tag));
-
     }
     //根据id、name生成勾选框
     function creatCheckbox(tagName, name) {
-        var checkbox = $('<li data-stopPropagation="true"><div class="switch_div"><label   for="' + tagName + '_checkbox" >' + name + '</label><input  type="checkbox" id="' + tagName + '_checkbox" /></div></li>');
+        var checkbox=`<li data-stopPropagation="true">
+                          <div class="switch_div">
+                             <label  for="${tagName}_checkbox" >${name}</label><input  type="checkbox" id="${tagName}_checkbox" />
+                          </div></li>`;
+        var $checkbox = $(checkbox);
         var status = tagName + "_status";
-        checkbox.find("input")[0].checked = GM_getValue(status, statusDefaultMap.get(tagName)) > 0 ? true : false;
-        checkbox.click(function () {
+        $checkbox.find("input")[0].checked = GM_getValue(status, statusDefaultMap.get(tagName)) > 0 ? true : false;
+        $checkbox.click(function () {
             ($(this).find("input")[0].checked == true) ? GM_setValue(status, 1): GM_setValue(status, 0);
             func_List[tagName].checkbox();
         });
-        return checkbox;
+        return $checkbox;
     }
     class AvInfo {
         constructor(avid) {
@@ -257,16 +273,22 @@
             var avatar_waterfall = $($.parseHTML(doc)).find("#avatar-waterfall");
             if(sample_waterfall.length>0){
                 sample_waterfall[0].id = "#" + avid + SAMPLE_SUFFIX;;
-                sample_waterfall.addClass("pop-up-tag");
+                sample_waterfall.addClass("pop-up-tag").addClass("avInfo");
                 sample_waterfall.attr("name",avid + AVINFO_SUFFIX);
                 sample_waterfall.find("a").attr("data-group",avid);
                 sample_waterfall.find("a.sample-box").removeClass("sample-box").addClass("sample-a-zdy");
+                if(GM_getValue('avInfo_status', 1)<1){
+                    sample_waterfall.addClass("hidden");
+                }
             }
             if(avatar_waterfall.length>0){
                 avatar_waterfall[0].id = "#" + avid + AVATAR_SUFFIX;;
-                avatar_waterfall.addClass("pop-up-tag");
+                avatar_waterfall.addClass("pop-up-tag").addClass("avInfo");
                 avatar_waterfall.attr("name",avid + AVINFO_SUFFIX);
                 avatar_waterfall.find("a.avatar-box").removeClass("avatar-box").addClass("avatar-box-zdy");
+                if(GM_getValue('avInfo_status', 1)<1){
+                    avatar_waterfall.addClass("hidden");
+                }
             }
             var avInfo_c=new AvInfo(avid);
             avInfo_c.gid=gid;
@@ -373,7 +395,7 @@
             $("#" + img_id).show();
             $('#myModal').modal();
         } else {
-             getAvImg(avid,elem);
+            getAvImg(avid,elem);
         }
     }
     //获取视频截图
@@ -418,7 +440,8 @@
                         if (img_src_arr[0]){
                             var src = $(img_src_arr[0]).attr("src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
                             console.log(src);
-                            var img_tag = $('<div id="' + avid + IMG_SUFFIX + '" class="pop-up-tag" ><img class="carousel-inner" src="' + src + '" /></div>');
+                            var height=$(window).height();
+                            var img_tag = $('<div id="' + avid + IMG_SUFFIX + '" class="pop-up-tag" ><img style="min-height:'+height+'px;" class="carousel-inner" src="' + src + '" /></div>');
                             var downloadBtn = $('<span class="glyphicon glyphicon-download-alt download-icon" ></span>');
                             downloadBtn.click(function () {
                                 GM_download(src, avid + " 截图.jpg");
@@ -467,11 +490,6 @@
                 var name= avid + AVINFO_SUFFIX;
                 var table_tag = $('<table class="table pop-up-tag" name="'+name+'" style="background-color:#FFFFFF;" id="' +id+ '"></table>');
                 table_tag.append($(table_html));
-                // var length = table_tag.find("tr").length;
-                //var HEIGHT = window.innerHeight;
-                //if (HEIGHT >= 35 * length) {
-                //    table_tag.css("margin-top", (HEIGHT - 35 * length) / 2 - 40);
-                // }
                 table_tag.find("tr").each(function (i) { // 遍历 tr
                     var me = this;
                     if ($(me).find('a').length == 0) {
@@ -547,7 +565,6 @@
                 elems.attr("style","");
                 $('.masonry2').empty().append(elems);
                 setTag(elems);
-
             }
         }
     };
@@ -749,7 +766,7 @@
     border: 1px solid rgba(0,0,0,0.2);
     justify-content:space-around;
 }
-#waterfall_h1 .avatar-box-b p,span{
+#waterfall_h1 .avatar-box-b p{
    margin:0!important;
 }
 #waterfall_h1 .movie-box-b .photo-frame-b{
@@ -777,15 +794,14 @@
    float:right;
 }
 .pop-up-tag {
-     border-radius: 10px;
+     border-radius: 8px;
      overflow: hidden;
 }
 .func-span {
     cursor: pointer ;
     font-size:21px;
     opacity: 0.2;
-    padding:2px 5px;
-
+    padding:0 5px;
 }
 .func-span:hover {
    opacity: 1;
@@ -800,7 +816,7 @@
 }
 .copyBtn-icon {
     font-size: 15px;
-    opacity: 0.4;
+    opacity: 0.2;
     top: 3px !important;
 }
 .copyBtn-icon:hover {
@@ -848,13 +864,13 @@
     width: 20%;
     text-align: center;
 }
-
 #myModal #modal-div{
  background-color: rgb(6 6 6 / 50%);
- border-radius: 10px;
+ border-radius: 8px;
 }
 #myModal .sample-a-zdy,.avatar-box-zdy {
     display: inline-block;
+    border-radius: 8px;
     background-color: #fff;
     overflow: hidden;
     margin: 5px;
