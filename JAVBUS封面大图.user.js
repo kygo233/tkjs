@@ -529,9 +529,7 @@
     }
 
     function waterfallScrollInit(pageItem) {
-        if (!location.pathname.includes('/actresses') &&
-            !(location.pathname.includes('mdl=favor') && location.pathname.search(/sort=[1-4]/) > 0) &&
-            $('div#waterfall div.item').length) {
+        if ($('div#waterfall div.item').length) {
             $('#waterfall')[0].id = "waterfall_h1";
             //解决和"JAV老司机"同时运行时样式冲突问题--begin
             if ($('.masonry').length > 0) {
@@ -689,6 +687,7 @@
     let ConstCode = {
         javbus: {
             domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\./i,
+            excludePages :['/actresses','mdl=favor&sort=1','mdl=favor&sort=2','mdl=favor&sort=3','mdl=favor&sort=4','searchstar'],
             replaceImgSrc: function (src) {
                 if (src.match(/pics.dmm.co.jp/)) {
                     src = src.replace(/ps.jpg/, "pl.jpg");
@@ -707,6 +706,7 @@
         },
         avmoo: {
             domainReg: /avmoo\./i,
+            excludePages :['/actresses'],
             replaceImgSrc: function (src) {
                 src = src.replace(/ps.jpg/, "pl.jpg");
                 return src;
@@ -725,6 +725,12 @@
             var domainReg = ConstCode[key].domainReg;
             if (domainReg && domainReg.test(location.href)) {
                 currentWeb = key;
+                //排除页面的判断
+                if(ConstCode[key].excludePages){
+                    for(var page of ConstCode[key].excludePages){
+                          if(location.pathname.includes(page)) return;
+                    }
+                }
                 break;
             }
         }
@@ -900,6 +906,6 @@
     border-top: 1px solid #F2F2F2;
 }
 `;
-jsInit();
-// Your code here...
+    jsInit();
+    // Your code here...
 })();
