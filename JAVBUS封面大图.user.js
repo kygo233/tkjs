@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.11
+// @version      20210301
 // @description  javbus javdb avmoo替换封面为大图
 // @author       kygo233
 
@@ -54,7 +54,6 @@
     const AVINFO_SUFFIX = "-avTnfo-tag";
     const blogjavSelector= "#content .title2>h1>a";
 
-    const spanner_Svg = `<svg id="spanner-svg" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 1000 1000"><g><g transform="translate(0.000000,511.000000) scale(0.100000,-0.100000)"><path d="M5362.8,4984.7c-151.7-72.6-244.1-248.4-208.9-393.6c8.8-39.6,162.7-428.7,338.6-861.8c175.9-435.3,318.8-791.5,316.6-793.7c-24.2-19.8-1607.2-692.6-1613.8-686c-4.4,4.4-186.9,430.9-404.5,952c-217.7,518.9-413.3,967.4-435.3,996c-52.8,72.6-175.9,134.1-266,134.1c-131.9,0-257.2-81.3-424.3-272.6c-299-343-479.3-672.8-582.6-1061.9c-50.6-191.3-57.2-257.2-57.2-578.2c0-321,6.6-387,57.2-578.2c63.8-244,226.5-598,367.2-809.1c140.7-211.1,461.7-514.5,736.5-699.2c338.6-228.6,433.1-312.2,507.9-446.3l63.8-116.5l13.2-1681.9c13.2-1886.4,4.4-1778.7,180.3-2121.7c125.3-244,380.4-496.9,611.2-611.2c391.3-191.3,784.9-193.5,1174.1-4.4c307.8,149.5,536.5,380.4,692.6,703.6C6583-3627.2,6583-3631.6,6583-1773.8c0,1813.9-2.2,1783.1,129.7,1965.6c35.2,48.4,158.3,164.9,272.6,257.2c356.2,285.8,578.2,562.8,767.3,952c59.4,123.1,134.1,321,164.9,439.7c50.6,191.3,57.1,257.2,57.1,578.2c0,321-6.6,387-57.1,578.2c-200.1,749.7-758.5,1391.7-1543.4,1774.3C5985,4962.7,5523.3,5059.5,5362.8,4984.7z M5958.6,4540.6c334.2-112.1,707.9-332,969.6-569.4c290.2-263.8,543.1-681.6,648.6-1059.7c68.1-250.6,68.1-776.1-2.2-1031.1c-109.9-408.9-248.4-611.2-738.7-1079.5c-360.6-343-470.5-474.9-551.8-668.4c-39.6-94.5-41.8-189.1-52.8-1890.8l-11-1791.9l-50.6-131.9c-145.1-386.9-479.3-675-859.6-740.9c-413.3-70.4-833.3,151.7-1042.1,547.5c-140.7,270.4-134.1,173.7-147.3,2018.3l-11,1692.9L4059-36.9c-72.6,180.3-244,351.8-560.6,567.2c-274.8,186.9-754.1,631-736.5,683.8c4.4,13.2,793.7,362.8,1752.3,776.1c958.6,415.5,1745.7,758.5,1747.9,760.7c4.4,4.4-164.9,428.7-373.8,943.2c-211.1,512.3-382.5,938.8-382.5,947.6C5505.7,4663.7,5769.5,4604.3,5958.6,4540.6z M3483,3023.5c206.7-492.5,373.8-903.6,369.4-916.8c-4.4-11-292.4-145.1-642-294.6c-485.9-211.1-639.8-268.2-655.2-246.2c-33,50.6-107.7,266-145.1,411.1c-55,219.9-48.4,707.9,13.2,932.2c92.3,336.4,279.2,668.4,534.3,949.8c87.9,94.5,118.7,116.5,131.9,92.3C3100.4,3933.8,3276.3,3518.2,3483,3023.5z"/><path d="M5952,2115.5c-77-30.8-138.5-63.8-138.5-74.8c0-26.4,334.2-837.7,354-861.8c13.2-13.2,259.5,68.2,323.2,109.9c15.4,8.8-360.6,888.2-380.4,886C6099.3,2172.7,6026.8,2148.5,5952,2115.5z"/><path d="M5321,1847.3c-83.6-35.2-153.9-68.2-158.3-72.5c-6.6-4.4,145.1-380.4,327.6-811.3l35.2-83.5l149.5,63.8c81.3,35.2,151.7,72.6,153.9,83.6c6.6,17.6-332,857.5-351.8,877.2C5474.9,1908.9,5404.5,1882.5,5321,1847.3z"/><path d="M4654.8,1568.1c-77-33-138.5-66-138.5-77c0-26.4,332-835.5,351.8-859.6c11-13.2,283.6,74.7,325.4,105.5c15.4,11-360.6,890.4-380.4,888.2C4802.1,1625.2,4729.6,1598.9,4654.8,1568.1z"/><path d="M4912.1-3147.9c-294.6-178.1-327.6-591.4-63.8-815.7c424.3-365,1031.1,127.5,771.7,624.4c-87.9,171.5-244,261.6-444.1,261.6C5050.6-3077.6,5013.2-3088.6,4912.1-3147.9z M5294.6-3477.7c74.7-105.5,4.4-259.4-118.7-259.4c-127.5,0-204.5,171.5-116.5,268.2C5112.1-3409.5,5250.6-3416.2,5294.6-3477.7z"/></g></g></svg>`;
     const copy_Svg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"  width="16" height="16" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/></svg>`;
     const download_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="tool-svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/></svg>`;
     const picture_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"  class="tool-svg" viewBox="0 0 16 16"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>`;
@@ -219,19 +218,18 @@
         if (currentWeb == 'javbus') {
             $menu.append(creatCheckbox("avInfo", "演员表&样品图"));
         }
-        $menu.append(creatRange("columnNum", "列数", columnNum, 10));
+        $menu.append(creatRange("columnNum", "列数", columnNum, 8));
         $menu.append(creatRange("waterfallWidth", "宽度", waterfallWidth, currentObj.maxWidth?currentObj.maxWidth:100));
-        $menu.append(`<li style="padding:5px">无码和欧美界面默认屏蔽竖图模式</li>`);
-        var $spanner = $("<div></div>");
-        $spanner.append(spanner_Svg);
+        $menu.append(`<p style="padding:5px">无码和欧美界面已屏蔽竖图模式</p>`);
+        var $spanner = $(currentObj.menu.html);
+        $spanner.append($menu);
         $spanner.mouseenter(function () {
             $menu.show();
         });
-        $menu.mouseleave(function () {
+        $spanner.mouseleave(function () {
             $menu.hide();
         });
-        $('body').append($spanner);
-        $('body').append($menu);
+        $(currentObj.menu.position).append($spanner);
     }
     //根据id、name生成勾选框
     function creatCheckbox(tagName, name) {
@@ -426,7 +424,6 @@
             }
         });
     };
-
     let currentWeb = "javbus"; //默认为javbus
     let currentObj ;
     let ConstCode = {
@@ -435,12 +432,15 @@
             excludePages: ['/actresses', 'mdl=favor&sort=1', 'mdl=favor&sort=2', 'mdl=favor&sort=3', 'mdl=favor&sort=4', 'searchstar'],
             halfImg_block: false,
             halfImg_block_Pages:['/uncensored','javbus.one'],
+            menu:{
+                position:'#navbar ul:first',
+                html:`<li class='dropdown'><a class='dropdown-toggle'>样式开关</a></li>`
+            },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
             widthSelector : '#waterfall-zdy',
             pageNext:'a#next',
             pageSelector:'.pagination',
-            init_Style: '',
             getAvItem: function (elem) {
                 var photoDiv = elem.find("div.photo-frame")[0];
                 var href = elem.find("a")[0].href; //跳转链接
@@ -463,12 +463,19 @@
             excludePages: '',
             halfImg_block: false,
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
+            menu:{
+                position:'#navbar-menu-hero .navbar-start',
+                html:`<div class='navbar-item'><a class='navbar-link'>样式开关</a></div>`
+            },
             gridSelector: 'div#videos>.grid',
             itemSelector: 'div#videos>.grid div.grid-item',
             widthSelector : '#waterfall-zdy',
             pageNext: 'a.pagination-next',
             pageSelector:'.pagination-list',
-            init_Style: `#waterfall-zdy  .movie-box-b{background-color:inherit;}`,
+            init_Style: function(){
+                var local_color=$(".box").css("background-color");
+                GM_addStyle(`#waterfall-zdy  .movie-box-b{background-color:${local_color};}`);
+            },
             maxWidth: 150,
             getAvItem: function (elem) {
                 var href = elem.find("a")[0].href; //跳转链接
@@ -490,12 +497,15 @@
             domainReg: /avmoo\./i,
             excludePages: ['/actresses'],
             halfImg_block: false,
+            menu:{
+                position:'#navbar ul:first',
+                html:`<li class='dropdown'><a class='dropdown-toggle'>样式开关</a></li>`
+            },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
             widthSelector : '#waterfall-zdy',
             pageNext: 'a[name="nextpage"]',
             pageSelector:'.pagination',
-            init_Style: '',
             getAvItem: function (elem) {
                 var photoDiv = elem.find("div.photo-frame")[0];
                 var href = elem.find("a")[0].href; //跳转链接
@@ -553,7 +563,8 @@
             $(currentObj.gridSelector).hide();
             var waterfall=$(`<div id= 'waterfall-zdy'></div>`);
             $(currentObj.gridSelector).eq(0).before(waterfall);
-            addStyle(currentObj.init_Style);//全局样式
+            addStyle();//全局样式
+            if(currentObj.init_Style){currentObj.init_Style()};
             addMenu(); //添加菜单
             addModal(); //弹出插件
             var elems=getItems($(currentObj.itemSelector));
@@ -655,7 +666,7 @@
     }
 
     let waterfallWidth = 100;
-    function addStyle(style) {
+    function addStyle() {
         var columnNum = Status.getColumnNum();
         waterfallWidth=Status.get("waterfallWidth");
         var css_waterfall = `
@@ -809,23 +820,13 @@ svg.tool-svg {
     height: 22px;
     vertical-align: middle
 }
-#spanner-svg {
-    fill: currentColor;
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    z-index: 999;
-    left: -7px;
-    top: 50px;
-}
 #menu-div {
     background-color: white;
     color:black;
     display: none;
-    z-index: 2000;
-    position: fixed;
+    position: absolute;
+    top: 100%;
     left: 0;
-    top: 0;
     width: 210px;
     border-radius: 5px;
     padding: 5px 0;
@@ -893,9 +894,6 @@ svg.tool-svg {
 }
 `;
         GM_addStyle(css_waterfall);
-        if(style&& style!=""){
-            GM_addStyle(style);
-        }
     }
     pageInit();
     // Your code here...
