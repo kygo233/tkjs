@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      0.10
+// @version      20210309
 // @description  改编自脚本 JAV老司机
 // @author       kygo233
 
@@ -17,6 +17,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-03-09 恢复高清字幕图标的显示
 // 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；磁力界面新增演员表样品图显示；
 // 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;调整域名匹配规则
 // 2021-01-01 新增宽度调整功能;
@@ -43,6 +44,7 @@
     // 瀑布流状态：1：开启、0：关闭
     let waterfallScrollStatus = GM_getValue('waterfall_status', 0);
     let copyBtnStatus = GM_getValue('copyBtn_status', 1);
+    let itemTagStatus = GM_getValue('itemTag_status', 1);
     let aTagStatus = GM_getValue('aTag_status', 1);
     let halfImgStatus = GM_getValue('halfImg_status', 0);
     let avInfoStatus = GM_getValue('avInfo_status', 1);
@@ -51,6 +53,7 @@
     let statusDefaultMap = new Map(); // 空Map
     statusDefaultMap.set('waterfall', 0); //
     statusDefaultMap.set('copyBtn', 1); //
+    statusDefaultMap.set('itemTag', 1); //
     statusDefaultMap.set('aTag', 1);
     statusDefaultMap.set('halfImg', 0);
     statusDefaultMap.set('avInfo', 1);
@@ -61,6 +64,8 @@
     const SAMPLE_SUFFIX = "-sample-tag";
     const AVATAR_SUFFIX = "-avatar-tag";
     const AVINFO_SUFFIX = "-avTnfo-tag";
+
+    const blogjavSelector= "#content .title2>h1>a";
 
     let GetData = {
         //判断是否为竖图模式
@@ -100,6 +105,11 @@
         copyBtn:{
             checkbox : function (){
                 $(".copyBtn-icon").toggleClass("hidden");
+            }
+        },
+        itemTag:{
+            checkbox : function (){
+                $(".item-tag").toggleClass("hidden");
             }
         },
         aTag:{
@@ -207,6 +217,7 @@
         });
         $(ul).append(creatCheckbox("waterfall", "瀑布流"));
         $(ul).append(creatCheckbox("copyBtn", "复制图标"));
+        $(ul).append(creatCheckbox("itemTag", "高清&字幕图标"));
         $(ul).append(creatCheckbox("aTag", "功能链接"));
         if (!halfImg_block) {
             $(ul).append(creatCheckbox("halfImg", "竖图模式"));
@@ -314,20 +325,26 @@
     }
 
     //自定义item 模板
-    function getTemplate(elem,href,src,title,avid,date) {
+    function getTemplate(elem,href,src,title,avid,date,itemTag) {
         var template=`<div class="movie-box-b">
                          <div class="photo-frame-b">
                             <a  href="${href}"><img class="lazy"  data-src="${src}" ></a>
                          </div>
                          <div class="photo-info-b">
                              <a name="av_title" href="${href}"><span name="title_span">${title}</span></a>
+                        <div class="info-bottom">
+                          <div class="info-bottom-one">
                              <date name="avid">${avid}</date> / <date>${date}</date>
+                         </div>
+                         <div class="info-bottom-two">
+                             <div class="item-tag">${itemTag}</div>
                              <div class="func-div">
                                 <span name="magnet" class="glyphicon glyphicon-magnet func-span"   data-toggle="tooltip" data-placement="bottom" title="磁力"  style="transform: rotate(90deg);"   ></span>
                                 <span name="download" class="glyphicon glyphicon-download func-span"  data-toggle="tooltip" data-placement="bottom" title="下载封面"></span>
                                 <span name="picture" class="glyphicon glyphicon-picture func-span" data-toggle="tooltip" data-placement="bottom" title="视频截图"></span>
                              </div>
                          </div>
+                       </div>
                      </div>`;
         return template;
     }
@@ -344,7 +361,9 @@
         var AVID = $(tag).find("date").eq(0).text(); //番号
         AVID = AVID.replace(/\./g, '-');
         var date = $(tag).find("date").eq(1).text(); //日期
-        $(tag).html(getTemplate(tag,href,src,title,AVID,date));
+        var itemTag = "";
+        $(tag).find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
+        $(tag).html(getTemplate(tag,href,src,title,AVID,date,itemTag));
         var bigimg = $(tag).find("img")[0];
         $(bigimg).addClass(className);
         //替换封面为大图 end
@@ -355,6 +374,9 @@
 
         if(GM_getValue('aTag_status', 1)<1){
             $(func_div).addClass("hidden");
+        }
+        if(GM_getValue('itemTag_status', 1)<1){
+            $(tag).find(".item-tag").addClass("hidden");
         }
         $(tag).find(".func-div span[name='picture']").click(function () {
             showBigImg(AVID,this);
@@ -412,7 +434,7 @@
                     return;
                 }
                 var doc = result.responseText;
-                let a_array = $(doc).find(".entry-title a");
+                let a_array = $(doc).find(blogjavSelector);
                 let imgUrl;
                 for (let i = 0; i < a_array.length; i++) {
                     imgUrl = a_array[i].href;
@@ -748,8 +770,7 @@
     flex-wrap: wrap;
 }
 #waterfall_h1 .item {
-    margin-bottom: 15px;
-    padding :0 7px;
+    padding :5px;
 }
 #waterfall_h1 .movie-box-b  {
     border-radius: 5px;
@@ -794,7 +815,7 @@
     font-size: 18px;
 }
 .func-div{
-   float:right;
+   white-space: nowrap;
 }
 .pop-up-tag {
      border-radius: 8px;
@@ -804,7 +825,6 @@
     cursor: pointer ;
     font-size:21px;
     opacity: 0.2;
-    padding:0 5px;
 }
 .func-span:hover {
    opacity: 1;
@@ -836,13 +856,12 @@
     background-color: #E6E6FA;
 }
 .switch_div label {
-    cursor: pointer;
-    width: 50%;
+    width: 80%;
     text-align: right;
 }
 .switch_div input {
     cursor: pointer;
-    width: 50%;
+    width: 20%;
 }
 .fullImgCSS {
     width: 100% !important;
@@ -904,6 +923,14 @@
     color: #333;
     background-color: #FAFAFA;
     border-top: 1px solid #F2F2F2;
+}
+.info-bottom,.info-bottom-two{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+#waterfall_h1 .item-tag{
+   margin-right:4px;
 }
 `;
     jsInit();
