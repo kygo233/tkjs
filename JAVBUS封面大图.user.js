@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         JAVBUS封面大图
 // @namespace    http://tampermonkey.net/
-// @version      20210301
+// @version      0.11
 // @description  javbus javdb avmoo替换封面为大图
 // @author       kygo233
 
@@ -160,7 +160,7 @@
             $('body').append(me.element);
             if(currentWeb=="javbus"){
                 me.element.magnificPopup({
-                    delegate: '.sample-a-zdy',
+                    delegate: 'a.sample-box-zdy',
                     type: 'image',
                     closeOnContentClick: false,
                     closeBtnInside: false,
@@ -212,15 +212,12 @@
         $menu.append(creatCheckbox("copyBtn", "复制图标"));
         $menu.append(creatCheckbox("itemTag", "高清&字幕图标"));
         $menu.append(creatCheckbox("toolBar", "功能图标"));
-        if (!currentObj.halfImg_block) {
-            $menu.append(creatCheckbox("halfImg", "竖图模式"));
-        }
+        $menu.append(creatCheckbox("halfImg", "竖图模式",currentObj.halfImg_block));
         if (currentWeb == 'javbus') {
             $menu.append(creatCheckbox("avInfo", "演员表&样品图"));
         }
         $menu.append(creatRange("columnNum", "列数", columnNum, 8));
         $menu.append(creatRange("waterfallWidth", "宽度", waterfallWidth, currentObj.maxWidth?currentObj.maxWidth:100));
-        $menu.append(`<p style="padding:5px">无码和欧美界面已屏蔽竖图模式</p>`);
         var $spanner = $(currentObj.menu.html);
         $spanner.append($menu);
         $spanner.mouseenter(function () {
@@ -232,8 +229,8 @@
         $(currentObj.menu.position).append($spanner);
     }
     //根据id、name生成勾选框
-    function creatCheckbox(tagName, name) {
-        var $checkbox = $(`<div class="switch-div"><label  for="${tagName}_checkbox" >${name}</label><input  type="checkbox" id="${tagName}_checkbox" /></div>`);
+    function creatCheckbox(tagName, name,disabled) {
+        var $checkbox = $(`<div class="switch-div"><label  for="${tagName}_checkbox" >${name}</label><input ${disabled?'disabled="disabled"':''} type="checkbox" id="${tagName}_checkbox" /></div>`);
         $checkbox.find("input")[0].checked = Status.get(tagName);
         $checkbox.find("input").eq(0).click(function () {
             Status.set(tagName, this.checked);
@@ -273,7 +270,7 @@
     //ajax 获取磁力链接
     function getMagnet(avid, src) {
         //有码和欧美 0  无码 1
-        var uc_code = location.pathname.search(/uncensored/) < 1 ? 0 : 1;
+        var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
         return avInfofetch(avid).then(avInfo_c => {
             var gid = avInfo_c.gid;
             var url = `${location.protocol}//${location.hostname}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=${src}&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
@@ -322,7 +319,7 @@
                     sample_waterfall.addClass("pop-up-tag");
                     sample_waterfall.attr("name",avid + AVINFO_SUFFIX);
                     sample_waterfall.find("a").attr("data-group",avid);
-                    sample_waterfall.find("a.sample-box").removeClass("sample-box").addClass("sample-a-zdy");
+                    sample_waterfall.find(".sample-box").removeClass("sample-box").addClass("sample-box-zdy");
                 }
                 if(avatar_waterfall.length>0){
                     avatar_waterfall[0].id = "";
@@ -424,6 +421,7 @@
             }
         });
     };
+
     let currentWeb = "javbus"; //默认为javbus
     let currentObj ;
     let ConstCode = {
@@ -537,15 +535,15 @@
             if (domainReg && domainReg.test(location.href)) {
                 currentWeb = key;
                 currentObj = ConstCode[key];
-                //调用初始化方法
-                if (ConstCode[key].init) {
-                    ConstCode[key].init();
-                }
                 //排除页面的判断
                 if (ConstCode[key].excludePages) {
                     for (var page of ConstCode[key].excludePages) {
                         if (location.pathname.includes(page)) return;
                     }
+                }
+                //调用初始化方法
+                if (ConstCode[key].init) {
+                    ConstCode[key].init();
                 }
                 //屏蔽竖图模式的页面判断
                 if (ConstCode[key].halfImg_block_Pages) {
@@ -570,30 +568,38 @@
             var elems=getItems($(currentObj.itemSelector));
             waterfall.append(elems);
             lazyLoad.update();
-            if(Status.get("autoPage")){
+            if(Status.get("autoPage") && $(currentObj.pageSelector).length ){
                 var scroller= `<div class = "scroller-status" style="text-align:center;display:none"><h1 class="loader-ellips infinite-scroll-request">加载中</h1><h1 class="infinite-scroll-last">end</h1></div>`;
                 waterfall.after(scroller);
                 var infScroll = new InfiniteScroll( '#waterfall-zdy', {
                     path: currentObj.pageNext,
                     append: false,
-                    scrollThreshold: 100,
-                    hideNav:currentObj.pageSelector,
+                   //button: '.view-more-button',
+                    scrollThreshold: false,
+                    history:false,
+                  //hideNav:currentObj.pageSelector,
                     status: '.scroller-status'
                 });
                 infScroll.on( 'load', function( body, path, response ) {
                     console.log(path);
                     var elems_fetch=getItems($(body).find(currentObj.itemSelector));
                     if (currentWeb!="javdb" && location.pathname.includes('/star/') && elems_fetch) {
-                        waterfall.append(elems_fetch.slice(1));;
-                    }else{
-                        waterfall.append(elems_fetch);
+                        elems_fetch=elems_fetch.slice(1);
                     }
+                    waterfall.append(elems_fetch);
                     lazyLoad.update();
+                    done=true;
+                });
+                document.addEventListener('wheel', function(){
+                    if ($(currentObj.pageSelector)[0].getBoundingClientRect().top - $(window).height() < 300 && done) {
+                         done=false;
+                         infScroll.loadNextPage();
+                     }
                 });
             }
         }
     }
-
+    let done=true;
     function getItems(elems) {
         var elemsHtml = "";
         var className = Status.isHalfImg() ? "halfImgCSS" : "fullImgCSS";
@@ -771,7 +777,7 @@ img.halfImgCSS {
 #myModal #modal-div {
     position: relative;
     width: 80%;
-    margin: 30px auto;
+    margin: 0 auto;
     background-color: rgb(6 6 6 / 50%);
     border-radius: 8px;
     animation: fadeInDown .4s;
@@ -780,7 +786,7 @@ img.halfImgCSS {
     border-radius: 8px;
     overflow: hidden
 }
-#modal-div .sample-a-zdy,.avatar-box-zdy {
+#modal-div .sample-box-zdy,.avatar-box-zdy {
     display: inline-block;
     border-radius: 8px;
     background-color: #fff;
@@ -788,11 +794,11 @@ img.halfImgCSS {
     margin: 5px;
     width: 140px
 }
-#modal-div .sample-a-zdy .photo-frame {
+#modal-div .sample-box-zdy .photo-frame {
     overflow: hidden;
     margin: 10px
 }
-#modal-div .sample-a-zdy img {
+#modal-div .sample-box-zdy img {
     height: 90px
 }
 #modal-div .avatar-box-zdy .photo-frame {
