@@ -498,7 +498,7 @@
     //ajax 获取磁力链接
     function getMagnet(avid, src) {
         //有码和欧美 0  无码 1
-        var uc_code = location.pathname.search(/uncensored/) < 1 ? 0 : 1;
+        var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
         return getAvInfo(avid).then(avInfo_c=>{
             var gid=avInfo_c.gid;
             var url = `${location.protocol}//${location.hostname}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=${src}&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
