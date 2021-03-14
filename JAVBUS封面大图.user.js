@@ -5,9 +5,9 @@
 // @description  javbus javdb avmoo替换封面为大图
 // @author       kygo233
 
-// @include     /^https:\/\/.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
+// @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      https://*avmoo.*
-// @include      /^https:\/\/.*(javdb)[0-9]\..*$/
+// @include      /^.*(javdb)[0-9]\..*$/
 
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.0/dist/lazyload.min.js
 // @require      https://unpkg.com/infinite-scroll@4/dist/infinite-scroll.pkgd.min.js
@@ -20,7 +20,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2021-03-01 适配javdb；设置菜单移至左上角；点击图片弹出新窗口；标题默认显示一行；恢复高清图标显示
+// 2021-03-01 适配javdb；点击图片弹出新窗口；标题默认显示一行；恢复高清图标显示
 // 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；磁力界面新增演员表样品图显示；
 // 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;调整域名匹配规则
 // 2021-01-01 新增宽度调整功能;
@@ -50,8 +50,8 @@
         columnNumFull:3,
         columnNumHalf:4
     };
-    const IMG_SUFFIX = "-bigimg-tag";
-    const AVINFO_SUFFIX = "-avTnfo-tag";
+    const IMG_SUFFIX = "-bigImg-tag";
+    const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "#content .title2>h1>a";
 
     const copy_Svg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"  width="16" height="16" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/></svg>`;
@@ -64,7 +64,10 @@
         var $alert=$(`<div  class="alert-zdy" ></div>`);
         $('body').append($alert);
         $alert.text(msg);
-        $alert.show().delay(3000).fadeOut();
+        $alert.show(function(){
+            $(this).css({'margin-top': -$(this).height() / 2 });
+            $(this).css({'margin-left': -$(this).width() / 2 });
+        }).delay(3000).fadeOut();
     }
 
     //配置功能 绑定事件
@@ -113,6 +116,7 @@
     };
 
     let Status = {
+        halfImg_block:false,
         set : function(key,value){
             if(key=="columnNum") {
                 key=key+(this.isHalfImg()?"Half":"Full");
@@ -126,7 +130,7 @@
         },
         //判断是否为竖图模式
         isHalfImg: function () {
-            return this.get("halfImg") && (!currentObj.halfImg_block);
+            return this.get("halfImg") && (!this.halfImg_block);
         },
         //获取列数
         getColumnNum: function () {
@@ -146,6 +150,7 @@
         this.hide = function () {
             document.documentElement.classList.remove("scrollBarHide");
             this.element.hide();
+            this.element.find('.pop-up-tag').hide();
         };
         this.init =function (){
             var me=this;
@@ -160,7 +165,7 @@
             $('body').append(me.element);
             if(currentWeb=="javbus"){
                 me.element.magnificPopup({
-                    delegate: 'a.sample-box-zdy',
+                    delegate: 'a.sample-box-zdy:visible',
                     type: 'image',
                     closeOnContentClick: false,
                     closeBtnInside: false,
@@ -199,11 +204,6 @@
         }
 
     }
-    let myModal;
-    function addModal() {
-        //添加弹出框，用于显示磁力表格和视频截图，
-        myModal = new Popover();
-    }
     //添加
     function addMenu() {
         var columnNum = Status.getColumnNum();
@@ -212,7 +212,7 @@
         $menu.append(creatCheckbox("copyBtn", "复制图标"));
         $menu.append(creatCheckbox("itemTag", "高清&字幕图标"));
         $menu.append(creatCheckbox("toolBar", "功能图标"));
-        $menu.append(creatCheckbox("halfImg", "竖图模式",currentObj.halfImg_block));
+        $menu.append(creatCheckbox("halfImg", "竖图模式",Status.halfImg_block));
         if (currentWeb == 'javbus') {
             $menu.append(creatCheckbox("avInfo", "演员表&样品图"));
         }
@@ -221,10 +221,10 @@
         var $spanner = $(currentObj.menu.html);
         $spanner.append($menu);
         $spanner.mouseenter(function () {
-            $menu.show();
+            $menu.slideDown("fast");
         });
         $spanner.mouseleave(function () {
-            $menu.hide();
+            $menu.slideUp("fast");
         });
         $(currentObj.menu.position).append($spanner);
     }
@@ -250,10 +250,9 @@
     }
     //显示磁力表格
     function showMagnetTable(avid, src) {
-        var avInfo_id = avid + AVINFO_SUFFIX;
-        $('.pop-up-tag').hide();
-        if ($(".pop-up-tag[name=" + avInfo_id + "]").length > 0) {
-            $(".pop-up-tag[name=" + avInfo_id + "]").show();
+        let $el=$(`.pop-up-tag[name=${avid}${AVINFO_SUFFIX}]`);
+        if ($el.length > 0) {
+            $el.show();
             myModal.show();
         } else {
             console.time("Magnetfetch耗时: ");
@@ -294,22 +293,13 @@
         });
 
     };
-    class AvInfo {
-        constructor(avid) {
-            this.avid=avid;
-            this.gid="";//查询磁力的参数
-            this.sample_waterfall="";//样品图片
-            this.avatar_waterfall="";//演员
-            this.bigImg="";
-            this.magnetTable="";
-        }
-    }
+
     function avInfofetch(avid) {
         return fetch(`${location.protocol}//${location.hostname}/`+avid) .then(response => response.text())
             .then(doc => {
             var str = /var\s+gid\s+=\s+(\d{1,})/.exec(doc);
             var gid = str[1];
-            var avInfo_c=new AvInfo(avid);
+            var avInfo_c={avid:avid};
             avInfo_c.gid=gid;
             if(Status.get("avInfo")){
                 var sample_waterfall = $($.parseHTML(doc)).find("#sample-waterfall");
@@ -318,14 +308,13 @@
                     sample_waterfall[0].id = "";
                     sample_waterfall.addClass("pop-up-tag");
                     sample_waterfall.attr("name",avid + AVINFO_SUFFIX);
-                    sample_waterfall.find("a").attr("data-group",avid);
                     sample_waterfall.find(".sample-box").removeClass("sample-box").addClass("sample-box-zdy");
                 }
                 if(avatar_waterfall.length>0){
                     avatar_waterfall[0].id = "";
                     avatar_waterfall.addClass("pop-up-tag");
                     avatar_waterfall.attr("name",avid + AVINFO_SUFFIX);
-                    avatar_waterfall.find("a.avatar-box").removeClass("avatar-box").addClass("avatar-box-zdy");
+                    avatar_waterfall.find("a.avatar-box").attr("target","_blank").removeClass("avatar-box").addClass("avatar-box-zdy");
                 }
                 avInfo_c.sample_waterfall=sample_waterfall;
                 avInfo_c.avatar_waterfall=avatar_waterfall;
@@ -350,10 +339,9 @@
     }
     //显示视频截图
     function showBigImg(avid,elem) {
-        var img_id = avid + IMG_SUFFIX;
-        $('.pop-up-tag').hide();
-        if ($("#" + img_id).length > 0) {
-            $("#" + img_id).show();
+        let $selector = $(`#${avid}${IMG_SUFFIX}`);
+        if ($selector.length > 0) {
+            $selector.show();
             myModal.show();
         } else {
             getAvImg(avid,elem);
@@ -422,14 +410,14 @@
         });
     };
 
+    let myModal;
     let currentWeb = "javbus"; //默认为javbus
     let currentObj ;
     let ConstCode = {
         javbus: {
             domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\./i,
             excludePages: ['/actresses', 'mdl=favor&sort=1', 'mdl=favor&sort=2', 'mdl=favor&sort=3', 'mdl=favor&sort=4', 'searchstar'],
-            halfImg_block: false,
-            halfImg_block_Pages:['/uncensored','javbus.one'],
+            halfImg_block_Pages:['/uncensored','javbus.one','mod=uc'],
             menu:{
                 position:'#navbar ul:first',
                 html:`<li class='dropdown'><a class='dropdown-toggle'>样式开关</a></li>`
@@ -459,7 +447,6 @@
         javdb: {
             domainReg: /(javdb)[0-9]\./i,
             excludePages: '',
-            halfImg_block: false,
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
             menu:{
                 position:'#navbar-menu-hero .navbar-start',
@@ -494,7 +481,6 @@
         avmoo: {
             domainReg: /avmoo\./i,
             excludePages: ['/actresses'],
-            halfImg_block: false,
             menu:{
                 position:'#navbar ul:first',
                 html:`<li class='dropdown'><a class='dropdown-toggle'>样式开关</a></li>`
@@ -518,16 +504,7 @@
         }
     };
 
-    //加载图片懒加载插件
-    let lazyLoad = new LazyLoad({
-        callback_loaded: function (bigimg) {
-            //加载时的回调，本身为竖图的不做变化
-            if (Status.isHalfImg() && bigimg.height >= bigimg.width) {
-                $(bigimg).removeClass("halfImgCSS");
-                $(bigimg).addClass("fullImgCSS");
-            }
-        }
-    });
+
     function pageInit() {
         //判断页面的地址, 加载对应的参数
         for (var key in ConstCode) {
@@ -549,7 +526,7 @@
                 if (ConstCode[key].halfImg_block_Pages) {
                     for (var blockPage of ConstCode[key].halfImg_block_Pages) {
                         if (location.href.includes(blockPage)) {
-                            ConstCode[key].halfImg_block = true;
+                            Status.halfImg_block = true;
                             break;
                         };
                     }
@@ -564,42 +541,58 @@
             addStyle();//全局样式
             if(currentObj.init_Style){currentObj.init_Style()};
             addMenu(); //添加菜单
-            addModal(); //弹出插件
-            var elems=getItems($(currentObj.itemSelector));
+            myModal = new Popover();//弹出插件
+            //加载图片懒加载插件
+            let lazyLoad = new LazyLoad({
+                callback_loaded: function (bigimg) {
+                    //加载时的回调，本身为竖图的不做变化
+                    if (Status.isHalfImg() && bigimg.height >= bigimg.width) {
+                        $(bigimg).removeClass("halfImgCSS");
+                        $(bigimg).addClass("fullImgCSS");
+                    }
+                }
+            });
+            let elems=getItems($(currentObj.itemSelector));
             waterfall.append(elems);
             lazyLoad.update();
             if(Status.get("autoPage") && $(currentObj.pageSelector).length ){
-                var scroller= `<div class = "scroller-status" style="text-align:center;display:none"><h1 class="loader-ellips infinite-scroll-request">加载中</h1><h1 class="infinite-scroll-last">end</h1></div>`;
-                waterfall.after(scroller);
-                var infScroll = new InfiniteScroll( '#waterfall-zdy', {
-                    path: currentObj.pageNext,
-                    append: false,
-                   //button: '.view-more-button',
-                    scrollThreshold: false,
-                    history:false,
-                  //hideNav:currentObj.pageSelector,
-                    status: '.scroller-status'
-                });
-                infScroll.on( 'load', function( body, path, response ) {
-                    console.log(path);
-                    var elems_fetch=getItems($(body).find(currentObj.itemSelector));
-                    if (currentWeb!="javdb" && location.pathname.includes('/star/') && elems_fetch) {
-                        elems_fetch=elems_fetch.slice(1);
-                    }
-                    waterfall.append(elems_fetch);
-                    lazyLoad.update();
-                    done=true;
-                });
-                document.addEventListener('wheel', function(){
-                    if ($(currentObj.pageSelector)[0].getBoundingClientRect().top - $(window).height() < 300 && done) {
-                         done=false;
-                         infScroll.loadNextPage();
-                     }
-                });
+                let scroller=new ScrollerPlugin(waterfall,lazyLoad);
             }
         }
     }
-    let done=true;
+    class ScrollerPlugin{
+        constructor(waterfall,lazyLoad){
+            waterfall.after(`<div class = "scroller-status"  style="text-align:center;display:none">
+                        <h1 class="loader-ellips infinite-scroll-request">加载中</h1>
+                        <h1 class="infinite-scroll-last">完</h1></div>`);
+            var me=this;
+            me.locked=false;
+            me.infScroll = new InfiniteScroll( '#waterfall-zdy', {
+                path: currentObj.pageNext,
+                append: false,
+                scrollThreshold: false,
+                history:false,
+                //hideNav:currentObj.pageSelector,
+                status: '.scroller-status'
+            });
+            me.infScroll.on( 'load', function( body, path, response ) {
+                console.log(path);
+                var elems_fetch=getItems($(body).find(currentObj.itemSelector));
+                if (currentWeb!="javdb" && location.pathname.includes('/star/') && elems_fetch) {
+                    elems_fetch=elems_fetch.slice(1);
+                }
+                waterfall.append(elems_fetch);
+                lazyLoad.update();
+                me.locked=false;
+            });
+            document.addEventListener('wheel', function(){
+                if ($(currentObj.pageSelector)[0].getBoundingClientRect().top - $(window).height() < 300 && (!me.locked)) {
+                    me.locked=true;
+                    me.infScroll.loadNextPage();
+                }
+            });
+        }
+    }
     function getItems(elems) {
         var elemsHtml = "";
         var className = Status.isHalfImg() ? "halfImgCSS" : "fullImgCSS";
@@ -679,7 +672,7 @@
 ${currentObj.widthSelector}{
     width:${waterfallWidth}%;
     margin:0 ${waterfallWidth>100?(100-waterfallWidth)/2+'%':'auto'};
-    transition:width .5s ease;
+    transition:.5s ;
 }
 #waterfall-zdy{
     display:flex;
@@ -689,7 +682,8 @@ ${currentObj.widthSelector}{
 #waterfall-zdy .item{
     padding:5px;
     width:${100 / columnNum}%;
-    transition:all .4s ease
+    transition:.5s ;
+   /* animation: itemShow .5s;*/
 }
 #waterfall-zdy .movie-box-b {
     border-radius: 5px;
@@ -752,7 +746,6 @@ ${currentObj.widthSelector}{
 }
 img.fullImgCSS {
     width: 100% !important;
-/*去掉height属性 lazyload插件有不加载图片的bug*/
     height: 100% !important;
 }
 img.halfImgCSS {
@@ -780,7 +773,7 @@ img.halfImgCSS {
     margin: 0 auto;
     background-color: rgb(6 6 6 / 50%);
     border-radius: 8px;
-    animation: fadeInDown .4s;
+    animation: fadeInDown .5s;
 }
 #modal-div .pop-up-tag {
     border-radius: 8px;
@@ -860,19 +853,15 @@ svg.tool-svg {
     text-align: center
 }
 .alert-zdy {
-    width: 400px;
-    z-index: 1999;
     position: fixed;
-    top: 50px;
+    top: 50%;
     left: 50%;
-    margin-left: -200px;
-    padding: 15px;
+    padding: 12px 20px;
     font-size: 20px;
-    color: #0f5132;
-    background-color: #d1e7dd;
-    border: 1px solid #dca7a7;
+    color: black;
+    background-color: rgb(255,255,255);
     border-radius: 4px;
-    animation: fadeInDown .4s;
+    animation: itemShow .4s;
 }
 .titleNowrap{
     white-space:nowrap;text-overflow: ellipsis;overflow:hidden;
@@ -889,14 +878,12 @@ svg.tool-svg {
     fill: aliceblue;
 }
 @keyframes fadeInDown {
-    0% {
-        transform: translate3d(0, -100%, 0);
-        opacity: 0;
-    }
-    100% {
-        transform: none;
-        opacity: 1;
-    }
+    0% {transform: translate3d(0, -100%, 0);opacity: 0; }
+    100% {transform: none; opacity: 1;}
+}
+@keyframes itemShow {
+    0% {transform:scale(0);}
+    100% {transform:scale(1);}
 }
 `;
         GM_addStyle(css_waterfall);
