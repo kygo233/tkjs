@@ -5,9 +5,12 @@
 // @description  javbus javdb avmoo替换封面为大图
 // @author       kygo233
 
+// @include      *javbus.com/*
+// @include      *javdb.com/*
+// @include      *avmoo.cyou/*
 // @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
-// @include      https://*avmoo.*
-// @include      /^.*(javdb)[0-9]\..*$/
+// @include      /^.*(javdb)[0-9]?\..*$/
+// @include      /^.*(avmoo)\..*$/
 
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.0/dist/lazyload.min.js
 // @require      https://unpkg.com/infinite-scroll@4/dist/infinite-scroll.pkgd.min.js
@@ -53,6 +56,7 @@
     const IMG_SUFFIX = "-bigImg-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "#content .title2>h1>a";
+    const menuText= "设置";
 
     const copy_Svg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"  width="16" height="16" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/></svg>`;
     const download_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="tool-svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/></svg>`;
@@ -64,10 +68,10 @@
         var $alert=$(`<div  class="alert-zdy" ></div>`);
         $('body').append($alert);
         $alert.text(msg);
-        $alert.show(function(){
+        $alert.show({start:function(){
             $(this).css({'margin-top': -$(this).height() / 2 });
             $(this).css({'margin-left': -$(this).width() / 2 });
-        }).delay(3000).fadeOut();
+        }}).delay(3000).fadeOut();
     }
 
     //配置功能 绑定事件
@@ -221,10 +225,10 @@
         var $spanner = $(currentObj.menu.html);
         $spanner.append($menu);
         $spanner.mouseenter(function () {
-            $menu.slideDown("fast");
+            $menu.show();
         });
         $spanner.mouseleave(function () {
-            $menu.slideUp("fast");
+            $menu.hide();
         });
         $(currentObj.menu.position).append($spanner);
     }
@@ -420,7 +424,7 @@
             halfImg_block_Pages:['/uncensored','javbus.one','mod=uc'],
             menu:{
                 position:'#navbar ul:first',
-                html:`<li class='dropdown'><a class='dropdown-toggle'>样式开关</a></li>`
+                html:`<li class='dropdown'><a class='dropdown-toggle'>${menuText}</a></li>`
             },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
@@ -445,12 +449,12 @@
             }
         },
         javdb: {
-            domainReg: /(javdb)[0-9]\./i,
-            excludePages: '',
+            domainReg: /(javdb)[0-9]?\./i,
+            excludePages: [],
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
             menu:{
                 position:'#navbar-menu-hero .navbar-start',
-                html:`<div class='navbar-item'><a class='navbar-link'>样式开关</a></div>`
+                html:`<div class='navbar-item' >${menuText}</div>`
             },
             gridSelector: 'div#videos>.grid',
             itemSelector: 'div#videos>.grid div.grid-item',
@@ -459,7 +463,9 @@
             pageSelector:'.pagination-list',
             init_Style: function(){
                 var local_color=$(".box").css("background-color");
-                GM_addStyle(`#waterfall-zdy  .movie-box-b{background-color:${local_color};}`);
+                if(local_color=="rgb(18, 18, 18)"){
+                    GM_addStyle(`#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
+                }
             },
             maxWidth: 150,
             getAvItem: function (elem) {
@@ -483,7 +489,7 @@
             excludePages: ['/actresses'],
             menu:{
                 position:'#navbar ul:first',
-                html:`<li class='dropdown'><a class='dropdown-toggle'>样式开关</a></li>`
+                html:`<li class='dropdown'><a class='dropdown-toggle'>${menuText}</a></li>`
             },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
@@ -563,10 +569,11 @@
     class ScrollerPlugin{
         constructor(waterfall,lazyLoad){
             waterfall.after(`<div class = "scroller-status"  style="text-align:center;display:none">
-                        <h1 class="loader-ellips infinite-scroll-request">加载中</h1>
-                        <h1 class="infinite-scroll-last">完</h1></div>`);
+                        <h1 class="infinite-scroll-request">加载中</h1>
+                        <h1 class="infinite-scroll-last">end</h1></div>`);
             var me=this;
             me.locked=false;
+            me.canLoad=true;
             me.infScroll = new InfiniteScroll( '#waterfall-zdy', {
                 path: currentObj.pageNext,
                 append: false,
@@ -586,9 +593,14 @@
                 me.locked=false;
             });
             document.addEventListener('wheel', function(){
-                if ($(currentObj.pageSelector)[0].getBoundingClientRect().top - $(window).height() < 300 && (!me.locked)) {
+                if ($(currentObj.pageSelector)[0].getBoundingClientRect().top - $(window).height() < 300 && (!me.locked) && (me.canLoad)) {
                     me.locked=true;
-                    me.infScroll.loadNextPage();
+                    let nextPromise=me.infScroll.loadNextPage();
+                    //lastPage show end status
+                    if(typeof(nextPromise) == "undefined"){
+                        me.canLoad=false;
+                        me.infScroll.showLastStatus();
+                    }
                 }
             });
         }
@@ -858,8 +870,8 @@ svg.tool-svg {
     left: 50%;
     padding: 12px 20px;
     font-size: 20px;
-    color: black;
-    background-color: rgb(255,255,255);
+    color: white;
+    background-color: rgb(0,0,0,.75);
     border-radius: 4px;
     animation: itemShow .4s;
 }
