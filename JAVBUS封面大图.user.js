@@ -1,8 +1,10 @@
 ﻿// ==UserScript==
-// @name         JAVBUS封面大图
-// @namespace    http://tampermonkey.net/
-// @version      0.11
-// @description  javbus javdb avmoo替换封面为大图
+// @name         JAVBUS larger thumbnails
+// @name:zh-CN   JAVBUS封面大图
+// @namespace    https://github.com/kygo233/tkjs
+// @version      20210325
+// @description       replace javbus,javdb and avmoo' thumbnail with source image
+// @description:zh-CN javbus,javdb,avmoo替换封面为源图
 // @author       kygo233
 
 // @include      *javbus.com/*
@@ -39,7 +41,6 @@
 // ==/UserScript==
 
 //vue
-//国际化
 (function () {
     'use strict';
     let statusDefault = {
@@ -53,17 +54,66 @@
         columnNumFull:3,
         columnNumHalf:4
     };
-    const IMG_SUFFIX = "-bigImg-tag";
+    const IMG_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "#content .title2>h1>a";
-    const menuText= "设置";
 
     const copy_Svg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"  width="16" height="16" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/></svg>`;
     const download_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="tool-svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/></svg>`;
     const picture_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"  class="tool-svg" viewBox="0 0 16 16"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>`;
     const magnet_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"  class="tool-svg" x="0px" y="0px" viewBox="0 0 1000 1000" ><g><g transform="translate(0.000000,460.000000) scale(0.100000,-0.100000)"><path d="M4171.6,3994c-183.9-13.4-515.3-67.1-706.9-113c-770.2-187.7-1448.4-563.3-2021.2-1118.8c-707-685.9-1130.3-1494.4-1299-2481c-59.4-358.3-59.4-1002,0-1360.2c157.1-923.4,546-1705.1,1172.5-2354.6c695.4-722.3,1534.6-1159.1,2548.1-1325.7c174.4-28.7,388.9-34.5,1643.8-40.2l1440.7-7.7v1302.8v1302.8l-1354.5,7.6c-1207,5.7-1369.8,9.6-1480.9,40.2c-448.3,116.9-785.5,335.3-1036.5,666.7c-252.9,339.1-364,666.7-364,1088.2s111.1,749.1,364,1088.2c241.4,318,595.8,551.8,1000.1,659.1c157.1,40.2,191.6,42.1,1517.3,47.9l1354.5,7.7v1302.8v1300.9l-1344.9-3.8C4863.3,4001.6,4219.5,3997.8,4171.6,3994z"/><path d="M7620.1,2704.6V1401.8h1139.9H9900v1302.8v1302.8H8760.1H7620.1V2704.6z"/><path d="M7620.1-3502.7v-1302.8h1139.9H9900v1302.8v1302.8H8760.1H7620.1V-3502.7z"/></g></g></svg>`;
 
-    //显示提示框
+    const LOCALE = {
+        zh: {
+            menuText :'设置',
+            menu_autoPage: '鼠标滚轮翻页',
+            menu_copyBtn :'复制图标',
+            menu_toolBar: '功能图标',
+            menu_avInfo:'弹窗中的演员和样品图',
+            menu_itemTag:'高清&字幕图标',
+            menu_halfImg:'竖图模式',
+            menu_columnNum:'列',
+            copyButton:'复制',
+            copySuccess:'复制成功',
+            getAvImg_loading:'加载中。。。',
+            getAvImg_norespond:'blogjav.net网站暂时无法响应',
+            getAvImg_none:'暂时没有',
+            tool_magnetTip:'磁力',
+            tool_downloadTip:'下载封面',
+            tool_pictureTip:'视频截图(blogjav.net)'
+        },
+        en: {
+            menuText :'Settings',
+            menu_autoPage:'turn pages by mouse wheel',
+            menu_copyBtn:'copy icon',
+            menu_toolBar:'tools icon',
+            menu_avInfo:'actors and sample images in pop-ups',
+            menu_itemTag:'HD & subtitle icon',
+            menu_halfImg:'Vertical image mode',
+            menu_columnNum:'columns',
+            copyButton:'Copy',
+            copySuccess:'Copy successful',
+            getAvImg_loading:'Loading. . . ',
+            getAvImg_norespond:'blogjav.net is temporarily unable to respond',
+            getAvImg_none:'Nothing for now',
+            tool_magnetTip:'Magnet',
+            tool_downloadTip:'Download cover',
+            tool_pictureTip:'Video screenshot from blogjav.net'
+        }
+    }
+    let getlanguage = () => {
+        let local= navigator.language;
+        local = local.toLowerCase().replace('_', '-');
+        if (local in LOCALE){
+            return LOCALE[local];
+        }else if (local.split('-')[0] in LOCALE){
+            return LOCALE[local.split('-')[0]];
+        }else {
+            return LOCALE.en;
+        }
+    }
+    let lang = getlanguage();
+
     function showAlert(msg){
         var $alert=$(`<div  class="alert-zdy" ></div>`);
         $('body').append($alert);
@@ -74,7 +124,6 @@
         }}).delay(3000).fadeOut();
     }
 
-    //配置功能 绑定事件
     let tool_Func = {
         autoPage: function () {
             window.location.reload();
@@ -104,11 +153,9 @@
             var columnNum = Status.getColumnNum();
             GM_addStyle('#waterfall-zdy .item{ width: ' + 100 / columnNum + '%;}');
             $("#columnNum_range").val(columnNum);
-            $("#columnNum_range+span+span").text(columnNum);
+            $("#columnNum_range+span").text(columnNum);
         },
-        avInfo: function () {
-            //$("#modal-div .avInfo").toggle();
-        },
+        avInfo: function () { },
         columnNum: function (columnNum) {
             GM_addStyle('#waterfall-zdy .item{ width: ' + 100 / columnNum + '%;}');
         },
@@ -132,11 +179,9 @@
         get : function(key){
             return GM_getValue(key=="waterfallWidth"?(key+"_"+currentWeb):key, statusDefault[key]);
         },
-        //判断是否为竖图模式
         isHalfImg: function () {
             return this.get("halfImg") && (!this.halfImg_block);
         },
-        //获取列数
         getColumnNum: function () {
             var key= 'columnNum'+(this.isHalfImg()?"Half":"Full");
             return this.get(key);
@@ -194,7 +239,6 @@
             if(!this.element){ this.init();}
             this.element.find("#modal-div").append(elem);
         }
-        // 封装获取滚动条宽度的方法
         this.getScrollBarWidth= function () {
             var el = document.createElement("p");
             var styles = {width: "100px",height: "100px",overflowY: "scroll" };
@@ -206,35 +250,29 @@
             el.remove();
             return scrollBarWidth;
         }
-
     }
-    //添加
+
     function addMenu() {
         var columnNum = Status.getColumnNum();
         var $menu = $('<div  id="menu-div" ></div>');
-        $menu.append(creatCheckbox("autoPage", "自动翻页"));
-        $menu.append(creatCheckbox("copyBtn", "复制图标"));
-        $menu.append(creatCheckbox("itemTag", "高清&字幕图标"));
-        $menu.append(creatCheckbox("toolBar", "功能图标"));
-        $menu.append(creatCheckbox("halfImg", "竖图模式",Status.halfImg_block));
+        $menu.append(creatCheckbox("autoPage", lang.menu_autoPage));
+        $menu.append(creatCheckbox("copyBtn", lang.menu_copyBtn));
+        $menu.append(creatCheckbox("itemTag", lang.menu_itemTag));
+        $menu.append(creatCheckbox("toolBar", lang.menu_toolBar));
+        $menu.append(creatCheckbox("halfImg", lang.menu_halfImg,Status.halfImg_block));
         if (currentWeb == 'javbus') {
-            $menu.append(creatCheckbox("avInfo", "演员表&样品图"));
+            $menu.append(creatCheckbox("avInfo", lang.menu_avInfo));
         }
-        $menu.append(creatRange("columnNum", "列数", columnNum, 8));
-        $menu.append(creatRange("waterfallWidth", "宽度", waterfallWidth, currentObj.maxWidth?currentObj.maxWidth:100));
+        $menu.append(creatRange("columnNum", lang.menu_columnNum, columnNum, 8));
+        $menu.append(creatRange("waterfallWidth", '%', waterfallWidth, currentObj.maxWidth?currentObj.maxWidth:100));
         var $spanner = $(currentObj.menu.html);
         $spanner.append($menu);
-        $spanner.mouseenter(function () {
-            $menu.show();
-        });
-        $spanner.mouseleave(function () {
-            $menu.hide();
-        });
+        $spanner.mouseenter(()=>$menu.show()).mouseleave(()=>$menu.hide());
         $(currentObj.menu.position).append($spanner);
     }
-    //根据id、name生成勾选框
+
     function creatCheckbox(tagName, name,disabled) {
-        var $checkbox = $(`<div class="switch-div"><label  for="${tagName}_checkbox" >${name}</label><input ${disabled?'disabled="disabled"':''} type="checkbox" id="${tagName}_checkbox" /></div>`);
+        var $checkbox = $(`<div class="switch-div"><input ${disabled?'disabled="disabled"':''} type="checkbox" id="${tagName}_checkbox" /><label  for="${tagName}_checkbox" >${name}</label></div>`);
         $checkbox.find("input")[0].checked = Status.get(tagName);
         $checkbox.find("input").eq(0).click(function () {
             Status.set(tagName, this.checked);
@@ -243,34 +281,30 @@
         return $checkbox;
     }
     function creatRange(tagName, name, value, max) {
-        var $range = $(`<div  class="range-div"><input type="range" id="${tagName}_range"  min="1" max="${max}" step="1" value="${value}"  /><span>${name} </span><span>${value}</span></div>`);
+        var $range = $(`<div  class="range-div"><input type="range" id="${tagName}_range"  min="1" max="${max}" step="1" value="${value}"  /><span name="value">${value}</span><span>${name}</span></div>`);
         $range.bind('input propertychange', function () {
             var val = $(this).find("input").eq(0).val();
-            $(this).find("span").eq(1).html(val);
+            $(this).find("span[name=value]").html(val);
             Status.set(tagName, val);
             tool_Func[tagName](val);
         });
         return $range;
     }
-    //显示磁力表格
+
     function showMagnetTable(avid, src) {
         let $el=$(`.pop-up-tag[name=${avid}${AVINFO_SUFFIX}]`);
         if ($el.length > 0) {
             $el.show();
             myModal.show();
         } else {
-            console.time("Magnetfetch耗时: ");
             getMagnet(avid, src).then(avInfo_c => {
                 myModal.append(avInfo_c.avatar_waterfall);
                 myModal.append(avInfo_c.sample_waterfall);
                 myModal.append(avInfo_c.magnetTable);
                 myModal.show();
-                console.timeEnd("Magnetfetch耗时: ");
             });
         }
     }
-
-    //ajax 获取磁力链接
     function getMagnet(avid, src) {
         //有码和欧美 0  无码 1
         var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
@@ -328,20 +362,17 @@
     };
 
     function addCopybutton(tag, text) {
-        var copyButton = $('<button class="center-block">复制</button>');
+        var copyButton = $(`<button class="center-block">${lang.copyButton}</button>`);
         copyButton.click(function () {
             var btn = this;
-            btn.innerHTML = '成功';
             GM_setClipboard(text);
-            setTimeout(function () {
-                btn.innerHTML = '复制';
-            }, 1000);
+            showAlert(lang.copySuccess);
         });
         var td_tag = $('<td></td>');
         td_tag.append(copyButton);
         $(tag).prepend(td_tag);
     }
-    //显示视频截图
+
     function showBigImg(avid,elem) {
         let $selector = $(`#${avid}${IMG_SUFFIX}`);
         if ($selector.length > 0) {
@@ -352,10 +383,9 @@
         }
     }
 
-    //获取视频截图
     function getAvImg(avid, elem) {
         if (elem.click_lock) {
-            showAlert('加载中。。。');
+            showAlert(lang.getAvImg_loading);
             return;
         }
         elem.click_lock = true;
@@ -364,7 +394,7 @@
             url: 'http://blogjav.net/?s=' + avid,
             onload: function (result) {
                 if (result.status !== 200) {
-                    showAlert( 'blogjav.net网站暂时无法响应');
+                    showAlert(lang.getAvImg_norespond);
                     elem.click_lock = false;
                     return;
                 }
@@ -379,7 +409,7 @@
                     }
                 }
                 if (!imgUrl) {
-                    showAlert('暂时没有');
+                    showAlert(lang.getAvImg_none);
                     elem.click_lock = false;
                     return;
                 }
@@ -387,7 +417,7 @@
                     method: "GET",
                     url: imgUrl,
                     headers: {
-                        referrer: "http://pixhost.to/" //绕过防盗图的关键
+                        referrer: "http://pixhost.to/"
                     },
                     onload: function (XMLHttpRequest) {
                         var bodyStr = XMLHttpRequest.responseText;
@@ -399,13 +429,13 @@
                             var img_tag = $('<div id="' + avid + IMG_SUFFIX + '" class="pop-up-tag" ><img style="min-height:' + height + 'px;width:100%" src="' + src + '" /></div>');
                             var downloadBtn = $('<span class="download-icon" >'+download_Svg+'</span>');
                             downloadBtn.click(function () {
-                                GM_download(src, avid + " 截图.jpg");
+                                GM_download(src, avid + ".jpg");
                             });
                             $(img_tag).prepend(downloadBtn);
                             myModal.append(img_tag);
                             myModal.show();
                         }else if(bodyStr.match("404 Not Found")){
-                            showAlert('blogjav.net网站暂时无法响应');
+                            showAlert(lang.getAvImg_norespond);
                         }
                         elem.click_lock = false;
                     }
@@ -415,7 +445,7 @@
     };
 
     let myModal;
-    let currentWeb = "javbus"; //默认为javbus
+    let currentWeb = "javbus";
     let currentObj ;
     let ConstCode = {
         javbus: {
@@ -424,7 +454,7 @@
             halfImg_block_Pages:['/uncensored','javbus.one','mod=uc'],
             menu:{
                 position:'#navbar ul:first',
-                html:`<li class='dropdown'><a class='dropdown-toggle'>${menuText}</a></li>`
+                html:`<li class='dropdown'><a class='dropdown-toggle'>${lang.menuText}</a></li>`
             },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
@@ -433,17 +463,17 @@
             pageSelector:'.pagination',
             getAvItem: function (elem) {
                 var photoDiv = elem.find("div.photo-frame")[0];
-                var href = elem.find("a")[0].href; //跳转链接
+                var href = elem.find("a")[0].href;
                 var img = $(photoDiv).children("img")[0];
-                var src = img.src; //获取大图地址
+                var src = img.src;
                 if (src.match(/pics.dmm.co.jp/)) {
                     src = src.replace(/ps.jpg/, "pl.jpg");
                 } else {
                     src = src.replace(/thumbs/, "cover").replace(/thumb/, "cover").replace(/.jpg/, "_b.jpg");
                 }
-                var title = img.title; //标题
-                var AVID = elem.find("date").eq(0).text().replace(/\./g, '-'); //番号
-                var date = elem.find("date").eq(1).text(); //日期
+                var title = img.title;
+                var AVID = elem.find("date").eq(0).text().replace(/\./g, '-');
+                var date = elem.find("date").eq(1).text();
                 var itemTag = "";elem.find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
             }
@@ -454,7 +484,7 @@
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
             menu:{
                 position:'#navbar-menu-hero .navbar-start',
-                html:`<div class='navbar-item' >${menuText}</div>`
+                html:`<div class='navbar-item' >${lang.menuText}</div>`
             },
             gridSelector: 'div#videos>.grid',
             itemSelector: 'div#videos>.grid div.grid-item',
@@ -469,15 +499,15 @@
             },
             maxWidth: 150,
             getAvItem: function (elem) {
-                var href = elem.find("a")[0].href; //跳转链接
+                var href = elem.find("a")[0].href;
                 var img = elem.find("div.item-image>img").eq(0);
-                var src = img.attr("data-src").replace(/thumbs/, "covers") ; //获取大图地址
-                var title = elem.find("div.video-title").eq(0).text(); //标题
+                var src = img.attr("data-src").replace(/thumbs/, "covers") ;
+                var title = elem.find("div.video-title").eq(0).text();
                 if(!title) {title = elem.find("div.video-title2").eq(0).text()};
-                var AVID = elem.find("div.uid").eq(0).text().replace(/\./g, '-'); //番号
+                var AVID = elem.find("div.uid").eq(0).text().replace(/\./g, '-');
                 if(!AVID) {AVID = elem.find("div.uid2").eq(0).text()};
-                var date = elem.find("div.meta").eq(0).text(); //日期
-                var itemTag = elem.find(".tags.has-addons").html(); //日期
+                var date = elem.find("div.meta").eq(0).text();
+                var itemTag = elem.find(".tags.has-addons").html();
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
             },
             init: function(){
@@ -489,7 +519,7 @@
             excludePages: ['/actresses'],
             menu:{
                 position:'#navbar ul:first',
-                html:`<li class='dropdown'><a class='dropdown-toggle'>${menuText}</a></li>`
+                html:`<li class='dropdown'><a class='dropdown-toggle'>${lang.menuText}</a></li>`
             },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
@@ -498,12 +528,12 @@
             pageSelector:'.pagination',
             getAvItem: function (elem) {
                 var photoDiv = elem.find("div.photo-frame")[0];
-                var href = elem.find("a")[0].href; //跳转链接
+                var href = elem.find("a")[0].href;
                 var img = $(photoDiv).children("img")[0];
-                var src = img.src.replace(/ps.jpg/, "pl.jpg"); //获取大图地址
-                var title = img.title; //标题
-                var AVID = elem.find("date").eq(0).text().replace(/\./g, '-'); //番号
-                var date = elem.find("date").eq(1).text(); //日期
+                var src = img.src.replace(/ps.jpg/, "pl.jpg");
+                var title = img.title;
+                var AVID = elem.find("date").eq(0).text().replace(/\./g, '-');
+                var date = elem.find("date").eq(1).text();
                 var itemTag = "";elem.find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
             }
@@ -569,7 +599,7 @@
     class ScrollerPlugin{
         constructor(waterfall,lazyLoad){
             waterfall.after(`<div class = "scroller-status"  style="text-align:center;display:none">
-                        <h1 class="infinite-scroll-request">加载中</h1>
+                        <h1 class="infinite-scroll-request">...</h1>
                         <h1 class="infinite-scroll-last">end</h1></div>`);
             var me=this;
             me.locked=false;
@@ -579,7 +609,6 @@
                 append: false,
                 scrollThreshold: false,
                 history:false,
-                //hideNav:currentObj.pageSelector,
                 status: '.scroller-status'
             });
             me.infScroll.on( 'load', function( body, path, response ) {
@@ -628,7 +657,7 @@
         }
         $elems.find("span[name='copy']").click(function () {
             GM_setClipboard($(this).next().text());
-            showAlert('复制成功');
+            showAlert(lang.copySuccess);
             return false;
         });
         $elems.find(".func-div span[name='download']").click(function () {
@@ -640,12 +669,10 @@
         $elems.find(".func-div span[name='picture']").click(function () {
             showBigImg($(this).attr("AVID"),this);
         });
-        // currentObj.elemsLoaded(elemsArray);
         return $elems;
     }
 
     function getItem(tag,parseFunc,className) {
-        //currentObj.specialItem(tag);
         if (currentWeb!="javdb" && tag.find(".avatar-box").length) {
             tag.find(".avatar-box").addClass("avatar-box-b").removeClass("avatar-box");
             return `<div class='item'>${tag.html()}</div>`;
@@ -665,9 +692,9 @@
                           <div class="info-bottom-two">
                             <div class="item-tag">${AvItem.itemTag}</div>
                             <div class="func-div">
-                            <span name="magnet" class="svg-span" title="磁力" AVID="${AvItem.AVID}" >${magnet_Svg}</span>
-                            <span name="download" class="svg-span" title="下载图片" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
-                            <span name="picture" class="svg-span" title="视频截图" AVID="${AvItem.AVID}" >${picture_Svg}</span>
+                            <span name="magnet" class="svg-span" title="${lang.tool_magnetTip}" AVID="${AvItem.AVID}" >${magnet_Svg}</span>
+                            <span name="download" class="svg-span" title="${lang.tool_downloadTip}" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
+                            <span name="picture" class="svg-span" title="${lang.tool_pictureTip}" AVID="${AvItem.AVID}" >${picture_Svg}</span>
                            </div>
                          </div>
                        </div>
@@ -832,37 +859,31 @@ svg.tool-svg {
     vertical-align: middle
 }
 #menu-div {
+    white-space: nowrap;
     background-color: white;
     color:black;
     display: none;
+    min-width: 200px;
     position: absolute;
     top: 100%;
-    left: 0;
-    width: 210px;
     border-radius: 5px;
-    padding: 5px 0;
+    padding: 5px;
     box-shadow: 0 10px 20px 0 rgb(0 0 0 / 50%)
 }
-#menu-div .switch-div label {
-    display: inline-block;
-    width: 70%;
-    text-align: right
+#menu-div .switch-div,#menu-div .switch-div *{
+    margin: 3px;
 }
-#menu-div .switch-div input {
-    width: 30%
+#menu-div .switch-div label{
+    display: inline;
 }
 #menu-div .range-div {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap
+    flex-wrap: nowrap;
 }
 #menu-div .range-div input {
     cursor: pointer;
-    width: 70%
-}
-#menu-div .layoutMode-div{
-    padding: 4px;
-    text-align: center
+    width: 80%;max-width:200px;
 }
 .alert-zdy {
     position: fixed;
@@ -873,7 +894,9 @@ svg.tool-svg {
     color: white;
     background-color: rgb(0,0,0,.75);
     border-radius: 4px;
+    border: 1px solid black;
     animation: itemShow .4s;
+    z-index: 1051;
 }
 .titleNowrap{
     white-space:nowrap;text-overflow: ellipsis;overflow:hidden;
@@ -901,5 +924,4 @@ svg.tool-svg {
         GM_addStyle(css_waterfall);
     }
     pageInit();
-    // Your code here...
 })();
