@@ -329,7 +329,6 @@
                 return avInfo_c;
             })
         });
-
     };
 
     function avInfofetch(avid) {
@@ -539,8 +538,6 @@
             }
         }
     };
-
-
     function pageInit() {
         //判断页面的地址, 加载对应的参数
         for (var key in ConstCode) {
@@ -599,13 +596,15 @@
     class ScrollerPlugin{
         constructor(waterfall,lazyLoad){
             waterfall.after(`<div class = "scroller-status"  style="text-align:center;display:none">
-                        <h1 class="infinite-scroll-request">...</h1>
-                        <h1 class="infinite-scroll-last">end</h1></div>`);
+                        <h2 class="infinite-scroll-request">●●●</h2>
+                        <h2 class="infinite-scroll-last">End</h2></div>`);
             var me=this;
             me.locked=false;
             me.canLoad=true;
+            let $page=$(currentObj.pageNext);
+            me.nextURL= $page.attr('href');
             me.infScroll = new InfiniteScroll( '#waterfall-zdy', {
-                path: currentObj.pageNext,
+                path: ()=>{return me.nextURL} ,
                 append: false,
                 scrollThreshold: false,
                 history:false,
@@ -613,23 +612,23 @@
             });
             me.infScroll.on( 'load', function( body, path, response ) {
                 console.log(path);
+                me.nextURL=$(body).find(currentObj.pageNext).attr('href');
                 var elems_fetch=getItems($(body).find(currentObj.itemSelector));
                 if (currentWeb!="javdb" && location.pathname.includes('/star/') && elems_fetch) {
                     elems_fetch=elems_fetch.slice(1);
                 }
                 waterfall.append(elems_fetch);
                 lazyLoad.update();
+                if(typeof(me.nextURL) == "undefined"){
+                    me.canLoad=false;
+                    me.infScroll.showLastStatus();
+                }
                 me.locked=false;
             });
             document.addEventListener('wheel', function(){
-                if ($(currentObj.pageSelector)[0].getBoundingClientRect().top - $(window).height() < 300 && (!me.locked) && (me.canLoad)) {
+                if ($page.get(0).getBoundingClientRect().top - $(window).height() < 300 && (!me.locked) && (me.canLoad)) {
                     me.locked=true;
                     let nextPromise=me.infScroll.loadNextPage();
-                    //lastPage show end status
-                    if(typeof(nextPromise) == "undefined"){
-                        me.canLoad=false;
-                        me.infScroll.showLastStatus();
-                    }
                 }
             });
         }
@@ -735,7 +734,7 @@ ${currentObj.widthSelector}{
     display: block;
 }
 #waterfall-zdy .movie-box-b .photo-info-b {
-    padding: 10px;
+    padding: 7px;
 }
 #waterfall-zdy .movie-box-b .photo-info-b a {
     color: inherit;
