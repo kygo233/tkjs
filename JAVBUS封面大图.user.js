@@ -2,14 +2,11 @@
 // @name         JAVBUS larger thumbnails
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210325
-// @description       replace javbus,javdb and avmoo' thumbnail with source image
-// @description:zh-CN javbus,javdb,avmoo替换封面为源图
+// @version      20210403
 // @author       kygo233
+// @description          replace thumbnails of javbus,javdb and avmoo with source images
+// @description:zh-CN    javbus,javdb,avmoo替换封面为源图
 
-// @include      *javbus.com/*
-// @include      *javdb.com/*
-// @include      *avmoo.cyou/*
 // @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      /^.*(javdb)[0-9]?\..*$/
 // @include      /^.*(avmoo)\..*$/
@@ -24,7 +21,8 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2021-03-01 适配javdb；点击图片弹出新窗口；标题默认显示一行；恢复高清图标显示
+// 2021-04-03 适配JAVDB;点击图片弹出新窗口;标题默认显示一行;调整样式;增加英文显示
+// 2021-03-09 恢复高清字幕图标的显示
 // 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；磁力界面新增演员表样品图显示；
 // 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;调整域名匹配规则
 // 2021-01-01 新增宽度调整功能;
@@ -76,7 +74,7 @@
             copySuccess:'复制成功',
             getAvImg_loading:'加载中。。。',
             getAvImg_norespond:'blogjav.net网站暂时无法响应',
-            getAvImg_none:'暂时没有',
+            getAvImg_none:'未搜索到',
             tool_magnetTip:'磁力',
             tool_downloadTip:'下载封面',
             tool_pictureTip:'视频截图(blogjav.net)'
@@ -92,9 +90,9 @@
             menu_columnNum:'columns',
             copyButton:'Copy',
             copySuccess:'Copy successful',
-            getAvImg_loading:'Loading. . . ',
+            getAvImg_loading:'Loading. . .',
             getAvImg_norespond:'blogjav.net is temporarily unable to respond',
-            getAvImg_none:'Nothing for now',
+            getAvImg_none:'Not found',
             tool_magnetTip:'Magnet',
             tool_downloadTip:'Download cover',
             tool_pictureTip:'Video screenshot from blogjav.net'
@@ -187,20 +185,20 @@
         }
     };
 
-    function Popover() {
-        this.show = function () {
+    class Popover{
+        show(){
             document.documentElement.classList.add("scrollBarHide");
-            this.element.show(0,function(){
+            this.element.show({duration:0,start:function(){
                 var t=$(this).find('#modal-div');
                 t.css({'margin-top': Math.max(0, ($(window).height() - t.height()) / 2) });
-            });
-        };
-        this.hide = function () {
+            }});
+        }
+        hide(){
             document.documentElement.classList.remove("scrollBarHide");
             this.element.hide();
             this.element.find('.pop-up-tag').hide();
-        };
-        this.init =function (){
+        }
+        init(){
             var me=this;
             me.element = $('<div  id="myModal"><div  id="modal-div" > </div></div>');
             me.element.on('click',function(e){
@@ -234,11 +232,11 @@
                 });
             }
         }
-        this.append =function (elem){
+        append(elem){
             if(!this.element){ this.init();}
             this.element.find("#modal-div").append(elem);
         }
-        this.getScrollBarWidth= function () {
+        getScrollBarWidth() {
             var el = document.createElement("p");
             var styles = {width: "100px",height: "100px",overflowY: "scroll" };
             for (var i in styles) {
@@ -443,7 +441,7 @@
     };
 
     let myModal;
-    let currentWeb = "javbus";
+    let currentWeb ;
     let currentObj ;
     let ConstCode = {
         javbus: {
@@ -538,7 +536,6 @@
         }
     };
     function pageInit() {
-        //判断页面的地址, 加载对应的参数
         for (var key in ConstCode) {
             var domainReg = ConstCode[key].domainReg;
             if (domainReg && domainReg.test(location.href)) {
@@ -566,7 +563,25 @@
                 break;
             }
         }
-        if ($(currentObj.itemSelector).length) {
+        let $items = $(currentObj.itemSelector);
+        if (currentWeb && $items.length) {
+            if(['javbus','avmoo'].includes(currentWeb)){ //屏蔽老司机脚本,改写id
+                let $waterfall = $('#waterfall');
+                if($waterfall.length){
+                    $waterfall.get(0).id = "waterfall-destroy";
+                }
+                if($waterfall.find("#waterfall").length){ //javbus首页有2个'waterfall' ID
+                    $waterfall.find("#waterfall").get(0).id = "";
+                }
+                let $waterfall_h= $('#waterfall_h');
+                if ($waterfall_h.length) {
+                    $waterfall_h.get(0).id = "waterfall-destroy";
+                }
+                if(location.pathname.search(/search/) > 0){//解决"改写id后，搜索页面自动跳转到无码页面"的bug
+                    $('body').append('<div id="waterfall"></div>');
+                }
+                currentObj.gridSelector = "#waterfall-destroy";
+            }
             $(currentObj.gridSelector).hide();
             var waterfall=$(`<div id= 'waterfall-zdy'></div>`);
             $(currentObj.gridSelector).eq(0).before(waterfall);
@@ -584,7 +599,7 @@
                     }
                 }
             });
-            let elems=getItems($(currentObj.itemSelector));
+            let elems=getItems($items);
             waterfall.append(elems);
             lazyLoad.update();
             if(Status.get("autoPage") && $(currentObj.pageSelector).length ){
