@@ -15,7 +15,6 @@
 // @include      /^.*(avmoo)\..*$/
 
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.0/dist/lazyload.min.js
-// @require      https://unpkg.com/infinite-scroll@4/dist/infinite-scroll.pkgd.min.js
 
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
@@ -595,44 +594,48 @@
     }
     class ScrollerPlugin{
         constructor(waterfall,lazyLoad){
-            waterfall.after(`<div class = "scroller-status"  style="text-align:center;display:none">
-                        <h2 class="infinite-scroll-request">●●●</h2>
-                        <h2 class="infinite-scroll-last">End</h2></div>`);
-            var me=this;
+            let me=this;
+            me.waterfall=waterfall;
+            me.lazyLoad=lazyLoad;
+            let $pageNext=$(currentObj.pageNext);
+            me.nextURL = $pageNext.attr('href');
+            me.scroller_status=$(`<div class = "scroller-status"  style="text-align:center;display:none"><h2 class="scroll-request">●●●</h2><h2 class="scroll-last">End</h2></div>`);
+            me.waterfall.after(me.scroller_status);
             me.locked=false;
             me.canLoad=true;
-            let $page=$(currentObj.pageNext);
-            me.nextURL= $page.attr('href');
-            me.infScroll = new InfiniteScroll( '#waterfall-zdy', {
-                path: ()=>{return me.nextURL} ,
-                append: false,
-                scrollThreshold: false,
-                history:false,
-                status: '.scroller-status'
-            });
-            me.infScroll.on( 'load', function( body, path, response ) {
-                console.log(path);
-                me.nextURL=$(body).find(currentObj.pageNext).attr('href');
-                var elems_fetch=getItems($(body).find(currentObj.itemSelector));
-                if (currentWeb!="javdb" && location.pathname.includes('/star/') && elems_fetch) {
-                    elems_fetch=elems_fetch.slice(1);
-                }
-                waterfall.append(elems_fetch);
-                lazyLoad.update();
-                if(typeof(me.nextURL) == "undefined"){
-                    me.canLoad=false;
-                    me.infScroll.showLastStatus();
-                }
-                me.locked=false;
-            });
+            let $page=$(currentObj.pageSelector);
             document.addEventListener('wheel', function(){
                 if ($page.get(0).getBoundingClientRect().top - $(window).height() < 300 && (!me.locked) && (me.canLoad)) {
                     me.locked=true;
-                    let nextPromise=me.infScroll.loadNextPage();
+                    me.loadNextPage(me.nextURL).then(()=>{me.locked=false});
                 }
             });
         }
+        async loadNextPage(url){
+            this.showStatus('request');
+            console.log(url);
+            let respondText = await fetch(url, { credentials: 'same-origin' }).then(respond=>respond.text());
+            let $body = $(new DOMParser().parseFromString(respondText, 'text/html'));
+            let elems = getItems($body.find(currentObj.itemSelector));
+            if (currentWeb != "javdb" && location.pathname.includes('/star/') && elems) {
+                elems=elems.slice(1);
+            }
+            this.scroller_status.hide();
+            this.waterfall.append(elems);
+            this.lazyLoad.update();
+            this.nextURL = $body.find(currentObj.pageNext).attr('href');
+            if(!this.nextURL){
+                this.canLoad=false;
+                this.showStatus("last");
+            }
+        }
+        showStatus(status){
+            this.scroller_status.children().each( (i,e)=>{$(e).hide()});
+            this.scroller_status.find(`.scroll-${status}`).show();
+            this.scroller_status.show();
+        }
     }
+
     function getItems(elems) {
         var elemsHtml = "";
         var className = Status.isHalfImg() ? "halfImgCSS" : "fullImgCSS";
