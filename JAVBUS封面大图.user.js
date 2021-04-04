@@ -2,11 +2,14 @@
 // @name         JAVBUS larger thumbnails
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210403
+// @version      20210404
 // @author       kygo233
 // @description          replace thumbnails of javbus,javdb and avmoo with source images
 // @description:zh-CN    javbus,javdb,avmoo替换封面为源图
 
+// @include      *javbus.com/*
+// @include      *javdb.com/*
+// @include      *avmoo.cyou/*
 // @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      /^.*(javdb)[0-9]?\..*$/
 // @include      /^.*(avmoo)\..*$/
@@ -21,7 +24,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2021-04-03 适配JAVDB;点击图片弹出新窗口;标题默认显示一行;调整样式;增加英文显示
+// 2021-04-04 适配JAVDB;点击图片弹出新窗口;标题默认显示一行;调整样式;增加英文显示
 // 2021-03-09 恢复高清字幕图标的显示
 // 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；磁力界面新增演员表样品图显示；
 // 2021-01-18 适配AVMOO网站;无码页面屏蔽竖图模式;调整域名匹配规则
@@ -476,7 +479,7 @@
         },
         javdb: {
             domainReg: /(javdb)[0-9]?\./i,
-            excludePages: [],
+            excludePages: ['/users/'],
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
             menu:{
                 position:'#navbar-menu-hero .navbar-start',
@@ -507,7 +510,7 @@
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
             },
             init: function(){
-                if(location.href.includes("/users/")){ this.widthSelector="div.section";}
+               // if(location.href.includes("/users/")){ this.widthSelector="div.section";}
             }
         },
         avmoo: {
