@@ -2,7 +2,7 @@
 // @name         JAVBUS larger thumbnails
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210404
+// @version      20210506
 // @author       kygo233
 // @description          replace thumbnails of javbus,javdb and avmoo with source images
 // @description:zh-CN    javbus,javdb,avmoo替换封面为源图
@@ -24,6 +24,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-05-06 添加标题全显样式控制，自动翻页开关无需刷新页面;删除高清图标的显示控制
 // 2021-04-04 适配JAVDB;点击图片弹出新窗口;标题默认显示一行;调整样式;增加英文显示
 // 2021-03-09 恢复高清字幕图标的显示
 // 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；磁力界面新增演员表样品图显示；
@@ -48,8 +49,8 @@
         copyBtn :true,
         toolBar: true,
         avInfo:true,
-        itemTag:true,
         halfImg:false,
+        fullTitle:false,
         waterfallWidth:100,
         columnNumFull:3,
         columnNumHalf:4
@@ -70,8 +71,8 @@
             menu_copyBtn :'复制图标',
             menu_toolBar: '功能图标',
             menu_avInfo:'弹窗中的演员和样品图',
-            menu_itemTag:'高清&字幕图标',
             menu_halfImg:'竖图模式',
+            menu_fullTitle:'标题全显',
             menu_columnNum:'列',
             copyButton:'复制',
             copySuccess:'复制成功',
@@ -88,8 +89,8 @@
             menu_copyBtn:'copy icon',
             menu_toolBar:'tools icon',
             menu_avInfo:'actors and sample images in pop-ups',
-            menu_itemTag:'HD & subtitle icon',
             menu_halfImg:'Vertical image mode',
+            menu_fullTitle:'Full Title',
             menu_columnNum:'columns',
             copyButton:'Copy',
             copySuccess:'Copy successful',
@@ -126,13 +127,15 @@
 
     let tool_Func = {
         autoPage: function () {
-            window.location.reload();
+            if(scroller){
+                scroller.destroy();
+                scroller=null;
+            }else{
+                scroller= new ScrollerPlugin($('#waterfall-zdy'),lazyLoad);
+            }
         },
         copyBtn: function () {
             $("#waterfall-zdy .copy-svg").toggle();
-        },
-        itemTag: function () {
-            $("#waterfall-zdy .item-tag").toggle();
         },
         toolBar: function () {
             $("#waterfall-zdy .func-div").toggle();
@@ -154,6 +157,9 @@
             GM_addStyle('#waterfall-zdy .item{ width: ' + 100 / columnNum + '%;}');
             $("#columnNum_range").val(columnNum);
             $("#columnNum_range+span").text(columnNum);
+        },
+        fullTitle : function(){
+            $("#waterfall-zdy a[name='av-title']").toggleClass("titleNowrap");
         },
         avInfo: function () { },
         columnNum: function (columnNum) {
@@ -257,12 +263,12 @@
         var $menu = $('<div  id="menu-div" ></div>');
         $menu.append(creatCheckbox("autoPage", lang.menu_autoPage));
         $menu.append(creatCheckbox("copyBtn", lang.menu_copyBtn));
-        $menu.append(creatCheckbox("itemTag", lang.menu_itemTag));
         $menu.append(creatCheckbox("toolBar", lang.menu_toolBar));
         $menu.append(creatCheckbox("halfImg", lang.menu_halfImg,Status.halfImg_block));
         if (currentWeb == 'javbus') {
             $menu.append(creatCheckbox("avInfo", lang.menu_avInfo));
         }
+        $menu.append(creatCheckbox("fullTitle", lang.menu_fullTitle));
         $menu.append(creatRange("columnNum", lang.menu_columnNum, columnNum, 8));
         $menu.append(creatRange("waterfallWidth", '%', waterfallWidth, currentObj.maxWidth?currentObj.maxWidth:100));
         var $spanner = $(currentObj.menu.html);
@@ -538,6 +544,34 @@
             }
         }
     };
+
+    function oldDriverBlock(){
+        if(['javbus','avmoo'].includes(currentWeb)){ //屏蔽老司机脚本,改写id
+            if ($('.masonry').length > 0) {
+                $('.masonry').removeClass("masonry");
+            }
+            let $waterfall = $('#waterfall');
+            if($waterfall.length){
+                $waterfall.get(0).id = "waterfall-destroy";
+            }
+            if($waterfall.find("#waterfall").length){ //javbus首页有2个'waterfall' ID
+                $waterfall.find("#waterfall").get(0).id = "";
+            }
+            //解决 JAV老司机 $pages[0].parentElement.parentElement.id = "waterfall_h";
+            //女优作品界面此代码会把id设置到class=row层
+            if ($('#waterfall_h.row').length > 0) {
+                $('#waterfall_h.row').removeAttr("id");
+            }
+            let $waterfall_h= $('#waterfall_h');
+            if ($waterfall_h.length) {
+                $waterfall_h.get(0).id = "waterfall-destroy";
+            }
+            if(location.pathname.search(/search/) > 0){//解决"改写id后，搜索页面自动跳转到无码页面"的bug
+                $('body').append('<div id="waterfall"></div>');
+            }
+            currentObj.gridSelector = "#waterfall-destroy";
+        }
+    }
     function pageInit() {
         for (var key in ConstCode) {
             var domainReg = ConstCode[key].domainReg;
@@ -568,23 +602,7 @@
         }
         let $items = $(currentObj.itemSelector);
         if (currentWeb && $items.length) {
-            if(['javbus','avmoo'].includes(currentWeb)){ //屏蔽老司机脚本,改写id
-                let $waterfall = $('#waterfall');
-                if($waterfall.length){
-                    $waterfall.get(0).id = "waterfall-destroy";
-                }
-                if($waterfall.find("#waterfall").length){ //javbus首页有2个'waterfall' ID
-                    $waterfall.find("#waterfall").get(0).id = "";
-                }
-                let $waterfall_h= $('#waterfall_h');
-                if ($waterfall_h.length) {
-                    $waterfall_h.get(0).id = "waterfall-destroy";
-                }
-                if(location.pathname.search(/search/) > 0){//解决"改写id后，搜索页面自动跳转到无码页面"的bug
-                    $('body').append('<div id="waterfall"></div>');
-                }
-                currentObj.gridSelector = "#waterfall-destroy";
-            }
+            oldDriverBlock();
             $(currentObj.gridSelector).hide();
             var waterfall=$(`<div id= 'waterfall-zdy'></div>`);
             $(currentObj.gridSelector).eq(0).before(waterfall);
@@ -593,7 +611,7 @@
             addMenu(); //添加菜单
             myModal = new Popover();//弹出插件
             //加载图片懒加载插件
-            let lazyLoad = new LazyLoad({
+            lazyLoad = new LazyLoad({
                 callback_loaded: function (bigimg) {
                     //加载时的回调，本身为竖图的不做变化
                     if (Status.isHalfImg() && bigimg.height >= bigimg.width) {
@@ -606,10 +624,12 @@
             waterfall.append(elems);
             lazyLoad.update();
             if(Status.get("autoPage") && $(currentObj.pageSelector).length ){
-                let scroller=new ScrollerPlugin(waterfall,lazyLoad);
+                scroller=new ScrollerPlugin(waterfall,lazyLoad);
             }
         }
     }
+    let lazyLoad;
+    let scroller;
     class ScrollerPlugin{
         constructor(waterfall,lazyLoad){
             let me=this;
@@ -621,13 +641,16 @@
             me.waterfall.after(me.scroller_status);
             me.locked=false;
             me.canLoad=true;
-            let $page=$(currentObj.pageSelector);
-            document.addEventListener('wheel', function(){
-                if ($page.get(0).getBoundingClientRect().top - $(window).height() < 300 && (!me.locked) && (me.canLoad)) {
-                    me.locked=true;
-                    me.loadNextPage(me.nextURL).then(()=>{me.locked=false});
-                }
-            });
+            me.$page=$(currentObj.pageSelector);
+            me.wheelFunc=me.wheelWatch.bind(me);
+            document.addEventListener('wheel',me.wheelFunc);
+        }
+        wheelWatch (){
+            let me = this;
+            if (me.$page.get(0).getBoundingClientRect().top - $(window).height() < 300 && (!me.locked) && (me.canLoad)) {
+                me.locked=true;
+                me.loadNextPage(me.nextURL).then(()=>{me.locked=false});
+            }
         }
         async loadNextPage(url){
             this.showStatus('request');
@@ -652,6 +675,10 @@
             this.scroller_status.find(`.scroll-${status}`).show();
             this.scroller_status.show();
         }
+        destroy (){
+            this.scroller_status.remove();
+            document.removeEventListener('wheel',this.wheelFunc);
+        }
     }
 
     function getItems(elems) {
@@ -671,9 +698,8 @@
         if (!Status.get("copyBtn")) {
             $elems.find(".copy-svg").css("display","none");
         }
-
-        if (!Status.get("itemTag")) {
-            $elems.find(".item-tag").css("display","none");
+        if (Status.get("fullTitle")) {
+            $elems.find(".titleNowrap").removeClass("titleNowrap");
         }
         $elems.find("span[name='copy']").click(function () {
             GM_setClipboard($(this).next().text());
@@ -750,6 +776,9 @@ ${currentObj.widthSelector}{
     border: 1px solid rgba(0, 0, 0, 0.2);
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.1);
     overflow: hidden;
+}
+#waterfall-zdy .movie-box-b img{
+    min-height:200px;
 }
 #waterfall-zdy .movie-box-b .photo-frame-b a {
     display: block;
@@ -890,6 +919,9 @@ svg.tool-svg {
     padding: 5px;
     box-shadow: 0 10px 20px 0 rgb(0 0 0 / 50%)
 }
+#menu-div>div:hover{
+    background-color:gainsboro;
+}
 #menu-div .switch-div,#menu-div .switch-div *{
     margin: 3px;
 }
@@ -914,8 +946,7 @@ svg.tool-svg {
     color: white;
     background-color: rgb(0,0,0,.75);
     border-radius: 4px;
-    border: 1px solid black;
-    animation: itemShow .4s;
+    animation: itemShow .3s;
     z-index: 1051;
 }
 .titleNowrap{
