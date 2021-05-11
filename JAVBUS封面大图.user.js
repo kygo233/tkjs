@@ -10,6 +10,7 @@
 // @include      *javbus.com/*
 // @include      *javdb.com/*
 // @include      *avmoo.cyou/*
+// @include      *javlibrary.com/*
 // @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
 // @include      /^.*(javdb)[0-9]?\..*$/
 // @include      /^.*(avmoo)\..*$/
@@ -24,7 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// 2021-05-06 添加标题全显样式控制，自动翻页开关无需刷新页面;删除高清图标的显示控制
+// 2021-05-06 适配javlibrary;添加标题全显样式控制;自动翻页开关无需刷新页面;删除高清图标的显示控制
 // 2021-04-04 适配JAVDB;点击图片弹出新窗口;标题默认显示一行;调整样式;增加英文显示
 // 2021-03-09 恢复高清字幕图标的显示
 // 2021-02-06 新增图片懒加载插件；重调样式；优化按钮效果，切换样式不刷新页面；磁力界面新增演员表样品图显示；
@@ -542,6 +543,28 @@
                 var itemTag = "";elem.find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
             }
+        },
+        javlibrary: {
+            domainReg: /javlibrary\./i,
+            menu:{
+                position:'div#rightcolumn',
+                html:`<div  style="position: absolute;top: -1em;right: 10px;color: #000000;background: #ffffff;padding: 5px 5px 5px 5px;font-weight: bold;font-family: Arial;">${lang.menuText}</div>`
+            },
+            gridSelector: 'div.videothumblist',
+            itemSelector: 'div.videos div.video',
+            widthSelector : '#waterfall-zdy',
+            pageNext: 'a.page.next',
+            pageSelector:'.page_selector',
+            getAvItem: function (elem) {
+                var href = elem.find("a")[0].href;
+                var src = elem.find("img")[0].src.replace(/ps.jpg/, "pl.jpg");
+                var title = elem.find("div.title").eq(0).text();
+                var AVID = elem.find("div.id").eq(0).text().replace(/\./g, '-');
+                return {AVID: AVID,href: href,src: src,title: title,date: '',itemTag:''};
+            },
+            init_Style: function(){
+                GM_addStyle(`#menu-div{right:0} #waterfall-zdy div{box-sizing: border-box;}`);
+            },
         }
     };
 
@@ -568,6 +591,15 @@
             }
             if(location.pathname.search(/search/) > 0){//解决"改写id后，搜索页面自动跳转到无码页面"的bug
                 $('body').append('<div id="waterfall"></div>');
+            }
+            currentObj.gridSelector = "#waterfall-destroy";
+        }
+        if(['javlibrary'].includes(currentWeb)){ //屏蔽老司机脚本,改写id
+            let $waterfall = $('div.videothumblist');
+            if($waterfall.length){
+                $waterfall.removeClass("videothumblist");
+                $waterfall.find(".videos").removeClass("videos");
+                $waterfall.get(0).id = "waterfall-destroy";
             }
             currentObj.gridSelector = "#waterfall-destroy";
         }
@@ -618,6 +650,7 @@
                         $(bigimg).removeClass("halfImgCSS");
                         $(bigimg).addClass("fullImgCSS");
                     }
+                    $(bigimg).removeClass("minHeight-200");
                 }
             });
             let elems=getItems($items);
@@ -727,13 +760,13 @@
         return `<div class="item">
                     <div class="movie-box-b">
                     <div class="photo-frame-b">
-                        <a  href="${AvItem.href}" target="_blank"><img class="lazy ${className}"  data-src="${AvItem.src}" ></a>
+                        <a  href="${AvItem.href}" target="_blank"><img class="lazy ${className} minHeight-200"  data-src="${AvItem.src}" ></a>
                     </div>
                     <div class="photo-info-b">
                         <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="titleNowrap"><span class="svg-span copy-svg" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
                         <div class="info-bottom">
                           <div class="info-bottom-one">
-                              <span class="svg-span copy-svg"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date> / <date>${AvItem.date}</date>
+                              <span class="svg-span copy-svg"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</date>
                           </div>
                           <div class="info-bottom-two">
                             <div class="item-tag">${AvItem.itemTag}</div>
@@ -777,7 +810,7 @@ ${currentObj.widthSelector}{
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
-#waterfall-zdy .movie-box-b img{
+.minHeight-200{
     min-height:200px;
 }
 #waterfall-zdy .movie-box-b .photo-frame-b a {
