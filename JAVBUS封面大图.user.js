@@ -4,8 +4,8 @@
 // @namespace    https://github.com/kygo233/tkjs
 // @version      20210506
 // @author       kygo233
-// @description          replace thumbnails of javbus,javdb and avmoo with source images
-// @description:zh-CN    javbus,javdb,avmoo替换封面为源图
+// @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
+// @description:zh-CN    javbus,javdb,javlibrary,avmoo替换封面为源图
 
 // @include      *javbus.com/*
 // @include      *javdb.com/*
@@ -82,7 +82,8 @@
             getAvImg_none:'未搜索到',
             tool_magnetTip:'磁力',
             tool_downloadTip:'下载封面',
-            tool_pictureTip:'视频截图(blogjav.net)'
+            tool_pictureTip:'视频截图(blogjav.net)',
+            scrollerPlugin_end:'完'
         },
         en: {
             menuText :'Settings',
@@ -100,7 +101,8 @@
             getAvImg_none:'Not found',
             tool_magnetTip:'Magnet',
             tool_downloadTip:'Download cover',
-            tool_pictureTip:'Video screenshot from blogjav.net'
+            tool_pictureTip:'Video screenshot from blogjav.net',
+            scrollerPlugin_end:'End'
         }
     }
     let getlanguage = () => {
@@ -670,7 +672,7 @@
             me.lazyLoad=lazyLoad;
             let $pageNext=$(currentObj.pageNext);
             me.nextURL = $pageNext.attr('href');
-            me.scroller_status=$(`<div class = "scroller-status"  style="text-align:center;display:none"><h2 class="scroll-request">●●●</h2><h2 class="scroll-last">End</h2></div>`);
+            me.scroller_status=$(`<div class = "scroller-status"  style="text-align:center;display:none"><h2 class="scroll-request">●●●</h2><h2 class="scroll-last">${lang.scrollerPlugin_end}</h2></div>`);
             me.waterfall.after(me.scroller_status);
             me.locked=false;
             me.canLoad=true;
@@ -766,7 +768,7 @@
                         <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="titleNowrap"><span class="svg-span copy-svg" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
                         <div class="info-bottom">
                           <div class="info-bottom-one">
-                              <span class="svg-span copy-svg"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</date>
+                              <span class="svg-span copy-svg"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}
                           </div>
                           <div class="info-bottom-two">
                             <div class="item-tag">${AvItem.itemTag}</div>
@@ -801,7 +803,7 @@ ${currentObj.widthSelector}{
     padding:5px;
     width:${100 / columnNum}%;
     transition:.5s ;
-   /* animation: itemShow .5s;*/
+   /* */animation: fadeInUp .5s ease-out;
 }
 #waterfall-zdy .movie-box-b {
     border-radius: 5px;
@@ -812,9 +814,6 @@ ${currentObj.widthSelector}{
 }
 .minHeight-200{
     min-height:200px;
-}
-#waterfall-zdy .movie-box-b .photo-frame-b a {
-    display: block;
 }
 #waterfall-zdy .movie-box-b .photo-info-b {
     padding: 7px;
@@ -995,6 +994,10 @@ svg.tool-svg {
     width: 30px;
     height: 30px;
     fill: aliceblue;
+}
+@keyframes fadeInUp {
+    0% {transform: translate3d(0, 10%, 0);opacity: .5; }
+    100% {transform: none; opacity: 1;}
 }
 @keyframes fadeInDown {
     0% {transform: translate3d(0, -100%, 0);opacity: 0; }
