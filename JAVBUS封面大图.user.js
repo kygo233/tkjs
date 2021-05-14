@@ -301,7 +301,7 @@
     }
 
     function showMagnetTable(avid, src) {
-        let $el=$(`.pop-up-tag[name=${avid}${AVINFO_SUFFIX}]`);
+        let $el=$(`.pop-up-tag[name='${avid}${AVINFO_SUFFIX}']`);
         if ($el.length > 0) {
             $el.show();
             myModal.show();
@@ -382,7 +382,7 @@
     }
 
     function showBigImg(avid,elem) {
-        let $selector = $(`#${avid}${IMG_SUFFIX}`);
+        let $selector = $(`.pop-up-tag[name='${avid}${IMG_SUFFIX}']`);
         if ($selector.length > 0) {
             $selector.show();
             myModal.show();
@@ -434,7 +434,7 @@
                             var src = $(img_src_arr[0]).attr("src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
                             console.log(src);
                             var height = $(window).height();
-                            var img_tag = $('<div id="' + avid + IMG_SUFFIX + '" class="pop-up-tag" ><img style="min-height:' + height + 'px;width:100%" src="' + src + '" /></div>');
+                            var img_tag = $('<div name="' + avid + IMG_SUFFIX + '" class="pop-up-tag" ><img style="min-height:' + height + 'px;width:100%" src="' + src + '" /></div>');
                             var downloadBtn = $('<span class="download-icon" >'+download_Svg+'</span>');
                             downloadBtn.click(function () {
                                 GM_download(src, avid + ".jpg");
@@ -480,7 +480,7 @@
                     src = src.replace(/thumbs/, "cover").replace(/thumb/, "cover").replace(/.jpg/, "_b.jpg");
                 }
                 var title = img.title;
-                var AVID = elem.find("date").eq(0).text().replace(/\./g, '-');
+                var AVID = elem.find("date").eq(0).text();
                 var date = elem.find("date").eq(1).text();
                 var itemTag = "";elem.find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
@@ -512,7 +512,7 @@
                 var src = img.attr("data-src").replace(/thumbs/, "covers") ;
                 var title = elem.find("div.video-title").eq(0).text();
                 if(!title) {title = elem.find("div.video-title2").eq(0).text()};
-                var AVID = elem.find("div.uid").eq(0).text().replace(/\./g, '-');
+                var AVID = elem.find("div.uid").eq(0).text();
                 if(!AVID) {AVID = elem.find("div.uid2").eq(0).text()};
                 var date = elem.find("div.meta").eq(0).text();
                 var itemTag = elem.find(".tags.has-addons").html();
@@ -540,7 +540,7 @@
                 var img = $(photoDiv).children("img")[0];
                 var src = img.src.replace(/ps.jpg/, "pl.jpg");
                 var title = img.title;
-                var AVID = elem.find("date").eq(0).text().replace(/\./g, '-');
+                var AVID = elem.find("date").eq(0).text();
                 var date = elem.find("date").eq(1).text();
                 var itemTag = "";elem.find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
@@ -561,7 +561,7 @@
                 var href = elem.find("a")[0].href;
                 var src = elem.find("img")[0].src.replace(/ps.jpg/, "pl.jpg");
                 var title = elem.find("div.title").eq(0).text();
-                var AVID = elem.find("div.id").eq(0).text().replace(/\./g, '-');
+                var AVID = elem.find("div.id").eq(0).text();
                 return {AVID: AVID,href: href,src: src,title: title,date: '',itemTag:''};
             },
             init_Style: function(){
@@ -745,7 +745,7 @@
             GM_download($(this).attr("src"), $(this).attr("src-title")+".jpg");
         });
         $elems.find(".func-div span[name='magnet']").click(function () {
-            showMagnetTable($(this).attr("AVID"));
+            showMagnetTable($(this).attr("AVID").replace(/\./g, '-'));
         });
         $elems.find(".func-div span[name='picture']").click(function () {
             showBigImg($(this).attr("AVID"),this);
