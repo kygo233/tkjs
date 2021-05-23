@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name         JAVBUS larger thumbnails
-// @name:zh-CN   JAVBUS封面大图
+// @name:zh-CN   JAVBUS封面大图dev
 // @namespace    https://github.com/kygo233/tkjs
 // @version      20210523
 // @author       kygo233
@@ -77,7 +77,6 @@
             menu_columnNum:'列',
             copyButton:'复制',
             copySuccess:'复制成功',
-            getAvImg_loading:'加载中。。。',
             getAvImg_norespond:'blogjav.net网站暂时无法响应',
             getAvImg_none:'未搜索到',
             tool_magnetTip:'磁力',
@@ -96,7 +95,6 @@
             menu_columnNum:'columns',
             copyButton:'Copy',
             copySuccess:'Copy successful',
-            getAvImg_loading:'Loading. . .',
             getAvImg_norespond:'blogjav.net is temporarily unable to respond',
             getAvImg_none:'Not found',
             tool_magnetTip:'Magnet',
@@ -392,18 +390,17 @@
     }
 
     function getAvImg(avid, elem) {
-        if (elem.click_lock) {
-            showAlert(lang.getAvImg_loading);
+        if ($(elem).hasClass("svg-loading")) {
             return;
         }
-        elem.click_lock = true;
+        $(elem).addClass("svg-loading");
         GM_xmlhttpRequest({
             method: "GET",
             url: 'http://blogjav.net/?s=' + avid,
             onload: function (result) {
                 if (result.status !== 200) {
                     showAlert(lang.getAvImg_norespond);
-                    elem.click_lock = false;
+                    $(elem).removeClass("svg-loading");
                     return;
                 }
                 var doc = result.responseText;
@@ -418,7 +415,7 @@
                 }
                 if (!imgUrl) {
                     showAlert(lang.getAvImg_none);
-                    elem.click_lock = false;
+                    $(elem).removeClass("svg-loading");
                     return;
                 }
                 GM_xmlhttpRequest({
@@ -445,7 +442,7 @@
                         }else if(bodyStr.match("404 Not Found")){
                             showAlert(lang.getAvImg_norespond);
                         }
-                        elem.click_lock = false;
+                        $(elem).removeClass("svg-loading");
                     }
                 });
             }
@@ -559,7 +556,10 @@
             pageSelector:'.page_selector',
             getAvItem: function (elem) {
                 var href = elem.find("a")[0].href;
-                var src = elem.find("img")[0].src.replace(/ps.jpg/, "pl.jpg");
+                var src = elem.find("img")[0].src;
+                if(src.indexOf("pixhost")<0){//排除含有pixhost的src
+                   src= src.replace(/ps.jpg/, "pl.jpg");
+                }
                 var title = elem.find("div.title").eq(0).text();
                 var AVID = elem.find("div.id").eq(0).text();
                 return {AVID: AVID,href: href,src: src,title: title,date: '',itemTag:''};
@@ -939,6 +939,10 @@ svg.tool-svg {
     height: 22px;
     vertical-align: middle
 }
+span.svg-loading {
+    display: inline-block;
+    animation: svg-loading 2s infinite;
+}
 #menu-div {
     white-space: nowrap;
     background-color: white;
@@ -1006,6 +1010,12 @@ svg.tool-svg {
 @keyframes itemShow {
     0% {transform:scale(0);}
     100% {transform:scale(1);}
+}
+
+@keyframes svg-loading{
+    0% {transform:scale(1);opacity:1;}
+    50% {transform:scale(1.2);opacity:1;}
+    100% {transform:scale(1);opacity:1;}
 }
 `;
         GM_addStyle(css_waterfall);
