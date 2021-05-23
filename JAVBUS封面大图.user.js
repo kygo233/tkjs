@@ -2,7 +2,7 @@
 // @name         JAVBUS larger thumbnails
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210506
+// @version      20210523
 // @author       kygo233
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
 // @description:zh-CN    javbus,javdb,javlibrary,avmoo替换封面为源图
@@ -58,7 +58,7 @@
     };
     const IMG_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
-    const blogjavSelector= "#content .title2>h1>a";
+    const blogjavSelector= "#content h2.entry-title>a";
 
     const copy_Svg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"  width="16" height="16" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/></svg>`;
     const download_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="tool-svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/></svg>`;
@@ -407,7 +407,7 @@
                     return;
                 }
                 var doc = result.responseText;
-                let a_array = $(doc).find(blogjavSelector);
+                let a_array = $($.parseHTML(doc)).find(blogjavSelector);
                 let imgUrl;
                 for (let i = 0; i < a_array.length; i++) {
                     imgUrl = a_array[i].href;
