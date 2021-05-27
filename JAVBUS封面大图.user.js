@@ -1,6 +1,6 @@
 ﻿// ==UserScript==
 // @name         JAVBUS larger thumbnails
-// @name:zh-CN   JAVBUS封面大图dev
+// @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @version      20210523
 // @author       kygo233
@@ -42,7 +42,6 @@
 // 2020-08-24 第一版：封面大图、下载封面、查看视频截图
 // ==/UserScript==
 
-//vue
 (function () {
     'use strict';
     let statusDefault = {
@@ -499,7 +498,7 @@
             init_Style: function(){
                 var local_color=$(".box").css("background-color");
                 if(local_color=="rgb(18, 18, 18)"){
-                    GM_addStyle(`#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
+                    GM_addStyle(`a[name="av-title"]:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
                 }
             },
             maxWidth: 150,
@@ -514,10 +513,8 @@
                 var date = elem.find("div.meta").eq(0).text();
                 var itemTag = elem.find(".tags.has-addons").html();
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
-            },
-            init: function(){
-               // if(location.href.includes("/users/")){ this.widthSelector="div.section";}
             }
+           //init: function(){ if(location.href.includes("/users/")){ this.widthSelector="div.section";} }
         },
         avmoo: {
             domainReg: /avmoo\./i,
@@ -618,10 +615,7 @@
                         if (location.pathname.includes(page)) return;
                     }
                 }
-                //调用初始化方法
-                if (ConstCode[key].init) {
-                    ConstCode[key].init();
-                }
+                //调用初始化方法 未使用  if (ConstCode[key].init) { ConstCode[key].init();}
                 //屏蔽竖图模式的页面判断
                 if (ConstCode[key].halfImg_block_Pages) {
                     for (var blockPage of ConstCode[key].halfImg_block_Pages) {
@@ -812,14 +806,18 @@ ${currentObj.widthSelector}{
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
+a[name="av-title"]:link    {  color : black;}
+a[name="av-title"]:visited {  color : gray;}
 .minHeight-200{
     min-height:200px;
+}
+#waterfall-zdy .movie-box-b .photo-frame-b {
+    text-align: center;
 }
 #waterfall-zdy .movie-box-b .photo-info-b {
     padding: 7px;
 }
 #waterfall-zdy .movie-box-b .photo-info-b a {
-    color: inherit;
     display: block;
 }
 #waterfall-zdy .info-bottom,.info-bottom-two{
