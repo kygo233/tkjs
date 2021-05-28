@@ -405,11 +405,14 @@
                 var doc = result.responseText;
                 let a_array = $($.parseHTML(doc)).find(blogjavSelector);
                 let imgUrl;
-                for (let i = 0; i < a_array.length; i++) {
-                    imgUrl = a_array[i].href;
-                    var fhd_idx = a_array[i].href.search(/FHD/g);
-                    if (fhd_idx > 0) {
-                        break;
+                if(a_array.length){
+                    imgUrl= a_array[0].href;
+                    for (let i = 0; i < a_array.length; i++) {
+                        let tempUrl = a_array[i].href;
+                        if (tempUrl.search(/FHD/i) > 0) {
+                            imgUrl = tempUrl;
+                            break;
+                        }
                     }
                 }
                 if (!imgUrl) {
@@ -425,13 +428,13 @@
                     },
                     onload: function (XMLHttpRequest) {
                         var bodyStr = XMLHttpRequest.responseText;
-                        var img_src_arr = /<img .*src="https*:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
+                        var img_src_arr = /<img .*data-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
                         if (img_src_arr) {
-                            var src = $(img_src_arr[0]).attr("src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
+                            var src = $(img_src_arr[0]).attr("data-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
                             console.log(src);
                             var height = $(window).height();
-                            var img_tag = $('<div name="' + avid + IMG_SUFFIX + '" class="pop-up-tag" ><img style="min-height:' + height + 'px;width:100%" src="' + src + '" /></div>');
-                            var downloadBtn = $('<span class="download-icon" >'+download_Svg+'</span>');
+                            var img_tag = $(`<div name="${avid}${IMG_SUFFIX}" class="pop-up-tag" ><img style="min-height:${height}px;width:100%" src="${src}" /></div>`);
+                            var downloadBtn = $(`<span class="download-icon" >${download_Svg}</span>`);
                             downloadBtn.click(function () {
                                 GM_download(src, avid + ".jpg");
                             });
