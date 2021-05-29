@@ -141,17 +141,27 @@
             $("#waterfall-zdy .func-div").toggle();
         },
         halfImg:function () {
-            var removeClassName = "halfImgCSS";
-            var addClassName = "fullImgCSS";
+            let func;
             if (Status.isHalfImg()) {
-                removeClassName = "fullImgCSS";
-                addClassName = "halfImgCSS";
+                func = (img)=>{
+                    if(img.height < img.width){
+                        $(img).addClass("halfImg");
+                    }else if(img.height > img.width){
+                        $(img).css("width","100%");
+                    }
+                };
+            }else{
+                func = (img)=>{
+                    if(img.height < img.width){
+                        $(img).removeClass("halfImg");
+                    }else if(img.height > img.width){
+                        let precent = img.width*67.25/img.height;
+                        $(img).css("width",`${precent}%`);
+                    }
+                };
             }
             $("#waterfall-zdy .movie-box-b img").each(function () {
-                //高大于宽的图片 不变化
-                if (!(this.height >= this.width)) {
-                    $(this).removeClass(removeClassName).addClass(addClassName);
-                }
+                func(this);
             });
             var columnNum = Status.getColumnNum();
             GM_addStyle('#waterfall-zdy .item{ width: ' + 100 / columnNum + '%;}');
@@ -676,13 +686,19 @@
             myModal = new Popover();//弹出插件
             //加载图片懒加载插件
             lazyLoad = new LazyLoad({
-                callback_loaded: function (bigimg) {
+                callback_loaded: function (img) {
                     //加载时的回调，本身为竖图的不做变化
-                    if (Status.isHalfImg() && bigimg.height >= bigimg.width) {
-                        $(bigimg).removeClass("halfImgCSS");
-                        $(bigimg).addClass("fullImgCSS");
+                    if (Status.isHalfImg()) {
+                        if(img.height < img.width){
+                            $(img).addClass("halfImg");
+                        }
+                    }else{
+                        if(img.height > img.width){
+                            let precent = img.width*67.25/img.height;
+                            $(img).css("width",`${precent}%`);
+                        }
                     }
-                    $(bigimg).removeClass("minHeight-200");
+                    $(img).removeClass("minHeight-200");
                 }
             });
             let elems=getItems($items);
@@ -748,10 +764,9 @@
 
     function getItems(elems) {
         var elemsHtml = "";
-        var className = Status.isHalfImg() ? "halfImgCSS" : "fullImgCSS";
         var parseFunc = currentObj.getAvItem;
         for (let i = 0; i < elems.length; i++) {
-            elemsHtml = elemsHtml + getItem(elems.eq(i), parseFunc,className);
+            elemsHtml = elemsHtml + getItem(elems.eq(i), parseFunc);
         }
         var $elems = $(elemsHtml);
         if (!Status.get("toolBar")) {
@@ -783,7 +798,7 @@
         return $elems;
     }
 
-    function getItem(tag,parseFunc,className) {
+    function getItem(tag,parseFunc) {
         if (currentWeb!="javdb" && tag.find(".avatar-box").length) {
             tag.find(".avatar-box").addClass("avatar-box-b").removeClass("avatar-box");
             return `<div class='item'>${tag.html()}</div>`;
@@ -792,7 +807,7 @@
         return `<div class="item">
                     <div class="movie-box-b">
                     <div class="photo-frame-b">
-                        <a  href="${AvItem.href}" target="_blank"><img class="lazy ${className} minHeight-200"  data-src="${AvItem.src}" ></a>
+                        <a  href="${AvItem.href}" target="_blank"><img class="lazy minHeight-200"  data-src="${AvItem.src}" ></a>
                     </div>
                     <div class="photo-info-b">
                         <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="titleNowrap"><span class="svg-span copy-svg" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
@@ -898,16 +913,15 @@ a[name="av-title"]:visited {  color : gray;}
     display: inline-block;
     white-space:nowrap;
 }
-img.fullImgCSS {
-    width: 100% !important;
-    height: 100% !important;
+#waterfall-zdy .item img{
+    width: 100%;
 }
-img.halfImgCSS {
+img.halfImg {
     position: relative;
     left: -112%;
     width: 212% !important;
     height: 100% !important;
-    max-width: 212%
+    max-width: 212%!important;
 }
 #myModal {
     overflow-x: hidden;
