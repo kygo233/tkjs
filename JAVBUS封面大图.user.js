@@ -2,7 +2,7 @@
 // @name         JAVBUS larger thumbnails
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210523
+// @version      20210531
 // @author       kygo233
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
 // @description:zh-CN    javbus,javdb,javlibrary,avmoo替换封面为源图
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-05-31 JavDb添加磁力功能;解决已点击链接颜色失效问题;对大于标准宽高比的图片进行缩放;
 // 2021-05-06 适配javlibrary;添加标题全显样式控制;自动翻页开关无需刷新页面;删除高清图标的显示控制
 // 2021-04-04 适配JAVDB;点击图片弹出新窗口;标题默认显示一行;调整样式;增加英文显示
 // 2021-03-09 恢复高清字幕图标的显示
@@ -545,7 +546,7 @@
             init_Style: function(){
                 var local_color=$(".box").css("background-color");
                 if(local_color=="rgb(18, 18, 18)"){
-                    GM_addStyle(`a[name="av-title"]:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
+                    GM_addStyle(`.scroll-request span{color:white;}a[name="av-title"]:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
                 }
             },
             maxWidth: 150,
@@ -719,7 +720,7 @@
             me.lazyLoad=lazyLoad;
             let $pageNext=$(currentObj.pageNext);
             me.nextURL = $pageNext.attr('href');
-            me.scroller_status=$(`<div class = "scroller-status"  style="text-align:center;display:none"><h2 class="scroll-request">●●●</h2><h2 class="scroll-last">${lang.scrollerPlugin_end}</h2></div>`);
+            me.scroller_status=$(`<div class = "scroller-status"  style="text-align:center;display:none"><div class="scroll-request"><span></span><span></span><span></span><span></span></div><h2 class="scroll-last">${lang.scrollerPlugin_end}</h2></div>`);
             me.waterfall.after(me.scroller_status);
             me.locked=false;
             me.canLoad=true;
@@ -1068,6 +1069,7 @@ span.svg-loading {
     50% {transform:scale(1.2);opacity:1;}
     100% {transform:scale(1);opacity:1;}
 }
+.scroll-request {text-align: center;height: 15px; margin: 15px auto;}.scroll-request span {display: inline-block;width: 15px;height: 100%;margin-right: 8px;border-radius: 50%; background: rgb(16, 19, 16); animation: load 1s ease infinite;} @keyframes load { 0% ,100%{transform:scale(1); }50% {transform:scale(0);}}.scroll-request span:nth-child(2) {animation-delay: 0.125s;}.scroll-request span:nth-child(3) {animation-delay: 0.25s;}.scroll-request span:nth-child(4){animation-delay: 0.375s;}
 `;
         GM_addStyle(css_waterfall);
     }
