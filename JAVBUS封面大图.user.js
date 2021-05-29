@@ -383,6 +383,15 @@
                     avatar_waterfall[0].id = "";
                     avatar_waterfall.addClass("pop-up-tag");
                     avatar_waterfall.attr("name",avid + AVINFO_SUFFIX);
+                    avatar_waterfall.find("a.avatar-box span").each((i,el)=> {
+                        let $copySvg = $(`<div style="width:24px;height:24px;display: flex;align-items: center;justify-content: center;">${copy_Svg}</div>`);
+                        $copySvg.click(function () {
+                            GM_setClipboard($(el).text());
+                            showAlert(lang.copySuccess);
+                            return false;
+                        });
+                        $(el).prepend($copySvg);
+                    });
                     avatar_waterfall.find("a.avatar-box").attr("target","_blank").removeClass("avatar-box").addClass("avatar-box-zdy");
                 }
                 avInfo_c.sample_waterfall=sample_waterfall;
@@ -951,8 +960,10 @@ img.halfImgCSS {
     font-weight: bold;
     text-align: center;
     word-wrap: break-word;
-    display: block;
-    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
     line-height: 22px;
     color: #333;
     background-color: #fafafa;
