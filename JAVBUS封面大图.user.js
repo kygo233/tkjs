@@ -195,7 +195,8 @@
     };
 
     class Popover{
-        show(){
+        show(el){
+            if(el) {$(el).removeClass("svg-loading")};
             document.documentElement.classList.add("scrollBarHide");
             this.element.show({duration:0,start:function(){
                 var t=$(this).find('#modal-div');
@@ -297,20 +298,46 @@
         return $range;
     }
 
-    function showMagnetTable(avid, src) {
+    function showMagnetTable(avid, href,elem) {
+        if ($(elem).hasClass("svg-loading")) {return;}
+        $(elem).addClass("svg-loading");
         let $el=$(`.pop-up-tag[name='${avid}${AVINFO_SUFFIX}']`);
         if ($el.length > 0) {
             $el.show();
-            myModal.show();
+            myModal.show(elem);
         } else {
-            getMagnet(avid, src).then(avInfo_c => {
-                myModal.append(avInfo_c.avatar_waterfall);
-                myModal.append(avInfo_c.sample_waterfall);
-                myModal.append(avInfo_c.magnetTable);
-                myModal.show();
-            });
+            switch(currentWeb) {
+                case "javbus": {
+                    getMagnet(avid).then(avInfo_c => {
+                        myModal.append(avInfo_c.avatar_waterfall);
+                        myModal.append(avInfo_c.sample_waterfall);
+                        myModal.append(avInfo_c.magnetTable);
+                        myModal.show(elem);
+                    });
+                    break;
+                }
+                case "javdb": {
+                    getMagnet4JavDB(avid,href).then(avInfo => {
+                        myModal.append(avInfo);
+                        myModal.show(elem);
+                    });;
+                    break;
+                }
+            }
         }
     }
+    function getMagnet4JavDB(avid,href) {
+        return fetch(href).then(response => response.text()).then(doc => {
+            let $doc=$($.parseHTML(doc));
+            let actors= $doc.find("div.video-meta-panel .panel-block").toArray().find(el=> $(el).find("a[href^='/actors/']").length>0);
+            let preview_images= $doc.find(".columns").toArray().find(el=> $(el).find("div.tile-images.preview-images").length>0);
+            $(preview_images).find("img[data-src]").each((i,el)=> $(el).attr("src",$(el).attr("data-src")));
+            let magnetTable = $doc.find(`div[data-controller="review"]`);
+            let info = $(`<div class="pop-up-tag" name="${avid}${AVINFO_SUFFIX}"></div>`);
+            info.append(actors);info.append(preview_images);info.append(magnetTable);
+            return info;
+        })
+    };
     function getMagnet(avid, src) {
         //有码和欧美 0  无码 1
         var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
@@ -320,8 +347,7 @@
             return fetch(url).then(response => response.text())
                 .then(doc => {
                 var table_html = doc.substring(0, doc.indexOf('<script')).trim();
-                var name = avid + AVINFO_SUFFIX;
-                var table_tag = $('<table class="table pop-up-tag" name="' + name + '" style="background-color:#FFFFFF;" ></table>');
+                var table_tag = $(`<table class="table pop-up-tag" name="${avid}${AVINFO_SUFFIX}" style="background-color:#FFFFFF;" ></table>`);
                 table_tag.append($(table_html));
                 table_tag.find("tr").each(function (i) { // 遍历 tr
                     var me = this;
@@ -389,9 +415,7 @@
     }
 
     function getAvImg(avid, elem) {
-        if ($(elem).hasClass("svg-loading")) {
-            return;
-        }
+        if ($(elem).hasClass("svg-loading")) {return;}
         $(elem).addClass("svg-loading");
         GM_xmlhttpRequest({
             method: "GET",
@@ -517,7 +541,7 @@
                 var itemTag = elem.find(".tags.has-addons").html();
                 return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
             }
-           //init: function(){ if(location.href.includes("/users/")){ this.widthSelector="div.section";} }
+            //init: function(){ if(location.href.includes("/users/")){ this.widthSelector="div.section";} }
         },
         avmoo: {
             domainReg: /avmoo\./i,
@@ -558,7 +582,7 @@
                 var href = elem.find("a")[0].href;
                 var src = elem.find("img")[0].src;
                 if(src.indexOf("pixhost")<0){//排除含有pixhost的src
-                   src= src.replace(/ps.jpg/, "pl.jpg");
+                    src= src.replace(/ps.jpg/, "pl.jpg");
                 }
                 var title = elem.find("div.title").eq(0).text();
                 var AVID = elem.find("div.id").eq(0).text();
@@ -724,7 +748,7 @@
         if (!Status.get("toolBar")) {
             $elems.find(".func-div").css("display","none");
         }
-        if(!(currentWeb=="javbus")){
+        if(!(['javbus','javdb'].includes(currentWeb))){
             $elems.find(".func-div span[name='magnet']").remove();
         }
         if (!Status.get("copyBtn")) {
@@ -742,7 +766,7 @@
             GM_download($(this).attr("src"), $(this).attr("src-title")+".jpg");
         });
         $elems.find(".func-div span[name='magnet']").click(function () {
-            showMagnetTable($(this).attr("AVID").replace(/\./g, '-'));
+            showMagnetTable($(this).attr("AVID").replace(/\./g, '-'),$(this).attr("data-href"),this);
         });
         $elems.find(".func-div span[name='picture']").click(function () {
             showBigImg($(this).attr("AVID"),this);
@@ -770,7 +794,7 @@
                           <div class="info-bottom-two">
                             <div class="item-tag">${AvItem.itemTag}</div>
                             <div class="func-div">
-                            <span name="magnet" class="svg-span" title="${lang.tool_magnetTip}" AVID="${AvItem.AVID}" >${magnet_Svg}</span>
+                            <span name="magnet" class="svg-span" title="${lang.tool_magnetTip}" AVID="${AvItem.AVID}" data-href="${AvItem.href}">${magnet_Svg}</span>
                             <span name="download" class="svg-span" title="${lang.tool_downloadTip}" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
                             <span name="picture" class="svg-span" title="${lang.tool_pictureTip}" AVID="${AvItem.AVID}" >${picture_Svg}</span>
                            </div>
