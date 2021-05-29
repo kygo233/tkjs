@@ -154,7 +154,8 @@
                 func = (img)=>{
                     if(img.height < img.width){
                         $(img).removeClass("halfImg");
-                    }else if(img.height > img.width){
+                    }
+                    if(img.height/img.width>0.8){
                         let precent = img.width*67.25/img.height;
                         $(img).css("width",`${precent}%`);
                     }
@@ -693,7 +694,7 @@
                             $(img).addClass("halfImg");
                         }
                     }else{
-                        if(img.height > img.width){
+                        if(img.height/img.width>0.8){
                             let precent = img.width*67.25/img.height;
                             $(img).css("width",`${precent}%`);
                         }
