@@ -2,7 +2,7 @@
 // @name         JAVBUS larger thumbnails
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210531
+// @version      20210601
 // @author       kygo233
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
 // @description:zh-CN    javbus,javdb,javlibrary,avmoo替换封面为源图
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-06-01 修复多列布局下 图片样式失效的问题
 // 2021-05-31 JavDb添加磁力功能;解决已点击链接颜色失效问题;对大于标准宽高比的图片进行缩放;
 // 2021-05-06 适配javlibrary;添加标题全显样式控制;自动翻页开关无需刷新页面;删除高清图标的显示控制
 // 2021-04-04 适配JAVDB;点击图片弹出新窗口;标题默认显示一行;调整样式;增加英文显示
@@ -59,6 +60,8 @@
     const IMG_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "#content h2.entry-title>a";
+    const fullImgCSS=`width: 100%!important;height:100%!important;`;
+    const halfImgCSS=`position: relative;left: -112%;width: 212% !important;height: 100% !important;max-width: 212%;`;
 
     const copy_Svg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"  width="16" height="16" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/></svg>`;
     const download_Svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="tool-svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/></svg>`;
@@ -142,28 +145,9 @@
             $("#waterfall-zdy .func-div").toggle();
         },
         halfImg:function () {
-            let func;
-            if (Status.isHalfImg()) {
-                func = (img)=>{
-                    if(img.height < img.width){
-                        $(img).addClass("halfImg");
-                    }else if(img.height > img.width){
-                        $(img).css("width","100%");
-                    }
-                };
-            }else{
-                func = (img)=>{
-                    if(img.height < img.width){
-                        $(img).removeClass("halfImg");
-                    }
-                    if(img.height/img.width>0.8){
-                        let precent = img.width*67.25/img.height;
-                        $(img).css("width",`${precent}%`);
-                    }
-                };
-            }
-            $("#waterfall-zdy .movie-box-b img").each(function () {
-                func(this);
+            let me = this;
+            $("#waterfall-zdy .movie-box-b img.loaded").each(function (index,el) {
+                me.imgCallback(el);
             });
             var columnNum = Status.getColumnNum();
             GM_addStyle('#waterfall-zdy .item{ width: ' + 100 / columnNum + '%;}');
@@ -181,6 +165,21 @@
             var widthSelctor=currentObj.widthSelector;
             $(widthSelctor).css("width", width + "%");
             $(widthSelctor).css("margin", "0 " + (width>100?(100-width)/2+"%":"auto"));
+        },
+        imgCallback:function (img) {
+            if (Status.isHalfImg()) {
+                if(img.height < img.width){
+                    img.style= halfImgCSS ;
+                }else{
+                    img.style= fullImgCSS ;
+                }
+            }else{
+                if(img.height/img.width>=0.7){
+                    img.style= `width:${img.width*67.25/img.height}%;` ;
+                }else{
+                    img.style= fullImgCSS ;
+                }
+            }
         }
     };
 
@@ -546,7 +545,7 @@
             init_Style: function(){
                 var local_color=$(".box").css("background-color");
                 if(local_color=="rgb(18, 18, 18)"){
-                    GM_addStyle(`.scroll-request span{color:white;}a[name="av-title"]:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
+                    GM_addStyle(`.scroll-request span{background:white;}a[name="av-title"]:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
                 }
             },
             maxWidth: 150,
@@ -689,18 +688,8 @@
             //加载图片懒加载插件
             lazyLoad = new LazyLoad({
                 callback_loaded: function (img) {
-                    //加载时的回调，本身为竖图的不做变化
-                    if (Status.isHalfImg()) {
-                        if(img.height < img.width){
-                            $(img).addClass("halfImg");
-                        }
-                    }else{
-                        if(img.height/img.width>0.8){
-                            let precent = img.width*67.25/img.height;
-                            $(img).css("width",`${precent}%`);
-                        }
-                    }
                     $(img).removeClass("minHeight-200");
+                    tool_Func.imgCallback(img);
                 }
             });
             let elems=getItems($items);
@@ -766,9 +755,10 @@
 
     function getItems(elems) {
         var elemsHtml = "";
+        var imgStyle = Status.isHalfImg() ? halfImgCSS : fullImgCSS;
         var parseFunc = currentObj.getAvItem;
         for (let i = 0; i < elems.length; i++) {
-            elemsHtml = elemsHtml + getItem(elems.eq(i), parseFunc);
+            elemsHtml = elemsHtml + getItem(elems.eq(i), parseFunc,imgStyle);
         }
         var $elems = $(elemsHtml);
         if (!Status.get("toolBar")) {
@@ -800,7 +790,7 @@
         return $elems;
     }
 
-    function getItem(tag,parseFunc) {
+    function getItem(tag,parseFunc,imgStyle) {
         if (currentWeb!="javdb" && tag.find(".avatar-box").length) {
             tag.find(".avatar-box").addClass("avatar-box-b").removeClass("avatar-box");
             return `<div class='item'>${tag.html()}</div>`;
@@ -809,7 +799,7 @@
         return `<div class="item">
                     <div class="movie-box-b">
                     <div class="photo-frame-b">
-                        <a  href="${AvItem.href}" target="_blank"><img class="lazy minHeight-200"  data-src="${AvItem.src}" ></a>
+                        <a  href="${AvItem.href}" target="_blank"><img style="${imgStyle}" class="lazy minHeight-200"  data-src="${AvItem.src}" ></a>
                     </div>
                     <div class="photo-info-b">
                         <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="titleNowrap"><span class="svg-span copy-svg" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
@@ -841,6 +831,7 @@ ${currentObj.widthSelector}{
     margin:0 ${waterfallWidth>100?(100-waterfallWidth)/2+'%':'auto'};
     transition:.5s ;
 }
+/*#waterfall-zdy img.lazy{transition: width .3s ;}*/
 #waterfall-zdy{
     display:flex;
     flex-direction:row;
@@ -850,7 +841,7 @@ ${currentObj.widthSelector}{
     padding:5px;
     width:${100 / columnNum}%;
     transition:.5s ;
-   /* */animation: fadeInUp .5s ease-out;
+    animation: fadeInUp .5s ease-out;
 }
 #waterfall-zdy .movie-box-b {
     border-radius: 5px;
@@ -914,16 +905,6 @@ a[name="av-title"]:visited {  color : gray;}
 #waterfall-zdy .item-tag {
     display: inline-block;
     white-space:nowrap;
-}
-#waterfall-zdy .item img{
-    width: 100%;
-}
-img.halfImg {
-    position: relative;
-    left: -112%;
-    width: 212% !important;
-    height: 100% !important;
-    max-width: 212%!important;
 }
 #myModal {
     overflow-x: hidden;
