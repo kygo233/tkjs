@@ -150,7 +150,7 @@
                 me.imgCallback(el);
             });
             var columnNum = Status.getColumnNum();
-            GM_addStyle('#waterfall-zdy .item{ width: ' + 100 / columnNum + '%;}');
+            GM_addStyle('#waterfall-zdy .item-b{ width: ' + 100 / columnNum + '%;}');
             $("#columnNum_range").val(columnNum);
             $("#columnNum_range+span").text(columnNum);
         },
@@ -159,7 +159,7 @@
         },
         avInfo: function () { },
         columnNum: function (columnNum) {
-            GM_addStyle('#waterfall-zdy .item{ width: ' + 100 / columnNum + '%;}');
+            GM_addStyle('#waterfall-zdy .item-b{ width: ' + 100 / columnNum + '%;}');
         },
         waterfallWidth: function (width) {
             var widthSelctor=currentObj.widthSelector;
@@ -793,10 +793,10 @@
     function getItem(tag,parseFunc,imgStyle) {
         if (currentWeb!="javdb" && tag.find(".avatar-box").length) {
             tag.find(".avatar-box").addClass("avatar-box-b").removeClass("avatar-box");
-            return `<div class='item'>${tag.html()}</div>`;
+            return `<div class='item-b'>${tag.html()}</div>`;
         }
         var AvItem = parseFunc(tag);
-        return `<div class="item">
+        return `<div class="item-b">
                     <div class="movie-box-b">
                     <div class="photo-frame-b">
                         <a  href="${AvItem.href}" target="_blank"><img style="${imgStyle}" class="lazy minHeight-200"  data-src="${AvItem.src}" ></a>
@@ -837,7 +837,7 @@ ${currentObj.widthSelector}{
     flex-direction:row;
     flex-wrap:wrap;
 }
-#waterfall-zdy .item{
+#waterfall-zdy .item-b{
     padding:5px;
     width:${100 / columnNum}%;
     transition:.5s ;
