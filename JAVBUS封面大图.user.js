@@ -2,7 +2,7 @@
 // @name         JAVBUS larger thumbnails
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210601
+// @version      20210603
 // @author       kygo233
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
 // @description:zh-CN    javbus,javdb,javlibrary,avmoo替换封面为源图
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-06-03 修复javdb磁力弹窗预告片播放bug；番号变成可点击
 // 2021-06-01 修复多列布局下 图片样式失效的问题
 // 2021-05-31 JavDb添加磁力功能;解决已点击链接颜色失效问题;对大于标准宽高比的图片进行缩放;
 // 2021-05-06 适配javlibrary;添加标题全显样式控制;自动翻页开关无需刷新页面;删除高清图标的显示控制
@@ -277,7 +278,7 @@
         $menu.append(creatCheckbox("copyBtn", lang.menu_copyBtn));
         $menu.append(creatCheckbox("toolBar", lang.menu_toolBar));
         $menu.append(creatCheckbox("halfImg", lang.menu_halfImg,Status.halfImg_block));
-        if (currentWeb == 'javbus') {
+        if (["javbus","javdb"].includes(currentWeb)) {
             $menu.append(creatCheckbox("avInfo", lang.menu_avInfo));
         }
         $menu.append(creatCheckbox("fullTitle", lang.menu_fullTitle));
@@ -340,12 +341,19 @@
     function getMagnet4JavDB(avid,href) {
         return fetch(href).then(response => response.text()).then(doc => {
             let $doc=$($.parseHTML(doc));
-            let actors= $doc.find("div.video-meta-panel .panel-block").toArray().find(el=> $(el).find("a[href^='/actors/']").length>0);
-            let preview_images= $doc.find(".columns").toArray().find(el=> $(el).find("div.tile-images.preview-images").length>0);
-            $(preview_images).find("img[data-src]").each((i,el)=> $(el).attr("src",$(el).attr("data-src")));
-            let magnetTable = $doc.find(`div[data-controller="review"]`);
             let info = $(`<div class="pop-up-tag" name="${avid}${AVINFO_SUFFIX}"></div>`);
-            info.append(actors);info.append(preview_images);info.append(magnetTable);
+            if(Status.get("avInfo")){
+                let actors= $doc.find("div.video-meta-panel .panel-block").toArray().find(el=> $(el).find("a[href^='/actors/']").length>0);
+                $(actors).find("a").attr("target","_blank");
+                let preview_images= $doc.find(".columns").toArray().find(el=> $(el).find("div.tile-images.preview-images").length>0);
+                let $preview_images = $(preview_images);
+                $preview_images.find(".preview-video-container").attr("href",`#preview-video-${avid}`);
+                $preview_images.find("#preview-video").attr("id",`preview-video-${avid}`);
+                $preview_images.find("img[data-src]").each((i,el)=> $(el).attr("src",$(el).attr("data-src")));
+                info.append(actors);info.append(preview_images);
+            }
+            let magnetTable = $doc.find(`div[data-controller="review"]`);
+            info.append(magnetTable);
             return info;
         })
     };
@@ -545,7 +553,7 @@
             init_Style: function(){
                 var local_color=$(".box").css("background-color");
                 if(local_color=="rgb(18, 18, 18)"){
-                    GM_addStyle(`.scroll-request span{background:white;}a[name="av-title"]:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
+                    GM_addStyle(`.scroll-request span{background:white;}#waterfall-zdy .movie-box-b a:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
                 }
             },
             maxWidth: 150,
@@ -805,7 +813,7 @@
                         <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="titleNowrap"><span class="svg-span copy-svg" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
                         <div class="info-bottom">
                           <div class="info-bottom-one">
-                              <span class="svg-span copy-svg"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}
+                              <a  href="${AvItem.href}" target="_blank"><span class="svg-span copy-svg"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</a>
                           </div>
                           <div class="info-bottom-two">
                             <div class="item-tag">${AvItem.itemTag}</div>
@@ -850,8 +858,8 @@ ${currentObj.widthSelector}{
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
-a[name="av-title"]:link    {  color : black;}
-a[name="av-title"]:visited {  color : gray;}
+#waterfall-zdy .movie-box-b a:link    {  color : black;}
+#waterfall-zdy .movie-box-b a:visited {  color : gray;}
 .minHeight-200{
     min-height:200px;
 }
