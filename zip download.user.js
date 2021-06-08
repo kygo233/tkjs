@@ -159,16 +159,36 @@
             return me.asyncPool(poolLimit,arrayList,function(item,array){
                 let $state=me.addFileInfo(item.avid);
                 //return false;
-                return fetch(item.url).then(response =>{
-                    if (response.ok) {
-                        zip.file(item.filename, response.blob());
+                return me.getImgResource(item.url).then(response =>{
+                    if (response) {
+                        zip.file(item.filename, response);
                         $state.text(`✔`);
                         me.element.find(`span[name="sum"]`).text(`${++sum}/`);
                     } else {
                         $state.text(`❎`);
                     }
-                }).catch(err => {$state.text(`❎`);console.log(err)});
+                }).catch(err =>$state.text(`❎`));
             }).then(() => zip.generateAsync({type:"blob"}).then(blob => saveAs(blob, "download.zip") ))
+        }
+        getImgResource(url){
+            return new Promise((resolve, reject)=>{
+                GM_xmlhttpRequest({
+                    method: "GET",
+                    url: url,
+                    timeout: 20000,
+                    responseType : 'blob',
+                    onload: function (r) {
+                        if(r.statusText == "OK"){
+                          resolve(r.response);
+                        }else{
+                          reject();
+                        }
+                    },
+                    onerror : function (r) {
+                        reject();
+                    }
+                });
+            })
         }
         //https://blog.csdn.net/ghostlpx/article/details/106431837
         async asyncPool(poolLimit, array, iteratorFn) {
