@@ -17,13 +17,6 @@
         constructor(){
             this.addPanel();
         }
-        show(){
-            if(!this.element) { this.addPanel();}
-            this.element.show();
-        }
-        hide(){
-            this.element.hide();
-        }
         loadJS(){
             let jsArray =["https://cdn.jsdelivr.net/npm/jszip@3.6.0/dist/jszip.min.js","https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"];
             let head = document.getElementsByTagName("head")[0];
@@ -43,69 +36,7 @@
         addPanel(){
             let me=this;
             me.loadJS();
-            GM_addStyle(`
-#downloadPanel{
-    width: 300px;
-    height: 200px;
-    background-color: #efe0e0;
-    border-radius: 5px;
-    position: fixed;
-    right: 15px;
-    color:black;
-    text-align:center;
-    border: 1px solid rgb(208 123 123 / 51%);
-    box-shadow: 5px 5px 4px 0 rgb(0 0 0 / 10%);
-    bottom: 5px;
-    box-sizing: content-box;
-    z-index: 1000;
-}
-#downloadPanel button[name="download"]{
-    height: 25px;
-    border: 1px solid #0a050575;
-    padding: 0 9px;
-    background-color: #fff;
-    color: #000;
-}
-#downloadPanel button[disabled]{
-   color: #0006;
-   cursor: not-allowed!important;
-}
-.close-div {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    width: 25px;
-    height: 25px;
-    border-radius: 12.5px;
-    cursor: pointer;
-}
-.close-div:hover {
-    background: #868686;
-}
-.close-div:before ,.close-div:after {
-    position: absolute;
-    content: '';
-    width: 17px;
-    height: 3px;
-    background: white;
-    top: 11px;
-    left: 4px;
-}
-.close-div:before{
-    transform: rotate(45deg);
-}
-.close-div:after{
-    transform: rotate(-45deg);
-}
-#file-Info div[name=filename] {
-  width:70%;display:inline-block;text-align:right;
-}
-#file-Info div[name=state] {
-  width:30%;display:inline;
-}
-#file-Info::-webkit-scrollbar {width: 7px;}
-#file-Info::-webkit-scrollbar-track {border-radius: 8px;background-color: #F5F5F5;}
-#file-Info::-webkit-scrollbar-thumb {border-radius: 8px;background-color: #c8c8c8;} `)
+            GM_addStyle(`#downloadPanel{width:300px;height:200px;background-color:#efe0e0;border-radius:5px;position:fixed;right:15px;color:black;text-align:center;border:1px solid rgb(208 123 123 / 51%);box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);bottom:5px;box-sizing:content-box;z-index:1000}#downloadPanel button[name="download"]{height:25px;border:1px solid #0a050575;padding:0 9px;background-color:#fff;color:#000}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed!important}.close-div{position:absolute;right:5px;top:5px;width:25px;height:25px;border-radius:12.5px;cursor:pointer}.close-div:hover{background:#868686}.close-div:before,.close-div:after{position:absolute;content:'';width:17px;height:3px;background:white;top:11px;left:4px}.close-div:before{transform:rotate(45deg)}.close-div:after{transform:rotate(-45deg)}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}#file-Info::-webkit-scrollbar{width:7px}#file-Info::-webkit-scrollbar-track{border-radius:8px;background-color:#f5f5f5}#file-Info::-webkit-scrollbar-thumb{border-radius:8px;background-color:#c8c8c8}`)
             me.element = $(`<div  id="downloadPanel">
                               <div class="close-div"></div>
                               <div id="download-formPanel" style="height:25px;width: 270px;margin:5px 0;">
@@ -133,7 +64,7 @@
                 }
             });
             me.element.find(".close-div").on("click", function () {
-                me.hide();
+                me.element.toggle();
             });
             $('body').append(me.element);
         }
@@ -143,7 +74,7 @@
             let keyArray = key.replace("，",",").split(",").filter(k=> k && k.trim());
             $("div.movie-box-b").each(function () {
                 let avid = $(this).find("date[name=avid]").text();
-                if(keyArray.length && (! keyArray.find(k=> avid.indexOf(k)>-1)) ){
+                if(keyArray.length && (! keyArray.find(k=> avid.toUpperCase().indexOf(k)>-1)) ){
                     return ;
                 }
                 let url = $(this).find("img.lazy").attr("data-src");
@@ -158,10 +89,9 @@
             let zip = new JSZip();
             return me.asyncPool(poolLimit,arrayList,function(item,array){
                 let $state=me.addFileInfo(item.avid);
-                //return false;
-                return me.getImgResource(item.url).then(response =>{
-                    if (response) {
-                        zip.file(item.filename, response);
+                return me.getImgResource(item.url).then(r =>{
+                    if (r.status == '200') {
+                        zip.file(item.filename, r.response);
                         $state.text(`✔`);
                         me.element.find(`span[name="sum"]`).text(`${++sum}/`);
                     } else {
@@ -177,16 +107,9 @@
                     url: url,
                     timeout: 20000,
                     responseType : 'blob',
-                    onload: function (r) {
-                        if(r.statusText == "OK"){
-                          resolve(r.response);
-                        }else{
-                          reject();
-                        }
-                    },
-                    onerror : function (r) {
-                        reject();
-                    }
+                    onload: (r)=>resolve(r),
+                    onerror : (r)=> reject(),
+                    ontimeout : (r)=> reject()
                 });
             })
         }
