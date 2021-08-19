@@ -2,8 +2,10 @@
 // @name         JAVBUS larger thumbnails test
 // @name:zh-CN   JAVBUS封面大图 测试
 // @namespace    https://github.com/kygo233/tkjs
-// @version      20210607
+// @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
+// @version      20210818
 // @author       kygo233
+// @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
 // @description:zh-CN    javbus,javdb,javlibrary,avmoo替换封面为源图
 
@@ -25,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-08-18 调整blogjav视频截图获取方法
 // 2021-06-07 添加封面图片的批量下载功能
 // 2021-06-03 修复javdb磁力弹窗预告片播放bug；番号变成可点击
 // 2021-06-01 修复多列布局下 图片样式失效的问题
@@ -61,7 +64,7 @@
     };
     const IMG_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
-    const blogjavSelector= "#content h2.entry-title>a";
+    const blogjavSelector= "h2.entry-title>a";
     const fullImgCSS=`width: 100%!important;height:100%!important;`;
     const halfImgCSS=`position: relative;left: -112%;width: 212% !important;height: 100% !important;max-width: 212%;`;
 
@@ -490,9 +493,9 @@
                     },
                     onload: function (XMLHttpRequest) {
                         var bodyStr = XMLHttpRequest.responseText;
-                        var img_src_arr = /<img .*data-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
+                        var img_src_arr = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
                         if (img_src_arr) {
-                            var src = $(img_src_arr[0]).attr("data-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
+                            var src = $(img_src_arr[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
                             console.log(src);
                             var height = $(window).height();
                             var img_tag = $(`<div name="${avid}${IMG_SUFFIX}" class="pop-up-tag" ><img style="min-height:${height}px;width:100%" src="${src}" /></div>`);
