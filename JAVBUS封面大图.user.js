@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20210818
+// @version      20210903
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -14,7 +14,7 @@
 // @include      *avmoo.cyou/*
 // @include      *javlibrary.com/*
 // @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
-// @include      /^.*(javdb)[0-9]?\..*$/
+// @include      /^.*(javdb)[0-9]*\..*$/
 // @include      /^.*(avmoo)\..*$/
 
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.3.0/dist/lazyload.min.js
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-09-03 匹配javdb更多网址 例如javdb30
 // 2021-08-18 调整blogjav视频截图获取方法
 // 2021-06-03 修复javdb磁力弹窗预告片播放bug；番号变成可点击
 // 2021-06-01 修复多列布局下 图片样式失效的问题
@@ -541,7 +542,7 @@
             }
         },
         javdb: {
-            domainReg: /(javdb)[0-9]?\./i,
+            domainReg: /(javdb)[0-9]*\./i,
             excludePages: ['/users/'],
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
             menu:{
