@@ -78,7 +78,8 @@
                     return ;
                 }
                 let url = $(this).find("img.lazy").attr("data-src");
-                let filename = avid+".jpg";
+                let title = $(this).find("a[name='av-title']").attr("title");
+                let filename = `${avid} ${title}.jpg`;
                 list.push({avid:avid,url:url,filename:filename});
             });
             return list;
