@@ -36,18 +36,18 @@
         addPanel(){
             let me=this;
             me.loadJS();
-            GM_addStyle(`#downloadPanel{width:300px;height:200px;background-color:#efe0e0;border-radius:5px;position:fixed;right:15px;color:black;text-align:center;border:1px solid rgb(208 123 123 / 51%);box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);bottom:5px;box-sizing:content-box;z-index:1000}#downloadPanel button[name="download"]{height:25px;border:1px solid #0a050575;padding:0 9px;background-color:#fff;color:#000}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed!important}.close-div{position:absolute;right:5px;top:5px;width:25px;height:25px;border-radius:12.5px;cursor:pointer}.close-div:hover{background:#868686}.close-div:before,.close-div:after{position:absolute;content:'';width:17px;height:3px;background:white;top:11px;left:4px}.close-div:before{transform:rotate(45deg)}.close-div:after{transform:rotate(-45deg)}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}#file-Info::-webkit-scrollbar{width:7px}#file-Info::-webkit-scrollbar-track{border-radius:8px;background-color:#f5f5f5}#file-Info::-webkit-scrollbar-thumb{border-radius:8px;background-color:#c8c8c8}`)
+            GM_addStyle(`#downloadPanel{width:600px;height:400px;background-color:#efe0e0;border-radius:5px;position:fixed;right:15px;color:black;text-align:center;border:1px solid rgb(208 123 123 / 51%);box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);bottom:5px;box-sizing:content-box;z-index:1000}#downloadPanel button[name="download"]{height:25px;border:1px solid #0a050575;padding:0 9px;background-color:#fff;color:#000}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed!important}.close-div{position:absolute;right:5px;top:5px;width:25px;height:25px;border-radius:12.5px;cursor:pointer}.close-div:hover{background:#868686}.close-div:before,.close-div:after{position:absolute;content:'';width:17px;height:3px;background:white;top:11px;left:4px}.close-div:before{transform:rotate(45deg)}.close-div:after{transform:rotate(-45deg)}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}#file-Info::-webkit-scrollbar{width:7px}#file-Info::-webkit-scrollbar-track{border-radius:8px;background-color:#f5f5f5}#file-Info::-webkit-scrollbar-thumb{border-radius:8px;background-color:#c8c8c8}`)
             me.element = $(`<div  id="downloadPanel">
                               <div class="close-div"></div>
-                              <div id="download-formPanel" style="height:25px;width: 270px;margin:5px 0;">
+                              <div id="download-formPanel" style="height:25px;margin:5px;float:left;">
                                 <button name="download"  disabled="true">下载</button>
-                                <span>番号</span><input  placeholder="ssni,abp" name="key"></input>
+                                <span style="margin-left:10px;">番号:</span><input  placeholder="ssni,abp" name="key"></input>
                                 <span style="display:none">线程数</span><input style="display:none" name="poolLimit" value="3"></input>
-                              </div>
-                              <div id="progress-Info" style="position: absolute;top: 35px;">
+                                <span class="progress-Info" style="margin-left:10px;">
                                     <span name="sum"></span><span name="total"></span><span name="msg"></span>
+                                </span>
                               </div>
-                              <div id="file-Info" style="height:160px;width:100%;overflow-y:auto;background-color: white;"></div>
+                              <div id="file-Info" style="height:360px;width:100%;overflow-y:auto;background-color: white;"></div>
                            </div>`);
             me.js_wait();
             me.element.find("button[name=download]").on("click", function () {
@@ -134,7 +134,7 @@
             return $fileInfo.find("div[name=state]");
         }
         resetInfo(){
-            this.element.find("#progress-Info span").text("");
+            this.element.find("span.progress-Info span").text("");
             this.element.find("#file-Info").empty();
         }
     }
