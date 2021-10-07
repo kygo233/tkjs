@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图 测试
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20210903
+// @version      20211007
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2021-10-07 调整下载界面样式；下载文件名调整为番号+标题
 // 2021-09-03 匹配javdb更多网址 例如javdb30
 // 2021-08-18 调整blogjav视频截图获取方法
 // 2021-06-07 添加封面图片的批量下载功能
@@ -289,7 +290,7 @@
         $menu.append(creatCheckbox("fullTitle", lang.menu_fullTitle));
         $menu.append(creatRange("columnNum", lang.menu_columnNum, columnNum, 8));
         $menu.append(creatRange("waterfallWidth", '%', waterfallWidth, currentObj.maxWidth?currentObj.maxWidth:100));
-        let $download = $(`<div><button>批量下载</span></div>`);
+        let $download = $(`<div style="margin:3px;"><button style="width: 100%;padding: 3px;">批量下载</span></div>`);
         $download.click(()=>{
             if(!downloadPanel){
                 downloadPanel = new DownloadPanel();
@@ -867,18 +868,18 @@
         addPanel(){
             let me=this;
             me.loadJS();
-            GM_addStyle(`#downloadPanel{width:300px;height:200px;background-color:#efe0e0;border-radius:5px;position:fixed;right:15px;color:black;text-align:center;border:1px solid rgb(208 123 123 / 51%);box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);bottom:5px;box-sizing:content-box;z-index:1000}#downloadPanel button[name="download"]{height:25px;border:1px solid #0a050575;padding:0 9px;background-color:#fff;color:#000}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed!important}.close-div{position:absolute;right:5px;top:5px;width:25px;height:25px;border-radius:12.5px;cursor:pointer}.close-div:hover{background:#868686}.close-div:before,.close-div:after{position:absolute;content:'';width:17px;height:3px;background:white;top:11px;left:4px}.close-div:before{transform:rotate(45deg)}.close-div:after{transform:rotate(-45deg)}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}#file-Info::-webkit-scrollbar{width:7px}#file-Info::-webkit-scrollbar-track{border-radius:8px;background-color:#f5f5f5}#file-Info::-webkit-scrollbar-thumb{border-radius:8px;background-color:#c8c8c8}`)
+            GM_addStyle(`#downloadPanel{width:600px;height:400px;background-color:#efe0e0;border-radius:5px;position:fixed;right:15px;color:black;text-align:center;border:1px solid rgb(208 123 123 / 51%);box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);bottom:5px;box-sizing:content-box;z-index:1000}#downloadPanel button[name="download"]{height:25px;border:1px solid #0a050575;padding:0 9px;background-color:#fff;color:#000}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed!important}.close-div{position:absolute;right:5px;top:5px;width:25px;height:25px;border-radius:12.5px;cursor:pointer}.close-div:hover{background:#868686}.close-div:before,.close-div:after{position:absolute;content:'';width:17px;height:3px;background:white;top:11px;left:4px}.close-div:before{transform:rotate(45deg)}.close-div:after{transform:rotate(-45deg)}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}#file-Info::-webkit-scrollbar{width:7px}#file-Info::-webkit-scrollbar-track{border-radius:8px;background-color:#f5f5f5}#file-Info::-webkit-scrollbar-thumb{border-radius:8px;background-color:#c8c8c8}`)
             me.element = $(`<div  id="downloadPanel">
                               <div class="close-div"></div>
-                              <div id="download-formPanel" style="height:25px;width: 270px;margin:5px 0;">
+                              <div id="download-formPanel" style="height:25px;margin:5px;float:left;">
                                 <button name="download"  disabled="true">下载</button>
-                                <span>番号</span><input  placeholder="ssni,abp" name="key"></input>
+                                <span style="margin-left:10px;">番号:</span><input  placeholder="ssni,abp" name="key"></input>
                                 <span style="display:none">线程数</span><input style="display:none" name="poolLimit" value="3"></input>
-                              </div>
-                              <div id="progress-Info" style="position: absolute;top: 35px;">
+                                <span class="progress-Info" style="margin-left:10px;">
                                     <span name="sum"></span><span name="total"></span><span name="msg"></span>
+                                </span>
                               </div>
-                              <div id="file-Info" style="height:160px;width:100%;overflow-y:auto;background-color: white;"></div>
+                              <div id="file-Info" style="height:360px;width:100%;overflow-y:auto;background-color: white;"></div>
                            </div>`);
             me.js_wait();
             me.element.find("button[name=download]").on("click", function () {
@@ -909,7 +910,8 @@
                     return ;
                 }
                 let url = $(this).find("img.lazy").attr("data-src");
-                let filename = avid+".jpg";
+                let title = $(this).find("a[name='av-title']").attr("title");
+                let filename = `${avid} ${title}.jpg`;
                 list.push({avid:avid,url:url,filename:filename});
             });
             return list;
@@ -965,7 +967,7 @@
             return $fileInfo.find("div[name=state]");
         }
         resetInfo(){
-            this.element.find("#progress-Info span").text("");
+            this.element.find("span.progress-Info span").text("");
             this.element.find("#file-Info").empty();
         }
     }
