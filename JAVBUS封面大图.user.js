@@ -13,7 +13,8 @@
 // @include      *javdb.com/*
 // @include      *avmoo.cyou/*
 // @include      *javlibrary.com/*
-// @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\..*$/
+// @include      *testjav*
+// @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\..*$/
 // @include      /^.*(javdb)[0-9]*\..*$/
 // @include      /^.*(avmoo)\..*$/
 
@@ -288,10 +289,10 @@
         $menu.append(creatCheckbox("fullTitle", lang.menu_fullTitle));
         $menu.append(creatRange("columnNum", lang.menu_columnNum, columnNum, 8));
         $menu.append(creatRange("waterfallWidth", '%', waterfallWidth, currentObj.maxWidth?currentObj.maxWidth:100));
-        var $spanner = $(currentObj.menu.html);
-        $spanner.append($menu);
-        $spanner.mouseenter(()=>$menu.show()).mouseleave(()=>$menu.hide());
-        $(currentObj.menu.position).append($spanner);
+        var $circle = $(`<div style="position: ${currentWeb=="javlibrary"?"absolute":"fixed"};width: 35px;height: 35px;z-index: 1030;left:0;top:0;"><div style="width: 35px;height: 35px;background-color: rgb(208 176 176 / 50%);border-radius: 35px;"></div></div>`);
+        $circle.append($menu);
+        $circle.mouseenter(()=>$menu.show()).mouseleave(()=>$menu.hide());
+        $("body").append($circle);
     }
 
     function creatCheckbox(tagName, name,disabled) {
@@ -357,6 +358,7 @@
                 info.append(actors);info.append(preview_images);
             }
             let magnetTable = $doc.find(`div[data-controller="review"]`);
+            magnetTable.find("div.moj-content").remove();// 移除广告
             info.append(magnetTable);
             return info;
         })
@@ -512,13 +514,9 @@
     let currentObj ;
     let ConstCode = {
         javbus: {
-            domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav)\./i,
+            domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\./i,
             excludePages: ['/actresses', 'mdl=favor&sort=1', 'mdl=favor&sort=2', 'mdl=favor&sort=3', 'mdl=favor&sort=4', 'searchstar'],
             halfImg_block_Pages:['/uncensored','javbus.one','mod=uc'],
-            menu:{
-                position:'#navbar ul:first',
-                html:`<li class='dropdown'><a class='dropdown-toggle'>${lang.menuText}</a></li>`
-            },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
             widthSelector : '#waterfall-zdy',
@@ -545,10 +543,6 @@
             domainReg: /(javdb)[0-9]*\./i,
             excludePages: ['/users/'],
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
-            menu:{
-                position:'#navbar-menu-hero .navbar-start',
-                html:`<div class='navbar-item' >${lang.menuText}</div>`
-            },
             gridSelector: 'div#videos>.grid',
             itemSelector: 'div#videos>.grid div.grid-item',
             widthSelector : '#waterfall-zdy',
@@ -578,10 +572,6 @@
         avmoo: {
             domainReg: /avmoo\./i,
             excludePages: ['/actresses'],
-            menu:{
-                position:'#navbar ul:first',
-                html:`<li class='dropdown'><a class='dropdown-toggle'>${lang.menuText}</a></li>`
-            },
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
             widthSelector : '#waterfall-zdy',
@@ -601,10 +591,6 @@
         },
         javlibrary: {
             domainReg: /javlibrary\./i,
-            menu:{
-                position:'div#rightcolumn',
-                html:`<div  style="position: absolute;top: -1em;right: 10px;color: #000000;background: #ffffff;padding: 5px 5px 5px 5px;font-weight: bold;font-family: Arial;">${lang.menuText}</div>`
-            },
             gridSelector: 'div.videothumblist',
             itemSelector: 'div.videos div.video',
             widthSelector : '#waterfall-zdy',
@@ -621,7 +607,7 @@
                 return {AVID: AVID,href: href,src: src,title: title,date: '',itemTag:''};
             },
             init_Style: function(){
-                GM_addStyle(`#menu-div{right:0} #waterfall-zdy div{box-sizing: border-box;}`);
+                GM_addStyle(`#waterfall-zdy div{box-sizing: border-box;}`);
             },
         }
     };
