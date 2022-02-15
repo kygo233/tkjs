@@ -28,6 +28,10 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// *********************************匹配新的javbus网址方法：************************************
+//  例如：新域名为 javnew.com ,全局搜索“seejav”,会有其他2个结果，在后面加上“|javnew”即可；
+// *********************************匹配新的javbus网址方法：************************************
+//
 // 2021-09-03 匹配javdb更多网址 例如javdb30
 // 2021-08-18 调整blogjav视频截图获取方法
 // 2021-06-03 修复javdb磁力弹窗预告片播放bug；番号变成可点击
@@ -125,6 +129,7 @@
     }
     let lang = getlanguage();
 
+    // 弹出提示框
     function showAlert(msg){
         var $alert=$(`<div  class="alert-zdy" ></div>`);
         $('body').append($alert);
@@ -134,7 +139,7 @@
             $(this).css({'margin-left': -$(this).width() / 2 });
         }}).delay(3000).fadeOut();
     }
-
+    //设置栏 触发函数
     let tool_Func = {
         autoPage: function () {
             if(scroller){
@@ -172,6 +177,7 @@
             $(widthSelctor).css("width", width + "%");
             $(widthSelctor).css("margin", "0 " + (width>100?(100-width)/2+"%":"auto"));
         },
+        //图片加载时的回调函数
         imgCallback:function (img) {
             if (Status.isHalfImg()) {
                 if(img.height < img.width){
@@ -180,6 +186,7 @@
                     img.style= fullImgCSS ;
                 }
             }else{
+                //大图模式下，对大于标准比例(以ipx的封面为准)的图片进行缩小
                 if(img.height/img.width>=0.7){
                     img.style= `width:${img.width*67.25/img.height}%;` ;
                 }else{
@@ -190,27 +197,29 @@
     };
 
     let Status = {
-        halfImg_block:false,
+        halfImg_block:false,//是否屏蔽竖图模式，默认为否
         set : function(key,value){
             if(key=="columnNum") {
                 key=key+(this.isHalfImg()?"Half":"Full");
             }else if(key=="waterfallWidth"){
-                key=key+"_"+currentWeb;
+                key=key+"_"+currentWeb;//宽度为各网站独立属性
             }
             return GM_setValue(key, value);
         },
         get : function(key){
             return GM_getValue(key=="waterfallWidth"?(key+"_"+currentWeb):key, statusDefault[key]);
         },
+        //是否为竖图模式
         isHalfImg: function () {
             return this.get("halfImg") && (!this.halfImg_block);
         },
+        //获取列数
         getColumnNum: function () {
             var key= 'columnNum'+(this.isHalfImg()?"Half":"Full");
             return this.get(key);
         }
     };
-
+    //弹窗类，用于展示演员,样品图和磁力
     class Popover{
         show(el){
             if(el) {$(el).removeClass("svg-loading")};
@@ -236,6 +245,7 @@
             me.scrollBarWidth = me.getScrollBarWidth();
             GM_addStyle('.scrollBarHide{ padding-right: ' + me.scrollBarWidth + 'px;overflow:hidden;}');
             $('body').append(me.element);
+            //加载javbus的图片浏览插件
             if(currentWeb=="javbus"){
                 me.element.magnificPopup({
                     delegate: 'a.sample-box-zdy:visible',
@@ -263,6 +273,7 @@
             if(!this.element){ this.init();}
             this.element.find("#modal-div").append(elem);
         }
+        //获取滚动条的宽度
         getScrollBarWidth() {
             var el = document.createElement("p");
             var styles = {width: "100px",height: "100px",overflowY: "scroll" };
@@ -275,7 +286,7 @@
             return scrollBarWidth;
         }
     }
-
+    //添加 设置菜单
     function addMenu() {
         var columnNum = Status.getColumnNum();
         var $menu = $('<div  id="menu-div" ></div>');
@@ -314,7 +325,7 @@
         });
         return $range;
     }
-
+    //显示磁力弹窗
     function showMagnetTable(avid, href,elem) {
         if ($(elem).hasClass("svg-loading")) {return;}
         $(elem).addClass("svg-loading");
@@ -343,6 +354,7 @@
             }
         }
     }
+    //获取javdb的演员磁力信息
     function getMagnet4JavDB(avid,href) {
         return fetch(href).then(response => response.text()).then(doc => {
             let $doc=$($.parseHTML(doc));
@@ -363,6 +375,7 @@
             return info;
         })
     };
+    // javbus：获取演员磁力信息 
     function getMagnet(avid, src) {
         //有码和欧美 0  无码 1
         var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
@@ -380,14 +393,14 @@
                         return true;
                     }
                     var magent_url = $(me).find('a')[0].href;
-                    addCopybutton(me, magent_url);
+                    addCopybutton(me, magent_url);//磁力链接添加复制按钮
                 });
                 avInfo_c.magnetTable = table_tag;
                 return avInfo_c;
             })
         });
     };
-
+    //javbus：获取详情页面的 演员表和样品图元素
     function avInfofetch(avid) {
         return fetch(`${location.protocol}//${location.hostname}/`+avid) .then(response => response.text())
             .then(doc => {
@@ -425,7 +438,7 @@
             return avInfo_c;
         }).catch(err => alert(err));
     };
-
+    //javbus：磁力链接添加复制按钮
     function addCopybutton(tag, text) {
         var copyButton = $(`<button class="center-block">${lang.copyButton}</button>`);
         copyButton.click(function () {
@@ -437,7 +450,7 @@
         td_tag.append(copyButton);
         $(tag).prepend(td_tag);
     }
-
+    //弹出视频截图
     function showBigImg(avid,elem) {
         let $selector = $(`.pop-up-tag[name='${avid}${IMG_SUFFIX}']`);
         if ($selector.length > 0) {
@@ -447,7 +460,7 @@
             getAvImg(avid,elem);
         }
     }
-
+    /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
     function getAvImg(avid, elem) {
         if ($(elem).hasClass("svg-loading")) {return;}
         $(elem).addClass("svg-loading");
@@ -509,9 +522,22 @@
         });
     };
 
-    let myModal;
-    let currentWeb ;
-    let currentObj ;
+    let myModal;//弹窗插件实例
+    let currentWeb ;//网站域名标识，用于判断当前在什么网站
+    let currentObj ;//当前网站对应的属性对象
+    /**
+     * 通用属性对象
+     * domainReg：         域名正则式 用于判断当前在什么网站
+     * excludePages：      排除的页面
+     * halfImg_block_Pages 屏蔽竖图的页面
+     * gridSelector        源网页的网格选择器
+     * itemSelector        源网页的子元素选择器
+     * widthSelector       源网页的宽度设置元素选择器
+     * pageNext            源网页的下一页元素选择器
+     * pageSelector        源网页的翻页元素选择器
+     * getAvItem           解析源网页item的数据
+     * init_Style          加载各网页的特殊css
+     */
     let ConstCode = {
         javbus: {
             domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\./i,
@@ -550,11 +576,12 @@
             pageSelector:'.pagination-list',
             init_Style: function(){
                 var local_color=$(".box").css("background-color");
+                //判断是否为暗色主题
                 if(local_color=="rgb(18, 18, 18)"){
                     GM_addStyle(`.scroll-request span{background:white;}#waterfall-zdy .movie-box-b a:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
                 }
             },
-            maxWidth: 150,
+            maxWidth: 150,//javdb允许的最大宽度为150%，其他网站默认最大宽度为100%
             getAvItem: function (elem) {
                 var href = elem.find("a")[0].href;
                 var img = elem.find("div.item-image>img").eq(0);
@@ -599,7 +626,7 @@
             getAvItem: function (elem) {
                 var href = elem.find("a")[0].href;
                 var src = elem.find("img")[0].src;
-                if(src.indexOf("pixhost")<0){//排除含有pixhost的src
+                if(src.indexOf("pixhost")<0){//排除含有pixhost的src，暂时未发现规律
                     src= src.replace(/ps.jpg/, "pl.jpg");
                 }
                 var title = elem.find("div.title").eq(0).text();
@@ -612,6 +639,7 @@
         }
     };
 
+    /** 用于屏蔽老司机脚本的代码*/
     function oldDriverBlock(){
         if(['javbus','avmoo'].includes(currentWeb)){ //屏蔽老司机脚本,改写id
             if ($('.masonry').length > 0) {
@@ -652,7 +680,7 @@
         for (var key in ConstCode) {
             var domainReg = ConstCode[key].domainReg;
             if (domainReg && domainReg.test(location.href)) {
-                currentWeb = key;
+                currentWeb = key;//首先判断当前是什么网站
                 currentObj = ConstCode[key];
                 //排除页面的判断
                 if (ConstCode[key].excludePages) {
@@ -676,7 +704,7 @@
         let $items = $(currentObj.itemSelector);
         if (currentWeb && $items.length) {
             oldDriverBlock();
-            $(currentObj.gridSelector).hide();
+            $(currentObj.gridSelector).hide();//隐藏源页面列表
             var waterfall=$(`<div id= 'waterfall-zdy'></div>`);
             $(currentObj.gridSelector).eq(0).before(waterfall);
             addStyle();//全局样式
@@ -693,13 +721,14 @@
             let elems=getItems($items);
             waterfall.append(elems);
             lazyLoad.update();
+            //加载滚动翻页插件
             if(Status.get("autoPage") && $(currentObj.pageSelector).length ){
                 scroller=new ScrollerPlugin(waterfall,lazyLoad);
             }
         }
     }
-    let lazyLoad;
-    let scroller;
+    let lazyLoad;//懒加载插件全局变量
+    let scroller;//翻页插件全局变量
     class ScrollerPlugin{
         constructor(waterfall,lazyLoad){
             let me=this;
@@ -789,6 +818,7 @@
     }
 
     function getItem(tag,parseFunc,imgStyle) {
+        //判断是否为 女优个人资料item
         if (currentWeb!="javdb" && tag.find(".avatar-box").length) {
             tag.find(".avatar-box").addClass("avatar-box-b").removeClass("avatar-box");
             return `<div class='item-b'>${tag.html()}</div>`;
