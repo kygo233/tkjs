@@ -13,7 +13,6 @@
 // @include      *javdb.com/*
 // @include      *avmoo.cyou/*
 // @include      *javlibrary.com/*
-// @include      *testjav*
 // @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\..*$/
 // @include      /^.*(javdb)[0-9]*\..*$/
 // @include      /^.*(avmoo)\..*$/
@@ -28,10 +27,6 @@
 // @grant        GM_setClipboard
 // @connect *
 
-// *********************************匹配新的javbus网址方法：************************************
-//  例如：新域名为 javnew.com ,全局搜索“seejav”,会有其他2个结果，在后面加上“|javnew”即可；
-// *********************************匹配新的javbus网址方法：************************************
-//
 // 2021-09-03 匹配javdb更多网址 例如javdb30
 // 2021-08-18 调整blogjav视频截图获取方法
 // 2021-06-03 修复javdb磁力弹窗预告片播放bug；番号变成可点击
@@ -375,7 +370,7 @@
             return info;
         })
     };
-    // javbus：获取演员磁力信息 
+    // javbus：获取演员磁力信息
     function getMagnet(avid, src) {
         //有码和欧美 0  无码 1
         var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
@@ -741,10 +736,13 @@
             me.locked=false;
             me.canLoad=true;
             me.$page=$(currentObj.pageSelector);
-            me.wheelFunc=me.wheelWatch.bind(me);
-            document.addEventListener('wheel',me.wheelFunc);
+            me.domWatch_func=me.domWatch.bind(me);
+            document.addEventListener('scroll',me.domWatch_func);
+            if (history.scrollRestoration) {
+               history.scrollRestoration = 'manual';//防止自动恢复页面位置
+            }
         }
-        wheelWatch (){
+        domWatch (){
             let me = this;
             if (me.$page.get(0).getBoundingClientRect().top - $(window).height() < 300 && (!me.locked) && (me.canLoad)) {
                 me.locked=true;
@@ -763,6 +761,7 @@
             this.scroller_status.hide();
             this.waterfall.append(elems);
             this.lazyLoad.update();
+            //history.pushState({}, "", url);
             this.nextURL = $body.find(currentObj.pageNext).attr('href');
             if(!this.nextURL){
                 this.canLoad=false;
@@ -776,7 +775,7 @@
         }
         destroy (){
             this.scroller_status.remove();
-            document.removeEventListener('wheel',this.wheelFunc);
+            document.removeEventListener('scroll',this.domWatch_func);
         }
     }
 
