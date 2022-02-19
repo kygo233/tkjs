@@ -518,7 +518,7 @@
     };
 
     let myModal;//弹窗插件实例
-    let currentWeb ;//网站域名标识，用于判断当前在什么网站
+    let currentWeb = "javbus";//网站域名标识，用于判断当前在什么网站
     let currentObj ;//当前网站对应的属性对象
     /**
      * 通用属性对象
@@ -537,7 +537,7 @@
         javbus: {
             domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\./i,
             excludePages: ['/actresses', 'mdl=favor&sort=1', 'mdl=favor&sort=2', 'mdl=favor&sort=3', 'mdl=favor&sort=4', 'searchstar'],
-            halfImg_block_Pages:['/uncensored','javbus.one','mod=uc'],
+            halfImg_block_Pages:['/uncensored','javbus.one','mod=uc','javbus.red'],
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
             widthSelector : '#waterfall-zdy',
@@ -672,35 +672,35 @@
         }
     }
     function pageInit() {
-        for (var key in ConstCode) {
-            var domainReg = ConstCode[key].domainReg;
+        for (let key in ConstCode) {
+            let domainReg = ConstCode[key].domainReg;
             if (domainReg && domainReg.test(location.href)) {
                 currentWeb = key;//首先判断当前是什么网站
-                currentObj = ConstCode[key];
-                //排除页面的判断
-                if (ConstCode[key].excludePages) {
-                    for (var page of ConstCode[key].excludePages) {
-                        if (location.pathname.includes(page)) return;
-                    }
-                }
-                //调用初始化方法 未使用  if (ConstCode[key].init) { ConstCode[key].init();}
-                //屏蔽竖图模式的页面判断
-                if (ConstCode[key].halfImg_block_Pages) {
-                    for (var blockPage of ConstCode[key].halfImg_block_Pages) {
-                        if (location.href.includes(blockPage)) {
-                            Status.halfImg_block = true;
-                            break;
-                        };
-                    }
-                }
                 break;
+            }
+        }
+        currentObj = ConstCode[currentWeb];
+        //排除页面的判断
+        if (currentObj.excludePages) {
+            for (let page of currentObj.excludePages) {
+                if (location.pathname.includes(page)) return;
+            }
+        }
+        //调用初始化方法 未使用  if (currentObj.init) { currentObj.init();}
+        //屏蔽竖图模式的页面判断
+        if (currentObj.halfImg_block_Pages) {
+            for (let blockPage of currentObj.halfImg_block_Pages) {
+                if (location.href.includes(blockPage)) {
+                    Status.halfImg_block = true;
+                    break;
+                };
             }
         }
         let $items = $(currentObj.itemSelector);
         if (currentWeb && $items.length) {
             oldDriverBlock();
             $(currentObj.gridSelector).hide();//隐藏源页面列表
-            var waterfall=$(`<div id= 'waterfall-zdy'></div>`);
+            let waterfall=$(`<div id= 'waterfall-zdy'></div>`);
             $(currentObj.gridSelector).eq(0).before(waterfall);
             addStyle();//全局样式
             if(currentObj.init_Style){currentObj.init_Style()};
