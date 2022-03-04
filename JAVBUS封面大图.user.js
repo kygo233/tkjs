@@ -2,7 +2,7 @@
 // @name         JAVBUS larger thumbnails test
 // @name:zh-CN   JAVBUS封面大图 测试
 // @namespace    https://github.com/kygo233/tkjs
-// @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
+// @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails-test
 // @version      20220304
 // @author       kygo233
 // @license      MIT
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-03-04 新增屏蔽词功能
 // 2022-03-03 调整设置按钮到左上角；删除javdb磁力列表里的广告
 // 2021-10-07 调整下载界面样式；下载文件名调整为番号+标题
 // 2021-09-03 匹配javdb更多网址 例如javdb30
@@ -283,6 +284,19 @@
                 }else{
                     downloadPanel.element.toggle();
                 }
+            },
+            addHiddenWords :()=>{
+                let $el=$(`.words-panel.pop-up-tag`);
+                if ($el.length > 0) {
+                    $el.show();
+                    myModal.show();
+                } else {
+                    let hiddenWord= new HiddenWordsPanel("hiddenWord","标题");
+                    let hiddenAvid= new HiddenWordsPanel("hiddenAvid","番号");
+                    myModal.append(hiddenWord.$panel);
+                    myModal.append(hiddenAvid.$panel);
+                    myModal.show();
+                }
             }
         }
         constructor() {
@@ -300,6 +314,7 @@
             $menu.append(this.creatRange("columnNum", lang.menu_columnNum, columnNum, 8));
             $menu.append(this.creatRange("waterfallWidth", '%', Status.get("waterfallWidth") , currentObj.maxWidth ? currentObj.maxWidth : 100));
             $menu.append(this.creatButton("downloadPanel","批量下载封面"));
+            $menu.append(this.creatButton("addHiddenWords","添加屏蔽词"));
             let $circle = $(`<div style="position: ${currentWeb=="javlibrary"?"absolute":"fixed"};width: 35px;height: 35px;z-index: 1030;left:0;top:0;"><div style="width: 35px;height: 35px;background-color: rgb(208 176 176 / 50%);border-radius: 35px;"></div></div>`);
             $circle.append($menu);
             $circle.mouseenter(() => $menu.show()).mouseleave(() => $menu.hide());
@@ -759,7 +774,11 @@
                     html = `<div class='item-b'>${tag.html()}</div>`;
                 }else{
                     let AvItem = parseFunc(tag);
-                    html = `<div class="item-b">
+                    if (Status.get("hiddenWord").find((v, i) => AvItem.title.includes(v)) || 
+                        Status.get("hiddenAvid").find((v, i) => AvItem.AVID.toUpperCase().includes(v.toUpperCase()+"-"))) {
+                        html = "";
+                    }else{
+                        html = `<div class="item-b">
                                 <div class="movie-box-b">
                                 <div class="photo-frame-b">
                                     <a  href="${AvItem.href}" target="_blank"><img style="${imgStyle}" class="lazy minHeight-200"  data-src="${AvItem.src}" ></a>
@@ -782,6 +801,7 @@
                                 </div>
                                 </div>
                             </div>`;
+                    }
                 }
                 elemsHtml = elemsHtml + html;
             }
@@ -993,5 +1013,44 @@
         }
     }
 
+    class HiddenWordsPanel{
+        constructor(key, name) {
+            let me = this;
+            me.key = key;
+            me.data = Status.get(key) || [];
+            me.$panel = $(`<div class="words-panel pop-up-tag" name="${key}"></div>`);
+            me.$input = $(`<input type="text" autocomplete="off" value="" placeholder="${name}">`);
+            me.$panel.append(me.$input);
+            me.data.forEach(function(value, index, array) {
+                me.$panel.append(`<div class="tag-div"><span>${value}</span><a href="#">X</a></div>`);
+            });
+            me.$panel.on('click', 'a', function(){
+                me.delete($(this));
+            });
+            me.$input.keyup(function(event) {
+                if ((event.keyCode ? event.keyCode : event.which) === 13) {
+                    let key = me.$input.val().trim();
+                    key && me.add(key);
+                }
+            });
+            $("body").append(me.$panel);
+            GM_addStyle(`.words-panel{display: flex;width: auto;min-height: 100px;padding: 5px;flex-direction: row;flex-wrap: wrap;align-content: flex-start;align-items: stretch;}.words-panel>div{font-size: 30px;height: 40px;box-shadow: 5px 5px 4px 0 rgb(0 0 0 / 10%);display: flex;line-height: 40px;background-color: burlywood;float: left;padding: 5px;margin-left: 5px; margin-top: 5px;border-radius: 4px;align-items: center;}.words-panel>div>a{color: white;font-size: 20px;text-decoration: none;padding:0 5px 0 8px;}.words-panel>div>a:hover {cursor: pointer;color: red;}.words-panel input{width: 70px;height: 40px;border: solid 1px burlywood;border-radius: 5px;padding: 5px;margin-top: 5px;font-size: 20px;}`);
+        }
+        add(key) {
+            let me = this;
+            let $tag = $(`<div class="tag-div"><span>${key}</span><a>X</a></div>`);
+            me.$panel.append($tag).fadeIn();
+            me.data.push(key);
+            Status.set(me.key, me.data);
+        }
+        delete($a) {
+            let me = this;
+            let key = $a.prev('span').text();
+            $a.parent('div').fadeOut();
+            let index = me.data.findIndex(v => key == v);
+            index > -1 && me.data.splice(index, 1);
+            Status.set(me.key, me.data);
+        }
+    }
     new Page();
 })();
