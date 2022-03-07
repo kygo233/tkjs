@@ -135,6 +135,19 @@
             $(this).css({'margin-left': -$(this).width() / 2 });
         }}).delay(3000).fadeOut();
     }
+
+    let notice = () => {
+        if(Status.get("notice")) return;
+        let $notice=$(`<div  style="position:fixed;top:50%;left:50%; padding:20px;font-size:20px;color:white;background-color:rgb(0,0,0);border-radius:4px;animation:itemShow .3s;z-index:1051;" >
+          <span></span><div style="display: inline-block;padding: 0 10px;cursor: pointer;">X</div> </div>`);
+        $('body').append($notice);
+        $notice.find("span").text("设置菜单已移至左上角！");
+        $notice.find("div").on("click",()=>$notice.hide());
+        $notice.show({start:function(){
+            $(this).css({'margin-top': -$(this).height() / 2  ,'margin-left': -$(this).width() / 2 });
+        }});
+        Status.set("notice",true);
+    }
     //图片加载时的回调函数
     let imgCallback =  (img)=> {
         if (Status.isHalfImg()) {
@@ -699,6 +712,7 @@
             oldDriverBlock();
             this.addStyle();
             currentObj.init_Style?.();
+            notice();
             let menu = new SettingMenu();
             //加载图片懒加载插件
             lazyLoad = new LazyLoad({
