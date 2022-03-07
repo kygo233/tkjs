@@ -64,7 +64,9 @@
         fullTitle:false,
         waterfallWidth:100,
         columnNumFull:3,
-        columnNumHalf:4
+        columnNumHalf:4,
+		hiddenWord :[],
+		hiddenAvid :[]
     };
     const IMG_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
@@ -791,6 +793,7 @@
             let imgStyle = Status.isHalfImg() ? halfImgCSS : fullImgCSS;
             let parseFunc = currentObj.getAvItem;
             let [toolBar,copyBtn,fullTitle,magnet] =[Status.get("toolBar"),Status.get("copyBtn"),Status.get("fullTitle"),['javbus','javdb'].includes(currentWeb)];
+            let [hiddenWords,hiddenAvids] = [Status.get("hiddenWord"),Status.get("hiddenAvid")];
             for (let i = 0; i < elems.length; i++) {
                 let tag = elems.eq(i);
                 let html = "";
@@ -800,8 +803,8 @@
                     html = `<div class='item-b'>${tag.html()}</div>`;
                 }else{
                     let AvItem = parseFunc(tag);
-                    if (Status.get("hiddenWord").find((v, i) => AvItem.title.includes(v)) || 
-                        Status.get("hiddenAvid").find((v, i) => AvItem.AVID.toUpperCase().includes(v.toUpperCase()+"-"))) {
+                    if (hiddenWords.find((v, i) => AvItem.title.includes(v)) || 
+                        hiddenAvids.find((v, i) => AvItem.AVID.toUpperCase().includes(v.toUpperCase()+"-"))) {
                         html = "";
                     }else{
                         html = `<div class="item-b">
