@@ -138,7 +138,20 @@
             $(this).css({'margin-left': -$(this).width() / 2 });
         }}).delay(3000).fadeOut();
     }
-   //图片加载时的回调函数
+
+    let notice = () => {
+        if(Status.get("notice")) return;
+        let $notice=$(`<div  style="position:fixed;top:50%;left:50%; padding:20px;font-size:20px;color:white;background-color:rgb(0,0,0);border-radius:4px;animation:itemShow .3s;z-index:1051;" >
+          <span></span><div style="display: inline-block;padding: 0 10px;cursor: pointer;">X</div> </div>`);
+        $('body').append($notice);
+        $notice.find("span").text("设置菜单已移至左上角！");
+        $notice.find("div").on("click",()=>$notice.hide());
+        $notice.show({start:function(){
+            $(this).css({'margin-top': -$(this).height() / 2  ,'margin-left': -$(this).width() / 2 });
+        }});
+        Status.set("notice",true);
+    }
+    //图片加载时的回调函数
     let imgCallback =  (img)=> {
         if (Status.isHalfImg()) {
             if(img.height < img.width){
@@ -181,7 +194,6 @@
     };
     //弹窗类，用于展示演员,样品图和磁力
     class Popover{
-        css =`#myModal{overflow-x:hidden;overflow-y:auto;display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1050;background-color:rgba(0,0,0,0.5)}#myModal #modal-div{position:relative;width:80%;margin:0 auto;background-color:rgb(6 6 6 / 50%);border-radius:8px;animation:fadeInDown .5s}#modal-div .pop-up-tag{border-radius:8px;overflow:hidden}#modal-div .sample-box-zdy,.avatar-box-zdy{display:inline-block;border-radius:8px;background-color:#fff;overflow:hidden;margin:5px;width:140px}#modal-div .sample-box-zdy .photo-frame{overflow:hidden;margin:10px}#modal-div .sample-box-zdy img{height:90px}#modal-div .avatar-box-zdy .photo-frame{overflow:hidden;height:120px;margin:10px}#modal-div .avatar-box-zdy img{height:120px}#modal-div .avatar-box-zdy span{font-weight:bold;text-align:center;word-wrap:break-word;display:flex;justify-content:center;align-items:center;padding:5px;line-height:22px;color:#333;background-color:#fafafa;border-top:1px solid #f2f2f2}.download-icon{position:absolute;right:0;z-index:2;cursor:pointer}.download-icon>svg{width:30px;height:30px;fill:aliceblue}@keyframes fadeInDown{0%{transform:translate3d(0,-100%,0);opacity:0;}100%{transform:none;opacity:1;}}`;
         show(el){
             if(el) {$(el).removeClass("svg-loading")};
             document.documentElement.classList.add("scrollBarHide");
@@ -197,7 +209,6 @@
         }
         init(){
             var me=this;
-            GM_addStyle(me.css);
             me.element = $('<div  id="myModal"><div  id="modal-div" > </div></div>');
             me.element.on('click',function(e){
                 if($(e.target).closest("#modal-div").length==0){
@@ -240,7 +251,6 @@
         }
     }
     class SettingMenu {
-        css = `#menu-div{white-space:nowrap;background-color:white;color:black;display:none;min-width:200px;position:absolute;top:100%;border-radius:5px;padding:5px;box-shadow:0 10px 20px 0 rgb(0 0 0 / 50%)}#menu-div>div:hover{background-color:gainsboro}#menu-div .switch-div,#menu-div .switch-div *{margin:3px}#menu-div .switch-div label{display:inline}#menu-div .range-div{display:flex;flex-direction:row;flex-wrap:nowrap}#menu-div .range-div input{cursor:pointer;width:80%;max-width:200px}`;
         onChange = {
             autoPage: function() {
                 if (scroller) {
@@ -300,7 +310,6 @@
             }
         }
         constructor() {
-            GM_addStyle(this.css);
             let columnNum = Status.getColumnNum();
             let $menu = $('<div  id="menu-div" ></div>');
             $menu.append(this.creatCheckbox("autoPage", lang.menu_autoPage));
@@ -733,7 +742,10 @@
             let $items = $(currentObj.itemSelector);
             if ($items.length<1) return;
             oldDriverBlock();
-            new SettingMenu();
+            this.addStyle();
+            currentObj.init_Style?.();
+            notice();
+            let menu = new SettingMenu();
             //加载图片懒加载插件
             lazyLoad = new LazyLoad({
                 callback_loaded: function (img) {
@@ -748,14 +760,28 @@
                 scroller=new ScrollerPlugin(gridPanel.$dom,lazyLoad);
             }
          }
+         addStyle() {
+            let columnNum = Status.getColumnNum();
+            let waterfallWidth=Status.get("waterfallWidth");
+            let css_waterfall = `
+                ${currentObj.widthSelector}{
+                    width:${waterfallWidth}%;
+                    margin:0 ${waterfallWidth>100?(100-waterfallWidth)/2+'%':'auto'};
+                    transition:.5s ;
+                }
+                #waterfall-zdy{display:flex;flex-direction:row;flex-wrap:wrap;}
+                #waterfall-zdy .item-b{padding:5px;width:${100 / columnNum}%;transition:.5s ;animation: fadeInUp .5s ease-out;}
+                #waterfall-zdy .movie-box-b{border-radius:5px;background-color:white;border:1px solid rgba(0,0,0,0.2);box-shadow:0 2px 3px 0 rgba(0,0,0,0.1);overflow:hidden}#waterfall-zdy .movie-box-b a:link{color:black}#waterfall-zdy .movie-box-b a:visited{color:gray}#waterfall-zdy .movie-box-b .photo-frame-b{text-align:center}#waterfall-zdy .movie-box-b .photo-info-b{padding:7px}#waterfall-zdy .movie-box-b .photo-info-b a{display:block}#waterfall-zdy .info-bottom,.info-bottom-two{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}#waterfall-zdy .avatar-box-b{display:flex;flex-direction:column;background-color:white;border-radius:5px;align-items:center;border:1px solid rgba(0,0,0,0.2)}#waterfall-zdy .avatar-box-b p{margin:0 !important}#waterfall-zdy date:first-of-type{font-size:18px !important}#waterfall-zdy .func-div{float:right;padding:2px;white-space:nowrap}#waterfall-zdy .func-div span{margin-right:2px}#waterfall-zdy .copy-svg{vertical-align:middle;display:inline-block}#waterfall-zdy span.svg-span{cursor:pointer;opacity:.3}#waterfall-zdy span.svg-span:hover{opacity:1}#waterfall-zdy .item-tag{display:inline-block;white-space:nowrap}#waterfall-zdy .jlt-hidden{display:none;}#waterfall-zdy .minHeight-200{min-height:200px}
+                #myModal{overflow-x:hidden;overflow-y:auto;display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1050;background-color:rgba(0,0,0,0.5)}#myModal #modal-div{position:relative;width:80%;margin:0 auto;background-color:rgb(6 6 6 / 50%);border-radius:8px;animation:fadeInDown .5s}#modal-div .pop-up-tag{border-radius:8px;overflow:hidden}#modal-div .sample-box-zdy,.avatar-box-zdy{display:inline-block;border-radius:8px;background-color:#fff;overflow:hidden;margin:5px;width:140px}#modal-div .sample-box-zdy .photo-frame{overflow:hidden;margin:10px}#modal-div .sample-box-zdy img{height:90px}#modal-div .avatar-box-zdy .photo-frame{overflow:hidden;height:120px;margin:10px}#modal-div .avatar-box-zdy img{height:120px}#modal-div .avatar-box-zdy span{font-weight:bold;text-align:center;word-wrap:break-word;display:flex;justify-content:center;align-items:center;padding:5px;line-height:22px;color:#333;background-color:#fafafa;border-top:1px solid #f2f2f2}svg.tool-svg{fill:currentColor;width:22px;height:22px;vertical-align:middle}span.svg-loading{display:inline-block;animation:svg-loading 2s infinite}#menu-div{white-space:nowrap;background-color:white;color:black;display:none;min-width:200px;position:absolute;top:100%;border-radius:5px;padding:5px;box-shadow:0 10px 20px 0 rgb(0 0 0 / 50%)}#menu-div>div:hover{background-color:gainsboro}#menu-div .switch-div,#menu-div .switch-div *{margin:3px}#menu-div .switch-div label{display:inline}#menu-div .range-div{display:flex;flex-direction:row;flex-wrap:nowrap}#menu-div .range-div input{cursor:pointer;width:80%;max-width:200px}.alert-zdy{position:fixed;top:50%;left:50%;padding:12px 20px;font-size:20px;color:white;background-color:rgb(0,0,0,.75);border-radius:4px;animation:itemShow .3s;z-index:1051}
+                .titleNowrap{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.download-icon{position:absolute;right:0;z-index:2;cursor:pointer}.download-icon>svg{width:30px;height:30px;fill:aliceblue}@keyframes fadeInUp{0%{transform:translate3d(0,10%,0);opacity:.5}100%{transform:none;opacity:1}}@keyframes fadeInDown{0%{transform:translate3d(0,-100%,0);opacity:0}100%{transform:none;opacity:1}}@keyframes itemShow{0%{transform:scale(0)}100%{transform:scale(1)}}@keyframes svg-loading{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}.scroll-request{text-align:center;height:15px;margin:15px auto}.scroll-request span{display:inline-block;width:15px;height:100%;margin-right:8px;border-radius:50%;background:rgb(16,19,16);animation:load 1s ease infinite}@keyframes load{0%,100%{transform:scale(1)}50%{transform:scale(0)}}.scroll-request span:nth-child(2){animation-delay:0.125s}.scroll-request span:nth-child(3){animation-delay:0.25s}.scroll-request span:nth-child(4){animation-delay:0.375s}`;
+            GM_addStyle(css_waterfall);
+        }
     }
     class GridPanel{
         constructor($items,lazyLoad){
             this.$dom=$(`<div id= 'waterfall-zdy'></div>`);
             $(currentObj.gridSelector).hide();//隐藏源页面列表
             $(currentObj.gridSelector).eq(0).before(this.$dom);
-            this.addStyle();
-            if(currentObj.init_Style){currentObj.init_Style()};
             let $elems = this.constructor.parseItems($items);
             this.$dom.append($elems);
             lazyLoad.update();
@@ -819,23 +845,12 @@
             });
             return $elems;
         }
-        addStyle() {
-            let columnNum = Status.getColumnNum();
-            let waterfallWidth = Status.get("waterfallWidth");
-            let css_waterfall = `${currentObj.widthSelector}{width:${waterfallWidth}%;margin:0 ${waterfallWidth>100?(100-waterfallWidth)/2+'%':'auto'}; transition:.5s ;}
-    #waterfall-zdy{display:flex;flex-direction:row;flex-wrap:wrap;}
-    #waterfall-zdy .item-b{padding:5px;width:${100 / columnNum}%;transition:.5s ;animation: fadeInUp .5s ease-out;}
-    #waterfall-zdy .movie-box-b{border-radius:5px;background-color:white;border:1px solid rgba(0,0,0,0.2);box-shadow:0 2px 3px 0 rgba(0,0,0,0.1);overflow:hidden}#waterfall-zdy .movie-box-b a:link{color:black}#waterfall-zdy .movie-box-b a:visited{color:gray}#waterfall-zdy .movie-box-b .photo-frame-b{text-align:center}#waterfall-zdy .movie-box-b .photo-info-b{padding:7px}#waterfall-zdy .movie-box-b .photo-info-b a{display:block}#waterfall-zdy .info-bottom,.info-bottom-two{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}#waterfall-zdy .avatar-box-b{display:flex;flex-direction:column;background-color:white;border-radius:5px;align-items:center;border:1px solid rgba(0,0,0,0.2)}#waterfall-zdy .avatar-box-b p{margin:0 !important}#waterfall-zdy date:first-of-type{font-size:18px !important}#waterfall-zdy .func-div{float:right;padding:2px;white-space:nowrap}#waterfall-zdy .func-div span{margin-right:2px}#waterfall-zdy .copy-svg{vertical-align:middle;display:inline-block}#waterfall-zdy span.svg-span{cursor:pointer;opacity:.3}#waterfall-zdy span.svg-span:hover{opacity:1}#waterfall-zdy .item-tag{display:inline-block;white-space:nowrap}#waterfall-zdy .jlt-hidden{display:none;}.minHeight-200{min-height:200px}.titleNowrap{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}svg.tool-svg{fill:currentColor;width:22px;height:22px;vertical-align:middle}span.svg-loading{display:inline-block;animation:svg-loading 2s infinite}@keyframes fadeInUp{0%{transform:translate3d(0,10%,0);opacity:.5}100%{transform:none;opacity:1}}@keyframes svg-loading{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}@keyframes itemShow{0%{transform:scale(0);}100%{transform:scale(1);}}.alert-zdy{position:fixed;top:50%;left:50%;padding:12px 20px;font-size:20px;color:white;background-color:rgb(0,0,0,.75);border-radius:4px;animation:itemShow .3s;z-index:1051}`;
-            GM_addStyle(css_waterfall);
-        }
     }
     class ScrollerPlugin{
-        style =`.scroll-request{text-align:center;height:15px;margin:15px auto}.scroll-request span{display:inline-block;width:15px;height:100%;margin-right:8px;border-radius:50%;background:rgb(16,19,16);animation:load 1s ease infinite}@keyframes load{0%,100%{transform:scale(1)}50%{transform:scale(0)}}.scroll-request span:nth-child(2){animation-delay:0.125s}.scroll-request span:nth-child(3){animation-delay:0.25s}.scroll-request span:nth-child(4){animation-delay:0.375s}`;
         constructor(waterfall,lazyLoad){
             let me=this;
             me.waterfall=waterfall;
             me.lazyLoad=lazyLoad;
-            GM_addStyle(this.style);
             let $pageNext=$(currentObj.pageNext);
             me.nextURL = $pageNext.attr('href');
             me.scroller_status=$(`<div class = "scroller-status"  style="text-align:center;display:none"><div class="scroll-request"><span></span><span></span><span></span><span></span></div><h2 class="scroll-last">${lang.scrollerPlugin_end}</h2></div>`);
