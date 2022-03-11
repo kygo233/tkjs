@@ -327,17 +327,18 @@
         }
     }
 
-    function showMagnetTable(avid, href,elem) {
+    function showMagnetTable(itemID,avid,href,elem) {
         if ($(elem).hasClass("svg-loading")) {return;}
         $(elem).addClass("svg-loading");
-        let $el=$(`.pop-up-tag[name='${avid}${AVINFO_SUFFIX}']`);
+        let tagName = `${itemID}${AVINFO_SUFFIX}`;
+        let $el=$(`.pop-up-tag[name='${tagName}']`);
         if ($el.length > 0) {
             $el.show();
             myModal.show(elem);
         } else {
             switch(currentWeb) {
                 case "javbus": {
-                    getMagnet(avid).then(avInfo_c => {
+                    getMagnet4JavBus(href,tagName).then(avInfo_c => {
                         myModal.append(avInfo_c.avatar_waterfall);
                         myModal.append(avInfo_c.sample_waterfall);
                         myModal.append(avInfo_c.magnetTable);
@@ -346,7 +347,7 @@
                     break;
                 }
                 case "javdb": {
-                    getMagnet4JavDB(avid,href).then(avInfo => {
+                    getMagnet4JavDB(itemID,href,tagName).then(avInfo => {
                         myModal.append(avInfo);
                         myModal.show(elem);
                     });;
@@ -356,17 +357,17 @@
         }
     }
     //获取javdb的演员磁力信息
-    function getMagnet4JavDB(avid,href) {
+    function getMagnet4JavDB(item_id,href,tagName) {
         return fetch(href).then(response => response.text()).then(doc => {
             let $doc=$($.parseHTML(doc));
-            let info = $(`<div class="pop-up-tag" name="${avid}${AVINFO_SUFFIX}"></div>`);
+            let info = $(`<div class="pop-up-tag" name="${tagName}"></div>`);
             if(Status.get("avInfo")){
                 let actors= $doc.find("div.video-meta-panel .panel-block").toArray().find(el=> $(el).find("a[href^='/actors/']").length>0);
                 $(actors).find("a").attr("target","_blank");
                 let preview_images= $doc.find(".columns").toArray().find(el=> $(el).find("div.tile-images.preview-images").length>0);
                 let $preview_images = $(preview_images);
-                $preview_images.find(".preview-video-container").attr("href",`#preview-video-${avid}`);
-                $preview_images.find("#preview-video").attr("id",`preview-video-${avid}`);
+                $preview_images.find(".preview-video-container").attr("href",`#preview-video-${item_id}`);
+                $preview_images.find("#preview-video").attr("id",`preview-video-${item_id}`);
                 $preview_images.find("img[data-src]").each((i,el)=> $(el).attr("src",$(el).attr("data-src")));
                 info.append(actors);info.append(preview_images);
             }
@@ -377,16 +378,16 @@
         })
     };
     // javbus：获取演员磁力信息
-    function getMagnet(avid, src) {
+    function getMagnet4JavBus(href, tagName) {
         //有码和欧美 0  无码 1
         var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
-        return avInfofetch(avid).then(avInfo_c => {
+        return avInfofetch(href,tagName).then(avInfo_c => {
             var gid = avInfo_c.gid;
-            var url = `${location.protocol}//${location.hostname}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=${src}&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
+            var url = `${location.protocol}//${location.hostname}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
             return fetch(url).then(response => response.text())
                 .then(doc => {
                 var table_html = doc.substring(0, doc.indexOf('<script')).trim();
-                var table_tag = $(`<table class="table pop-up-tag" name="${avid}${AVINFO_SUFFIX}" style="background-color:#FFFFFF;" ></table>`);
+                var table_tag = $(`<table class="table pop-up-tag" name="${tagName}" style="background-color:#FFFFFF;" ></table>`);
                 table_tag.append($(table_html));
                 table_tag.find("tr").each(function (i) { // 遍历 tr
                     var me = this;
@@ -402,26 +403,24 @@
         });
     };
     //javbus：获取详情页面的 演员表和样品图元素
-    function avInfofetch(avid) {
-        return fetch(`${location.protocol}//${location.hostname}/`+avid) .then(response => response.text())
+    function avInfofetch(href,tagName) {
+        return fetch(href).then(response => response.text())
             .then(doc => {
-            var str = /var\s+gid\s+=\s+(\d{1,})/.exec(doc);
-            var gid = str[1];
-            var avInfo_c={avid:avid};
-            avInfo_c.gid=gid;
+            let str = /var\s+gid\s+=\s+(\d{1,})/.exec(doc);
+            let avInfo_c={gid:str[1]};
             if(Status.get("avInfo")){
                 var sample_waterfall = $($.parseHTML(doc)).find("#sample-waterfall");
                 var avatar_waterfall = $($.parseHTML(doc)).find("#avatar-waterfall");
                 if(sample_waterfall.length>0){
                     sample_waterfall[0].id = "";
                     sample_waterfall.addClass("pop-up-tag");
-                    sample_waterfall.attr("name",avid + AVINFO_SUFFIX);
+                    sample_waterfall.attr("name",tagName);
                     sample_waterfall.find(".sample-box").removeClass("sample-box").addClass("sample-box-zdy");
                 }
                 if(avatar_waterfall.length>0){
                     avatar_waterfall[0].id = "";
                     avatar_waterfall.addClass("pop-up-tag");
-                    avatar_waterfall.attr("name",avid + AVINFO_SUFFIX);
+                    avatar_waterfall.attr("name",tagName);
                     avatar_waterfall.find("a.avatar-box span").each((i,el)=> {
                         let $copySvg = $(`<div style="width:24px;height:24px;display: flex;align-items: center;justify-content: center;">${copy_Svg}</div>`);
                         $copySvg.click(function () {
@@ -451,17 +450,18 @@
         $(tag).prepend(td_tag);
     }
     //弹出视频截图
-    function showBigImg(avid,elem) {
-        let $selector = $(`.pop-up-tag[name='${avid}${IMG_SUFFIX}']`);
+    function showBigImg(itemID,avid,elem) {
+        let tagName = `${itemID}${IMG_SUFFIX}`;
+        let $selector = $(`.pop-up-tag[name='${tagName}']`);
         if ($selector.length > 0) {
             $selector.show();
             myModal.show();
         } else {
-            getAvImg(avid,elem);
+            getAvImg(avid,elem,tagName);
         }
     }
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
-    function getAvImg(avid, elem) {
+    function getAvImg(avid, elem,tagName) {
         if ($(elem).hasClass("svg-loading")) {return;}
         $(elem).addClass("svg-loading");
         GM_xmlhttpRequest({
@@ -504,7 +504,7 @@
                             var src = $(img_src_arr[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
                             console.log(src);
                             var height = $(window).height();
-                            var img_tag = $(`<div name="${avid}${IMG_SUFFIX}" class="pop-up-tag" ><img style="min-height:${height}px;width:100%" src="${src}" /></div>`);
+                            var img_tag = $(`<div name="${tagName}" class="pop-up-tag" ><img style="min-height:${height}px;width:100%" src="${src}" /></div>`);
                             var downloadBtn = $(`<span class="download-icon" >${download_Svg}</span>`);
                             downloadBtn.click(function () {
                                 GM_download(src, avid + ".jpg");
@@ -781,7 +781,7 @@
                                       </div>
                                       <div class="info-bottom-two">
                                         <div class="item-tag">${AvItem.itemTag}</div>
-                                        <div class="func-div ${toolBar?'':'jlt-hidden'}">
+                                        <div class="func-div ${toolBar?'':'jlt-hidden'}" item-id="${AvItem.AVID}${Math.random().toString(16).slice(2)}"  >
                                         <span name="magnet" class="svg-span  ${magnet?'':'jlt-hidden'}" title="${lang.tool_magnetTip}" AVID="${AvItem.AVID}" data-href="${AvItem.href}">${magnet_Svg}</span>
                                         <span name="download" class="svg-span" title="${lang.tool_downloadTip}" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
                                         <span name="picture" class="svg-span" title="${lang.tool_pictureTip}" AVID="${AvItem.AVID}" >${picture_Svg}</span>
@@ -800,8 +800,8 @@
                 switch (name) {
                     case "copy":GM_setClipboard($(this).next().text());showAlert(lang.copySuccess);break;
                     case "download":GM_download($(this).attr("src"), $(this).attr("src-title")+".jpg");break;
-                    case "magnet":showMagnetTable($(this).attr("AVID").replace(/\./g, '-'),$(this).attr("data-href"),this);break;
-                    case "picture":showBigImg($(this).attr("AVID"),this);break;
+                    case "magnet":showMagnetTable($(this).parent("div").attr("item-id"),$(this).attr("AVID").replace(/\./g, '-'),$(this).attr("data-href"),this);break;
+                    case "picture":showBigImg($(this).parent("div").attr("item-id"),$(this).attr("AVID"),this);break;
                     default:break;
                 }
                 return false;
