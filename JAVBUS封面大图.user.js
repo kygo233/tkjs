@@ -586,10 +586,12 @@
             pageSelector:'.pagination-list',
             init_Style: function(){
                 var local_color=$(".box").css("background-color");
+                let css = `.pop-up-tag[name$='${AVINFO_SUFFIX}'] {background-color: rgb(255 255 255 / 90%);}`;
                 //判断是否为暗色主题
                 if(local_color=="rgb(18, 18, 18)"){
-                    GM_addStyle(`.scroll-request span{background:white;}#waterfall-zdy .movie-box-b a:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`);
+                    css=`.scroll-request span{background:white;}#waterfall-zdy .movie-box-b a:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`;
                 }
+                GM_addStyle(`${css} #myModal #modal-div article.message {margin-bottom: 0}`);
             },
             maxWidth: 150,//javdb允许的最大宽度为150%，其他网站默认最大宽度为100%
             getAvItem: function (elem) {
