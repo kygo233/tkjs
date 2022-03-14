@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20220303
+// @version      20220314
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-03-14 修复欧美区磁力按钮打开重复的问题；javlibrary添加将左侧菜单上移的功能
 // 2022-03-03 调整设置按钮到左上角；删除javdb磁力列表里的广告
 // 2021-09-03 匹配javdb更多网址 例如javdb30
 // 2021-08-18 调整blogjav视频截图获取方法
@@ -61,7 +62,8 @@
         fullTitle:false,
         waterfallWidth:100,
         columnNumFull:3,
-        columnNumHalf:4
+        columnNumHalf:4,
+        menutoTop : false
     };
     const IMG_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
@@ -84,13 +86,14 @@
             menu_halfImg:'竖图模式',
             menu_fullTitle:'标题全显',
             menu_columnNum:'列',
+            menu_menutoTop:'左侧菜单移至上方',
             copyButton:'复制',
             copySuccess:'复制成功',
             getAvImg_norespond:'blogjav.net网站暂时无法响应',
             getAvImg_none:'未搜索到',
             tool_magnetTip:'磁力',
             tool_downloadTip:'下载封面',
-            tool_pictureTip:'视频截图(blogjav.net)',
+            tool_pictureTip:'视频截图(blogjav.net)需代理',
             scrollerPlugin_end:'完'
         },
         en: {
@@ -102,6 +105,7 @@
             menu_halfImg:'Vertical image mode',
             menu_fullTitle:'Full Title',
             menu_columnNum:'columns',
+            menu_menutoTop:'Move the left menu to the top',
             copyButton:'Copy',
             copySuccess:'Copy successful',
             getAvImg_norespond:'blogjav.net is temporarily unable to respond',
@@ -277,6 +281,7 @@
                 $("#waterfall-zdy a[name='av-title']").toggleClass("titleNowrap");
             },
             avInfo: function() {},
+            menutoTop : function() {location.reload();},
             columnNum: function(columnNum) {
                 GM_addStyle('#waterfall-zdy .item-b{ width: ' + 100 / columnNum + '%;}');
             },
@@ -297,6 +302,9 @@
                 $menu.append(this.creatCheckbox("avInfo", lang.menu_avInfo));
             }
             $menu.append(this.creatCheckbox("fullTitle", lang.menu_fullTitle));
+            if (currentWeb == 'javlibrary') {
+                $menu.append(this.creatCheckbox("menutoTop", lang.menu_menutoTop));
+            }
             $menu.append(this.creatRange("columnNum", lang.menu_columnNum, columnNum, 8));
             $menu.append(this.creatRange("waterfallWidth", '%', Status.get("waterfallWidth") , currentObj.maxWidth ? currentObj.maxWidth : 100));
             let $circle = $(`<div style="position: ${currentWeb=="javlibrary"?"absolute":"fixed"};width: 35px;height: 35px;z-index: 1030;left:0;top:0;"><div style="width: 35px;height: 35px;background-color: rgb(208 176 176 / 50%);border-radius: 35px;"></div></div>`);
@@ -636,7 +644,7 @@
                 return {AVID: AVID,href: href,src: src,title: title,date: '',itemTag:''};
             },
             init_Style: function(){
-                GM_addStyle(`#waterfall-zdy div{box-sizing: border-box;}`);
+                GM_addStyle(`${Status.get("menutoTop")?`#leftmenu {width : 100%;float: none;}#leftmenu>table { display : none;}#leftmenu .menul1,#leftmenu .menul1>ul{display: flex;align-items: center;justify-content: center;flex-wrap: wrap;}#leftmenu .menul1{padding: 5px;}#rightcolumn{margin: 0 5px;padding : 10px 5px;}`:``}#waterfall-zdy div{box-sizing: border-box;}`);
             },
         }
     };
