@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20220318
+// @version      20220328
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -13,7 +13,7 @@
 // @include      *javdb.com/*
 // @include      *avmoo.cyou/*
 // @include      *javlibrary.com/*
-// @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\..*$/
+// @include      /^.*(javbus|busjav|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|dmmbus|javsee|seejav)\..*$/
 // @include      /^.*(javdb)[0-9]*\..*$/
 // @include      /^.*(avmoo)\..*$/
 
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-03-28 匹配dmmbus;修复标题不可点击的bug
 // 2022-03-18 修复欧美区磁力按钮打开重复的问题；javlibrary添加将左侧菜单上移的功能
 // 2022-03-03 调整设置按钮到左上角；删除javdb磁力列表里的广告
 // 2021-09-03 匹配javdb更多网址 例如javdb30
@@ -550,7 +551,7 @@
      */
     let ConstCode = {
         javbus: {
-            domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\./i,
+            domainReg: /(javbus|busjav|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|dmmbus|javsee|seejav)\./i,
             excludePages: ['/actresses', 'mdl=favor&sort=1', 'mdl=favor&sort=2', 'mdl=favor&sort=3', 'mdl=favor&sort=4', 'searchstar'],
             halfImg_block_Pages:['/uncensored','javbus.one','mod=uc','javbus.red'],
             gridSelector: 'div#waterfall',
@@ -805,16 +806,15 @@
                 elemsHtml = elemsHtml + html;
             }
             let $elems = $(elemsHtml);
-            $elems.find("span").click(function () {
+            $elems.find("span[name]").click(function () {
                 let name = $(this).attr("name");
                 switch (name) {
-                    case "copy":GM_setClipboard($(this).next().text());showAlert(lang.copySuccess);break;
+                    case "copy":GM_setClipboard($(this).next().text());showAlert(lang.copySuccess);return false;
                     case "download":GM_download($(this).attr("src"), $(this).attr("src-title")+".jpg");break;
                     case "magnet":showMagnetTable($(this).parent("div").attr("item-id"),$(this).attr("AVID").replace(/\./g, '-'),$(this).attr("data-href"),this);break;
                     case "picture":showBigImg($(this).parent("div").attr("item-id"),$(this).attr("AVID"),this);break;
                     default:break;
                 }
-                return false;
             });
             return $elems;
         }
