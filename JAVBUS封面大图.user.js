@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图 测试
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails-test
-// @version      20220318
+// @version      20220328
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -13,7 +13,7 @@
 // @include      *javdb.com/*
 // @include      *avmoo.cyou/*
 // @include      *javlibrary.com/*
-// @include      /^.*(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\..*$/
+// @include      /^.*(javbus|busjav|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|dmmbus|javsee|seejav)\..*$/
 // @include      /^.*(javdb)[0-9]*\..*$/
 // @include      /^.*(avmoo)\..*$/
 
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-03-28 匹配dmmbus;修复标题不可点击的bug;屏蔽词:支持逗号和单个作品,调整界面到右下角
 // 2022-03-18 修复欧美区磁力按钮打开重复的问题；javlibrary添加将左侧菜单上移的功能
 // 2022-03-04 新增屏蔽词功能
 // 2022-03-03 调整设置按钮到左上角；删除javdb磁力列表里的广告
@@ -296,24 +297,10 @@
                 $(widthSelctor).css("margin", "0 " + (width > 100 ? (100 - width) / 2 + "%" : "auto"));
             },
             downloadPanel : ()=>{
-                if(!downloadPanel){
-                    downloadPanel = new DownloadPanel();
-                }else{
-                    downloadPanel.element.toggle();
-                }
+                TabPanel.getInstance().show(0);
             },
             addHiddenWords :()=>{
-                let $el=$(`.words-panel.pop-up-tag`);
-                if ($el.length > 0) {
-                    $el.show();
-                    myModal.show();
-                } else {
-                    let hiddenWord= new HiddenWordsPanel("hiddenWord","标题");
-                    let hiddenAvid= new HiddenWordsPanel("hiddenAvid","番号");
-                    myModal.append(hiddenWord.$panel);
-                    myModal.append(hiddenAvid.$panel);
-                    myModal.show();
-                }
+                TabPanel.getInstance().show(1);
             }
         }
         constructor() {
@@ -581,10 +568,9 @@
      * getAvItem           解析源网页item的数据
      * init_Style          加载各网页的特殊css
      */
-    let downloadPanel;
     let ConstCode = {
         javbus: {
-            domainReg: /(javbus|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|busjav|javsee|seejav)\./i,
+            domainReg: /(javbus|busjav|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|dmmbus|javsee|seejav)\./i,
             excludePages: ['/actresses', 'mdl=favor&sort=1', 'mdl=favor&sort=2', 'mdl=favor&sort=3', 'mdl=favor&sort=4', 'searchstar'],
             halfImg_block_Pages:['/uncensored','javbus.one','mod=uc','javbus.red'],
             gridSelector: 'div#waterfall',
@@ -813,10 +799,8 @@
                     html = `<div class='item-b'>${tag.html()}</div>`;
                 }else{
                     let AvItem = parseFunc(tag);
-                    if (hiddenWords.find((v, i) => AvItem.title.includes(v)) || 
-                        hiddenAvids.find((v, i) => AvItem.AVID.toUpperCase().includes(v.toUpperCase()+"-"))) {
-                        html = "";
-                    }else{
+                    if (!(hiddenWords.find((v, i) => AvItem.title.includes(v)) || 
+                        hiddenAvids.find((v, i) => AvItem.AVID.toUpperCase().startsWith(v.toUpperCase()+"-")|| AvItem.AVID.toUpperCase()==v.toUpperCase() ))) {
                         html = `<div class="item-b">
                                 <div class="movie-box-b">
                                 <div class="photo-frame-b">
@@ -845,16 +829,15 @@
                 elemsHtml = elemsHtml + html;
             }
             let $elems = $(elemsHtml);
-            $elems.find("span").click(function () {
+            $elems.find("span[name]").click(function () {
                 let name = $(this).attr("name");
                 switch (name) {
-                    case "copy":GM_setClipboard($(this).next().text());showAlert(lang.copySuccess);break;
+                    case "copy":GM_setClipboard($(this).next().text());showAlert(lang.copySuccess);return false;
                     case "download":GM_download($(this).attr("src"), $(this).attr("src-title")+".jpg");break;
                     case "magnet":showMagnetTable($(this).parent("div").attr("item-id"),$(this).attr("AVID").replace(/\./g, '-'),$(this).attr("data-href"),this);break;
                     case "picture":showBigImg($(this).parent("div").attr("item-id"),$(this).attr("AVID"),this);break;
                     default:break;
                 }
-                return false;
             });
             return $elems;
         }
@@ -937,19 +920,18 @@
         addPanel(){
             let me=this;
             me.loadJS();
-            GM_addStyle(`#downloadPanel{width:600px;height:400px;background-color:#efe0e0;border-radius:5px;position:fixed;right:15px;color:black;text-align:center;border:1px solid rgb(208 123 123 / 51%);box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);bottom:5px;box-sizing:content-box;z-index:1000}#downloadPanel button[name="download"]{height:25px;border:1px solid #0a050575;padding:0 9px;background-color:#fff;color:#000}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed!important}.close-div{position:absolute;right:5px;top:5px;width:25px;height:25px;border-radius:12.5px;cursor:pointer}.close-div:hover{background:#868686}.close-div:before,.close-div:after{position:absolute;content:'';width:17px;height:3px;background:white;top:11px;left:4px}.close-div:before{transform:rotate(45deg)}.close-div:after{transform:rotate(-45deg)}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}#file-Info::-webkit-scrollbar{width:7px}#file-Info::-webkit-scrollbar-track{border-radius:8px;background-color:#f5f5f5}#file-Info::-webkit-scrollbar-thumb{border-radius:8px;background-color:#c8c8c8}`)
+            GM_addStyle(`#downloadPanel{margin:5px;}#downloadPanel button[name="download"]{height:38px;border:1px solid #ce9c9c;padding:0 9px;border-radius:4px;font-size:20px;}#downloadPanel input{height:30px;padding:4px;border-radius:4px;border:1px solid #ce9c9c;font-size:20px;}#downloadPanel input:focus{outline:0px;}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed !important}.downloadform{font-size:20px;display:flex;height:40px;align-items:center;}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}`)
             me.element = $(`<div  id="downloadPanel">
-                              <div class="close-div"></div>
-                              <div id="download-formPanel" style="height:25px;margin:5px;float:left;">
-                                <button name="download"  disabled="true">下载</button>
-                                <span style="margin-left:10px;">番号:</span><input  placeholder="ssni,abp" name="key"></input>
-                                <span style="display:none">线程数</span><input style="display:none" name="poolLimit" value="3"></input>
-                                <span class="progress-Info" style="margin-left:10px;">
-                                    <span name="sum"></span><span name="total"></span><span name="msg"></span>
-                                </span>
-                              </div>
-                              <div id="file-Info" style="height:360px;width:100%;overflow-y:auto;background-color: white;"></div>
-                           </div>`);
+                          <div class="downloadform">
+                            <button name="download"  disabled="true">下载</button>
+                            <span style="margin-left:10px;">番号: </span><input  placeholder="ssni,abp" autocomplete="off" name="key"></input>
+                            <span style="display:none">线程数</span><input style="display:none" name="poolLimit" value="3"></input>
+                            <span class="progress-Info" style="margin-left:10px;">
+                                <span name="sum"></span><span name="total"></span><span name="msg"></span>
+                            </span>
+                          </div>
+                          <div id="file-Info"></div>
+                       </div>`);
             me.js_wait();
             me.element.find("button[name=download]").on("click", function () {
                 let button = this;
@@ -964,10 +946,6 @@
                     me.element.find("span[name=msg]").text("无过滤结果");button.disabled=false;
                 }
             });
-            me.element.find(".close-div").on("click", function () {
-                me.element.toggle();
-            });
-            $('body').append(me.element);
         }
         getResultList(){
             let list =[];
@@ -1041,13 +1019,13 @@
         }
     }
 
-    class HiddenWordsPanel{
-        constructor(key, name) {
+    class InputTagPanel{
+        constructor(key, placeholder) {
             let me = this;
             me.key = key;
             me.data = Status.get(key) || [];
-            me.$panel = $(`<div class="words-panel pop-up-tag" name="${key}"></div>`);
-            me.$input = $(`<input type="text" autocomplete="off" value="" placeholder="${name}">`);
+            me.$panel = $(`<div class="input-tag-panel" name="${key}"></div>`);
+            me.$input = $(`<input type="text" autocomplete="off" value="" placeholder="${placeholder}">`);
             me.$panel.append(me.$input);
             me.data.forEach(function(value, index, array) {
                 me.$panel.append(`<div class="tag-div"><span>${value}</span><a href="#">X</a></div>`);
@@ -1056,19 +1034,22 @@
                 me.delete($(this));
             });
             me.$input.keyup(function(event) {
-                if ((event.keyCode ? event.keyCode : event.which) === 13) {
-                    let key = me.$input.val().trim();
-                    key && me.add(key);
+                let key = me.$input.val().trim();
+                if (key && ((event.keyCode ? event.keyCode : event.which) === 13)) {
+                    let keyArray = key.replace("，",",").split(",").filter(k=> k && k.trim());
+                    me.add(keyArray);
                 }
             });
-            $("body").append(me.$panel);
-            GM_addStyle(`.words-panel{display: flex;width: auto;min-height: 100px;padding: 5px;flex-direction: row;flex-wrap: wrap;align-content: flex-start;align-items: stretch;}.words-panel>div{font-size: 30px;height: 40px;box-shadow: 5px 5px 4px 0 rgb(0 0 0 / 10%);display: flex;line-height: 40px;background-color: burlywood;float: left;padding: 5px;margin-left: 5px; margin-top: 5px;border-radius: 4px;align-items: center;}.words-panel>div>a{color: white;font-size: 20px;text-decoration: none;padding:0 5px 0 8px;}.words-panel>div>a:hover {cursor: pointer;color: red;}.words-panel input{width: 70px;height: 40px;border: solid 1px burlywood;border-radius: 5px;padding: 5px;margin-top: 5px;font-size: 20px;}`);
+            GM_addStyle(`.input-tag-panel{display:flex;flex-direction:row;flex-wrap:wrap;margin:5px;align-content:flex-start;align-items:stretch;}.input-tag-panel>div{font-size:25px;height:25px;box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);display:flex;line-height:25px;background-color:burlywood;float:left;padding:5px;margin-right:5px;margin-top:5px;border-radius:4px;align-items:center;}.input-tag-panel>div>a{color:white !important;font-size:20px;text-decoration:none;padding:0 5px 0 5px;}.input-tag-panel>div>a:hover{cursor:pointer;color:red;}.input-tag-panel input{width:100%;height:30px;border:solid 1px burlywood;border-radius:5px;padding:5px;font-size:20px;}.input-tag-panel input:focus{outline:none;}`);
         }
-        add(key) {
+        add(keyArray) {
             let me = this;
-            let $tag = $(`<div class="tag-div"><span>${key}</span><a>X</a></div>`);
+            let $tag = [];
+            keyArray.forEach(key=>{
+                $tag.push(`<div class="tag-div"><span>${key}</span><a>X</a></div>`);
+                me.data.push(key);
+            })
             me.$panel.append($tag).fadeIn();
-            me.data.push(key);
             Status.set(me.key, me.data);
         }
         delete($a) {
@@ -1078,6 +1059,63 @@
             let index = me.data.findIndex(v => key == v);
             index > -1 && me.data.splice(index, 1);
             Status.set(me.key, me.data);
+        }
+    }
+    
+    class TabPanel{
+        constructor(){
+            let me=this;
+            GM_addStyle(`#tabPanel{display:none;width:600px;height:400px;background-color:white;border-radius:5px;position:fixed;right:15px;bottom:5px;color:black;text-align:center;border:1px solid #ccc;box-shadow:5px 5px 4px 0 rgb(0 0 0 / 10%);z-index:1000}#tabPanel *{box-sizing:content-box;}#tabPanel ul{padding:0;margin:0;}.tab_list{height:40px;background-color:#facbcb;}.tab_list ul li{list-style:none;float:left;height:40px;padding:0 20px;font-size:20px;border-radius:5px 5px 0 0;text-align:center;line-height:40px;cursor:pointer;}.tab_list .tab_current{background-color:white;}.tab_content{height:355px;}.tab_content_item{overflow-y:auto;display:none;width:100%;height:100%;background-color:white;}.tab_content_item::-webkit-scrollbar{width:7px}.tab_content_item::-webkit-scrollbar-track{border-radius:8px;background-color:#f5f5f5}.tab_content_item::-webkit-scrollbar-thumb{border-radius:8px;background-color:#c8c8c8}.close-div{position:absolute;right:0px;width:40px;height:40px;font-size:40px;line-height:30px;cursor:pointer;color:gray;transform:rotate(45deg);}.close-div:hover{color:black;}`)
+            me.element = $(`<div id="tabPanel">
+                                <div class="tab_list">
+                                    <ul><li>批量下载</li><li>屏蔽词</li></ul>
+                                    <div class="close-div">+</div>
+                                </div>
+                                <div class="tab_content">
+                                    <div class="tab_content_item"></div>
+                                    <div class="tab_content_item"></div>
+                                </div>   
+                            </div>`);
+            me.$li = me.element.find(".tab_list ul>li");
+            me.$item = me.element.find(".tab_content_item");
+            me.$li.on("click", function () {
+                me.show(me.$li.index(this));
+            });
+            me.element.find(".close-div").on("click", function () {
+                me.element.toggle();
+            });
+            $('body').append(me.element);
+        }
+        show(index=0){
+            let me =this;
+            me.$li.each((i,el)=>{$(el).removeClass("tab_current")});
+            me.$li.eq(index).addClass("tab_current");
+            me.$item.each((i,el)=>{$(el).hide()});
+            if(me.$item.eq(index).children().length==0){
+                me.addItem(index);
+            }
+            me.$item.eq(index).show();
+            me.element.show();
+        }
+        addItem(index){
+            let me= this;
+            switch (index) {
+                case 0:
+                    let downloadPanel =new DownloadPanel();
+                    me.$item.eq(index).append(downloadPanel.element);
+                    break;
+                case 1:
+                    let tag1 =new InputTagPanel("hiddenWord","标题：支持逗号隔开");
+                    let tag2 =new InputTagPanel("hiddenAvid",`番号：支持逗号隔开,单个或系列如SSIS,OPX-123`);
+                    me.$item.eq(index).append(tag1.$panel).append(tag2.$panel);
+                    break;
+            }
+        }
+        static getInstance(){
+            if(!this.instance){
+                this.instance = new TabPanel();
+            }
+            return this.instance;
         }
     }
     new Page();
