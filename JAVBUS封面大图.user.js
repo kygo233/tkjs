@@ -196,8 +196,7 @@
     };
     //弹窗类，用于展示演员,样品图和磁力
     class Popover{
-        show(el){
-            if(el) {$(el).removeClass("svg-loading")};
+        show(){
             document.documentElement.classList.add("scrollBarHide");
             this.element.show({duration:0,start:function(){
                 var t=$(this).find('#modal-div');
@@ -338,197 +337,161 @@
 
     function showMagnetTable(itemID,avid,href,elem) {
         if ($(elem).hasClass("svg-loading")) {return;}
-        $(elem).addClass("svg-loading");
         let tagName = `${itemID}${AVINFO_SUFFIX}`;
         let $el=$(`.pop-up-tag[name='${tagName}']`);
         if ($el.length > 0) {
-            $el.show();
-            myModal.show(elem);
+            $el.show();myModal.show();
         } else {
-            switch(currentWeb) {
-                case "javbus": {
-                    getMagnet4JavBus(href,tagName).then(avInfo_c => {
-                        myModal.append(avInfo_c.avatar_waterfall);
-                        myModal.append(avInfo_c.sample_waterfall);
-                        myModal.append(avInfo_c.magnetTable);
-                        myModal.show(elem);
-                    });
-                    break;
+            $(elem).addClass("svg-loading");
+            Promise.resolve().then(()=>{
+                switch(currentWeb) {
+                    case "javbus": {
+                        return getMagnet4JavBus(href,tagName)
+                    }
+                    case "javdb": {
+                        return getMagnet4JavDB(href,tagName,itemID)
+                    }
                 }
-                case "javdb": {
-                    getMagnet4JavDB(itemID,href,tagName).then(avInfo => {
-                        myModal.append(avInfo);
-                        myModal.show(elem);
-                    });;
-                    break;
-                }
-            }
+            }).then((dom)=>{
+                myModal.append(dom).show();
+            }).catch(err=>alert(err)).then(()=>$(elem).removeClass("svg-loading"));
         }
     }
     //获取javdb的演员磁力信息
-    function getMagnet4JavDB(item_id,href,tagName) {
-        return fetch(href).then(response => response.text()).then(doc => {
-            let $doc=$($.parseHTML(doc));
-            let info = $(`<div class="pop-up-tag" name="${tagName}"></div>`);
-            if(Status.get("avInfo")){
-                let actors= $doc.find("div.video-meta-panel .panel-block").toArray().find(el=> $(el).find("a[href^='/actors/']").length>0);
-                $(actors).find("a").attr("target","_blank");
-                let preview_images= $doc.find(".columns").toArray().find(el=> $(el).find("div.tile-images.preview-images").length>0);
-                let $preview_images = $(preview_images);
-                $preview_images.find(".preview-video-container").attr("href",`#preview-video-${item_id}`);
-                $preview_images.find("#preview-video").attr("id",`preview-video-${item_id}`);
-                $preview_images.find("img[data-src]").each((i,el)=> $(el).attr("src",$(el).attr("data-src")));
-                info.append(actors);info.append(preview_images);
-            }
-            let magnetTable = $doc.find(`div[data-controller="review"]`);
-            magnetTable.find("div.moj-content").remove();// 移除广告
-            info.append(magnetTable);
-            return info;
-        })
+    async function getMagnet4JavDB(href,tagName,itemID) {
+        let doc = await fetch(href).then(response => response.text());
+        let $doc=$($.parseHTML(doc));
+        let info = $(`<div class="pop-up-tag" name="${tagName}"></div>`);
+        if(Status.get("avInfo")){
+            let actors= $doc.find("div.video-meta-panel .panel-block").toArray().find(el=> $(el).find("a[href^='/actors/']").length>0);
+            $(actors).find("a").attr("target","_blank");
+            let preview_images= $doc.find(".columns").toArray().find(el=> $(el).find("div.tile-images.preview-images").length>0);
+            let $preview_images = $(preview_images);
+            $preview_images.find(".preview-video-container").attr("href",`#preview-video-${itemID}`);
+            $preview_images.find("#preview-video").attr("id",`preview-video-${itemID}`);
+            $preview_images.find("img[data-src]").each((i,el)=> $(el).attr("src",$(el).attr("data-src")));
+            info.append(actors);info.append(preview_images);
+        }
+        let magnetTable = $doc.find(`div[data-controller="review"]`);
+        magnetTable.find("div.moj-content").remove();// 移除广告
+        info.append(magnetTable);
+        return info;
     };
     // javbus：获取演员磁力信息
-    function getMagnet4JavBus(href, tagName) {
+    async function getMagnet4JavBus(href, tagName) {
+        let {gid,dom} = await avInfofetch(href,tagName);
         //有码和欧美 0  无码 1
-        var uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
-        return avInfofetch(href,tagName).then(avInfo_c => {
-            var gid = avInfo_c.gid;
-            var url = `${location.protocol}//${location.hostname}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
-            return fetch(url).then(response => response.text())
-                .then(doc => {
-                var table_html = doc.substring(0, doc.indexOf('<script')).trim();
-                var table_tag = $(`<table class="table pop-up-tag" name="${tagName}" style="background-color:#FFFFFF;" ></table>`);
-                table_tag.append($(table_html));
-                table_tag.find("tr").each(function (i) { // 遍历 tr
-                    var me = this;
-                    if ($(me).find('a').length == 0) {
-                        return true;
-                    }
-                    var magent_url = $(me).find('a')[0].href;
-                    addCopybutton(me, magent_url);//磁力链接添加复制按钮
-                });
-                avInfo_c.magnetTable = table_tag;
-                return avInfo_c;
-            })
-        });
-    };
-    //javbus：获取详情页面的 演员表和样品图元素
-    function avInfofetch(href,tagName) {
-        return fetch(href).then(response => response.text())
-            .then(doc => {
-            let str = /var\s+gid\s+=\s+(\d{1,})/.exec(doc);
-            let avInfo_c={gid:str[1]};
-            if(Status.get("avInfo")){
-                var sample_waterfall = $($.parseHTML(doc)).find("#sample-waterfall");
-                var avatar_waterfall = $($.parseHTML(doc)).find("#avatar-waterfall");
-                if(sample_waterfall.length>0){
-                    sample_waterfall[0].id = "";
-                    sample_waterfall.addClass("pop-up-tag");
-                    sample_waterfall.attr("name",tagName);
-                    sample_waterfall.find(".sample-box").removeClass("sample-box").addClass("sample-box-zdy");
-                }
-                if(avatar_waterfall.length>0){
-                    avatar_waterfall[0].id = "";
-                    avatar_waterfall.addClass("pop-up-tag");
-                    avatar_waterfall.attr("name",tagName);
-                    avatar_waterfall.find("a.avatar-box span").each((i,el)=> {
-                        let $copySvg = $(`<div style="width:24px;height:24px;display: flex;align-items: center;justify-content: center;">${copy_Svg}</div>`);
-                        $copySvg.click(function () {
-                            GM_setClipboard($(el).text());
-                            showAlert(lang.copySuccess);
-                            return false;
-                        });
-                        $(el).prepend($copySvg);
-                    });
-                    avatar_waterfall.find("a.avatar-box").attr("target","_blank").removeClass("avatar-box").addClass("avatar-box-zdy");
-                }
-                avInfo_c.sample_waterfall=sample_waterfall;
-                avInfo_c.avatar_waterfall=avatar_waterfall;
+        let uc_code = location.pathname.search(/(uncensored|mod=uc)/) < 1 ? 0 : 1;
+        let url = `${location.protocol}//${location.hostname}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
+        let doc = await fetch(url).then(response => response.text());
+        let table_html = doc.substring(0, doc.indexOf('<script')).trim();
+        let table_tag = $(`<table class="table pop-up-tag" name="${tagName}" style="background-color:#FFFFFF;" ></table>`);
+        table_tag.append($(table_html));
+        table_tag.find("tr").each(function (i) { // 遍历 tr
+            let $a = $(this).find('a');
+            if ($a.length) {
+               let magent_url = $a[0].href;
+               $(this).prepend(creatCopybutton(magent_url));
             }
-            return avInfo_c;
-        }).catch(err => alert(err));
+        });
+        dom.push(table_tag);
+        return dom;
     };
     //javbus：磁力链接添加复制按钮
-    function addCopybutton(tag, text) {
-        var copyButton = $(`<button class="center-block">${lang.copyButton}</button>`);
-        copyButton.click(function () {
+    function creatCopybutton(text) {
+        let $copyButton = $(`<td><button class="center-block">${lang.copyButton}</button></td>`);
+        $copyButton.find("button").click(function () {
             GM_setClipboard(text);
             showAlert(lang.copySuccess);
         });
-        var td_tag = $('<td></td>');
-        td_tag.append(copyButton);
-        $(tag).prepend(td_tag);
+        return $copyButton;
     }
+    //javbus：获取详情页面的 演员表和样品图元素
+    async function avInfofetch(href,tagName) {
+        let doc = await fetch(href).then(response => response.text())
+        let str = /var\s+gid\s+=\s+(\d{1,})/.exec(doc);
+        let avInfo = {gid:str[1],dom:[]};
+        if(Status.get("avInfo")){
+            let sample_waterfall = $($.parseHTML(doc)).find("#sample-waterfall");
+            let avatar_waterfall = $($.parseHTML(doc)).find("#avatar-waterfall");
+            if(avatar_waterfall.length>0){
+                avatar_waterfall[0].id = "";
+                avatar_waterfall.addClass("pop-up-tag");
+                avatar_waterfall.attr("name",tagName);
+                avatar_waterfall.find("a.avatar-box span").each((i,el)=> {
+                    let $copySvg = $(`<div style="width:24px;height:24px;display: flex;align-items: center;justify-content: center;">${copy_Svg}</div>`);
+                    $copySvg.click(function () {
+                        GM_setClipboard($(el).text());
+                        showAlert(lang.copySuccess);
+                        return false;
+                    });
+                    $(el).prepend($copySvg);
+                });
+                avatar_waterfall.find("a.avatar-box").attr("target","_blank").removeClass("avatar-box").addClass("avatar-box-zdy");
+                avInfo.dom.push(avatar_waterfall);
+            }
+            if(sample_waterfall.length>0){
+                sample_waterfall[0].id = "";
+                sample_waterfall.addClass("pop-up-tag");
+                sample_waterfall.attr("name",tagName);
+                sample_waterfall.find(".sample-box").removeClass("sample-box").addClass("sample-box-zdy");
+                avInfo.dom.push(sample_waterfall);
+            }
+        }
+        return avInfo;
+    };
+
     //弹出视频截图
     function showBigImg(itemID,avid,elem) {
+        if ($(elem).hasClass("svg-loading")) {return;}
         let tagName = `${itemID}${IMG_SUFFIX}`;
         let $selector = $(`.pop-up-tag[name='${tagName}']`);
         if ($selector.length > 0) {
             $selector.show();
             myModal.show();
         } else {
-            getAvImg(avid,elem,tagName);
+            $(elem).addClass("svg-loading");
+            getAvImg(avid,tagName).then(($img)=>{
+                myModal.append($img).show();
+            }).catch(err=>showAlert(err)).then(()=>{
+                $(elem).removeClass("svg-loading");
+            });
         }
     }
+    const getRequest = (url) => {
+        return new Promise((resolve, reject)=>{
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: url,
+                timeout: 20000,
+                onload: (r)=>{ 
+                    r.status==200?resolve(r.responseText):reject(lang.getAvImg_norespond);
+                },
+                onerror : (r)=> reject(`error`),
+                ontimeout : (r)=> reject(`timeout`)
+            });
+        })
+    }
+    //https://pixhost.to/show/506/158660510_1508na_ssni-845.jpg
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
-    function getAvImg(avid, elem,tagName) {
-        if ($(elem).hasClass("svg-loading")) {return;}
-        $(elem).addClass("svg-loading");
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: 'http://blogjav.net/?s=' + avid,
-            onload: function (result) {
-                if (result.status !== 200) {
-                    showAlert(lang.getAvImg_norespond);
-                    $(elem).removeClass("svg-loading");
-                    return;
-                }
-                var doc = result.responseText;
-                let a_array = $($.parseHTML(doc)).find(blogjavSelector);
-                let imgUrl;
-                if(a_array.length){
-                    imgUrl= a_array[0].href;
-                    for (let i = 0; i < a_array.length; i++) {
-                        let tempUrl = a_array[i].href;
-                        if (tempUrl.search(/FHD/i) > 0) {
-                            imgUrl = tempUrl;
-                            break;
-                        }
-                    }
-                }
-                if (!imgUrl) {
-                    showAlert(lang.getAvImg_none);
-                    $(elem).removeClass("svg-loading");
-                    return;
-                }
-                GM_xmlhttpRequest({
-                    method: "GET",
-                    url: imgUrl,
-                    headers: {
-                        referrer: "http://pixhost.to/"
-                    },
-                    onload: function (XMLHttpRequest) {
-                        var bodyStr = XMLHttpRequest.responseText;
-                        var img_src_arr = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(bodyStr);
-                        if (img_src_arr) {
-                            var src = $(img_src_arr[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
-                            console.log(src);
-                            var height = $(window).height();
-                            var img_tag = $(`<div name="${tagName}" class="pop-up-tag" ><img style="min-height:${height}px;width:100%" src="${src}" /></div>`);
-                            var downloadBtn = $(`<span class="download-icon" >${download_Svg}</span>`);
-                            downloadBtn.click(function () {
-                                GM_download(src, avid + ".jpg");
-                            });
-                            $(img_tag).prepend(downloadBtn);
-                            myModal.append(img_tag);
-                            myModal.show();
-                        }else if(bodyStr.match("404 Not Found")){
-                            showAlert(lang.getAvImg_norespond);
-                        }
-                        $(elem).removeClass("svg-loading");
-                    }
-                });
-            }
-        });
+    async function getAvImg(avid,tagName) {
+        const doc = await getRequest(`https://blogjav.net/?s=${avid}`);
+        //const doc = await getRequest(`http://testjav.com/s=ssni-845.html`);
+        let resultList = $($.parseHTML(doc)).find(blogjavSelector).toArray().map(v=>v.href);
+        if (resultList.length==0) {
+           return Promise.reject(lang.getAvImg_none);
+        }
+        let imgUrl = resultList.find(v=> v.search(/FHD/i)>0) || resultList[0];
+        const result  = await getRequest(imgUrl);
+        let img_src = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(result);
+        let src = $(img_src[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
+        console.log(src);
+        let $img = $(`<div name="${tagName}" class="pop-up-tag" >
+                        <span class="download-icon" >${download_Svg}</span>
+                        <img style="min-height:${$(window).height()}px;width:100%" src="${src}" />
+                    </div>`);
+        $img.find("span.download-icon").click(()=>GM_download(src, `${avid.jpg}`));
+        return $img;
     };
 
     let lazyLoad;
@@ -723,7 +686,6 @@
             oldDriverBlock();
             this.addStyle();
             currentObj.init_Style?.();
-            notice();
             let menu = new SettingMenu();
             //加载图片懒加载插件
             lazyLoad = new LazyLoad({
