@@ -66,7 +66,7 @@
         columnNumHalf:4,
         menutoTop : false
     };
-    const IMG_SUFFIX = "-screenshot-tag";
+    const SCREENSHOT_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "h2.entry-title>a";
     const fullImgCSS=`width: 100%!important;height:100%!important;`;
@@ -444,7 +444,7 @@
     //弹出视频截图
     function showBigImg(itemID,avid,elem) {
         if ($(elem).hasClass("svg-loading")) {return;}
-        let tagName = `${itemID}${IMG_SUFFIX}`;
+        let tagName = `${itemID}${SCREENSHOT_SUFFIX}`;
         let $selector = $(`.pop-up-tag[name='${tagName}']`);
         if ($selector.length > 0) {
             $selector.show();
@@ -472,27 +472,62 @@
             });
         })
     }
-    //https://pixhost.to/show/506/158660510_1508na_ssni-845.jpg
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
     async function getAvImg(avid,tagName) {
         const doc = await getRequest(`https://blogjav.net/?s=${avid}`);
-        //const doc = await getRequest(`http://testjav.com/s=ssni-845.html`);
-        let resultList = $($.parseHTML(doc)).find(blogjavSelector).toArray().map(v=>v.href);
+        let resultList = $($.parseHTML(doc)).find(blogjavSelector).toArray().map((v)=> {return {title:v.innerHTML,href:v.href} });
         if (resultList.length==0) {
            return Promise.reject(lang.getAvImg_none);
         }
-        let imgUrl = resultList.find(v=> v.search(/FHD/i)>0) || resultList[0];
-        const result  = await getRequest(imgUrl);
-        let img_src = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(result);
-        let src = $(img_src[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
-        console.log(src);
-        let $img = $(`<div name="${tagName}" class="pop-up-tag" >
-                        <span class="download-icon" >${download_Svg}</span>
-                        <img style="min-height:${$(window).height()}px;width:100%" src="${src}" />
-                    </div>`);
-        $img.find("span.download-icon").click(()=>GM_download(src, `${avid.jpg}`));
+        let $img = new ScreenshotPanel(tagName,resultList);
+        let findIndex = resultList.findIndex(v=> v.title.search(/FHD/i)>0);//默认显示FHD
+        let index_show = findIndex>-1?findIndex:0;
+        $img.find(`li.imgResult-li[index=${index_show}]`).trigger('click');
         return $img;
     };
+    class ScreenshotPanel{
+        constructor(tagName,resultList){
+            let me =this;
+            let $img = $(`<div name="${tagName}" class="pop-up-tag" style="min-height:${$(window).height()}px;">
+                        <ul style="${resultList.length==1?'display:none':''}">
+                        ${resultList.map((v,i)=>`<li class="imgResult-li" index=${i} data="${v.href}">${v.title}</li>`).join('')}</ul>
+                        <span class="download-icon" >${download_Svg}</span>
+                        ${resultList.map((v,i)=>`<img index=${i}  name="screenshot" style="display:none;width:100%" />`).join('')}
+                        </div>`);
+            $img.find("li.imgResult-li").click(function(){
+                if ($(this).hasClass("imgResult-loading")) {return;}
+                let index_to = $(this).attr('index');
+                let index_from =  $img.find("img:visible").attr(`index`);
+                if( index_to != index_from){
+                    $img.find("li.imgResult-li.imgResult-Current").removeClass('imgResult-Current');
+                    $(this).addClass(`imgResult-loading`).addClass("imgResult-Current");
+                    $img.find("img").hide();
+                    let $img_to = $img.find(`img[index=${index_to}]`);
+                    $img_to.show();
+                    Promise.resolve().then(()=>{
+                        if($img_to.attr(`src`)){
+                            return true;
+                        }else{
+                            return me.getScreenshotUrl($(this).attr('data')).then((r)=>{
+                                $img_to.attr(`src`,r);
+                            });
+                        }
+                    }).catch((err)=>{showAlert(err)}).then((r)=>{$(this).removeClass(`imgResult-loading`);});
+                }
+            })
+            $img.find("span.download-icon").click(function(){
+                GM_download($img.find("img:visible").attr(`src`), `${avid}.jpg`);
+            });
+            return $img;
+        }
+        async getScreenshotUrl(imgUrl){
+            const result = await getRequest(imgUrl);
+            let img_src = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(result);
+            let src = $(img_src[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
+            console.log(src);
+            return src;
+        }
+    }
 
     let lazyLoad;
     let scroller;
@@ -714,7 +749,7 @@
                 #waterfall-zdy .item-b{padding:5px;width:${100 / columnNum}%;transition:.5s ;animation: fadeInUp .5s ease-out;}
                 #waterfall-zdy .movie-box-b{border-radius:5px;background-color:white;border:1px solid rgba(0,0,0,0.2);box-shadow:0 2px 3px 0 rgba(0,0,0,0.1);overflow:hidden}#waterfall-zdy .movie-box-b a:link{color:black}#waterfall-zdy .movie-box-b a:visited{color:gray}#waterfall-zdy .movie-box-b .photo-frame-b{text-align:center}#waterfall-zdy .movie-box-b .photo-info-b{padding:7px}#waterfall-zdy .movie-box-b .photo-info-b a{display:block}#waterfall-zdy .info-bottom,.info-bottom-two{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}#waterfall-zdy .avatar-box-b{display:flex;flex-direction:column;background-color:white;border-radius:5px;align-items:center;border:1px solid rgba(0,0,0,0.2)}#waterfall-zdy .avatar-box-b p{margin:0 !important}#waterfall-zdy date:first-of-type{font-size:18px !important}#waterfall-zdy .func-div{float:right;padding:2px;white-space:nowrap}#waterfall-zdy .func-div span{margin-right:2px}#waterfall-zdy .copy-svg{vertical-align:middle;display:inline-block}#waterfall-zdy span.svg-span{cursor:pointer;opacity:.3}#waterfall-zdy span.svg-span:hover{opacity:1}#waterfall-zdy .item-tag{display:inline-block;white-space:nowrap}#waterfall-zdy .jlt-hidden{display:none;}#waterfall-zdy .minHeight-200{min-height:200px}
                 #myModal{overflow-x:hidden;overflow-y:auto;display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1050;background-color:rgba(0,0,0,0.5)}#myModal #modal-div{position:relative;width:80%;margin:0 auto;background-color:rgb(6 6 6 / 50%);border-radius:8px;animation:fadeInDown .5s}#modal-div .pop-up-tag{border-radius:8px;overflow:hidden}#modal-div .sample-box-zdy,.avatar-box-zdy{display:inline-block;border-radius:8px;background-color:#fff;overflow:hidden;margin:5px;width:140px}#modal-div .sample-box-zdy .photo-frame{overflow:hidden;margin:10px}#modal-div .sample-box-zdy img{height:90px}#modal-div .avatar-box-zdy .photo-frame{overflow:hidden;height:120px;margin:10px}#modal-div .avatar-box-zdy img{height:120px}#modal-div .avatar-box-zdy span{font-weight:bold;text-align:center;word-wrap:break-word;display:flex;justify-content:center;align-items:center;padding:5px;line-height:22px;color:#333;background-color:#fafafa;border-top:1px solid #f2f2f2}svg.tool-svg{fill:currentColor;width:22px;height:22px;vertical-align:middle}span.svg-loading{display:inline-block;animation:svg-loading 2s infinite}#menu-div{white-space:nowrap;background-color:white;color:black;display:none;min-width:200px;border-radius:5px;padding:10px;box-shadow:0 10px 20px 0 rgb(0 0 0 / 50%)}#menu-div>div:hover{background-color:gainsboro}#menu-div .switch-div{display:flex;align-items:center;font-size:large;font-weight:bold;}#menu-div .switch-div *{margin:0;padding:4px;}#menu-div .switch-div label{flex-grow:1;}#menu-div .range-div{display:flex;flex-direction:row;flex-wrap:nowrap}#menu-div .range-div input{cursor:pointer;width:80%;max-width:200px}.alert-zdy{position:fixed;top:50%;left:50%;padding:12px 20px;font-size:20px;color:white;background-color:rgb(0,0,0,.75);border-radius:4px;animation:itemShow .3s;z-index:1051}
-                .titleNowrap{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.download-icon{position:absolute;right:0;z-index:2;cursor:pointer}.download-icon>svg{width:30px;height:30px;fill:aliceblue}@keyframes fadeInUp{0%{transform:translate3d(0,10%,0);opacity:.5}100%{transform:none;opacity:1}}@keyframes fadeInDown{0%{transform:translate3d(0,-100%,0);opacity:0}100%{transform:none;opacity:1}}@keyframes itemShow{0%{transform:scale(0)}100%{transform:scale(1)}}@keyframes svg-loading{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}.scroll-request{text-align:center;height:15px;margin:15px auto}.scroll-request span{display:inline-block;width:15px;height:100%;margin-right:8px;border-radius:50%;background:rgb(16,19,16);animation:load 1s ease infinite}@keyframes load{0%,100%{transform:scale(1)}50%{transform:scale(0)}}.scroll-request span:nth-child(2){animation-delay:0.125s}.scroll-request span:nth-child(3){animation-delay:0.25s}.scroll-request span:nth-child(4){animation-delay:0.375s}`;
+                .titleNowrap{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.download-icon{position:absolute;right:0;z-index:2;cursor:pointer}.download-icon>svg{width:30px;height:30px;fill:aliceblue}@keyframes fadeInUp{0%{transform:translate3d(0,10%,0);opacity:.5}100%{transform:none;opacity:1}}@keyframes fadeInDown{0%{transform:translate3d(0,-100%,0);opacity:0}100%{transform:none;opacity:1}}@keyframes itemShow{0%{transform:scale(0)}100%{transform:scale(1)}}@keyframes svg-loading{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}.scroll-request{text-align:center;height:15px;margin:15px auto}.scroll-request span{display:inline-block;width:15px;height:100%;margin-right:8px;border-radius:50%;background:rgb(16,19,16);animation:load 1s ease infinite}@keyframes load{0%,100%{transform:scale(1)}50%{transform:scale(0)}}.scroll-request span:nth-child(2){animation-delay:0.125s}.scroll-request span:nth-child(3){animation-delay:0.25s}.scroll-request span:nth-child(4){animation-delay:0.375s}.imgResult-li{color:rgb(255,255,255,50%);font-size:20px;}.imgResult-li.imgResult-Current{color: white;}.imgResult-loading{animation: changeTextColor 1s  ease-in  infinite ;}.imgResult-li:hover{cursor: pointer;color: white;}@keyframes changeTextColor {0%{ color:rgba(255,255,255,1)} 50%{ color:rgba(255,255,255, .5)}  100%{ color:rgba(255,255,255, 1)}  }`;
             GM_addStyle(css_waterfall);
         }
     }
