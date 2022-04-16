@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20220328
+// @version      20220417
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-04-17 调整javdb的磁力元素选择器;查看视频截图：显示所有的结果
 // 2022-03-28 匹配dmmbus;修复标题不可点击的bug
 // 2022-03-18 修复欧美区磁力按钮打开重复的问题；javlibrary添加将左侧菜单上移的功能
 // 2022-03-03 调整设置按钮到左上角；删除javdb磁力列表里的广告
@@ -139,19 +140,6 @@
             $(this).css({'margin-top': -$(this).height() / 2 });
             $(this).css({'margin-left': -$(this).width() / 2 });
         }}).delay(3000).fadeOut();
-    }
-
-    let notice = () => {
-        if(Status.get("notice")) return;
-        let $notice=$(`<div  style="position:fixed;top:50%;left:50%; padding:20px;font-size:20px;color:white;background-color:rgb(0,0,0);border-radius:4px;animation:itemShow .3s;z-index:1051;" >
-          <span></span><div style="display: inline-block;padding: 0 10px;cursor: pointer;">X</div> </div>`);
-        $('body').append($notice);
-        $notice.find("span").text("设置菜单已移至左上角！");
-        $notice.find("div").on("click",()=>$notice.hide());
-        $notice.show({start:function(){
-            $(this).css({'margin-top': -$(this).height() / 2  ,'margin-left': -$(this).width() / 2 });
-        }});
-        Status.set("notice",true);
     }
     //图片加载时的回调函数
     let imgCallback =  (img)=> {
@@ -311,6 +299,9 @@
             $circle.append($menu);
             $circle.mouseenter(() => $menu.show()).mouseleave(() => $menu.hide());
             $("body").append($circle);
+            if(!Status.get("notice")){
+                $menu.slideDown();Status.set("notice",true);
+            }
         }
         creatCheckbox(tagName, name, disabled) {
             let me =this;
@@ -372,8 +363,8 @@
             $preview_images.find("img[data-src]").each((i,el)=> $(el).attr("src",$(el).attr("data-src")));
             info.append(actors);info.append(preview_images);
         }
-        let magnetTable = $doc.find(`div[data-controller="review"]`);
-        magnetTable.find("div.moj-content").remove();// 移除广告
+        let magnetTable = $doc.find(`div.columns[data-controller="movie-tab"]`);
+        magnetTable.find("div.top-meta").remove();// 移除广告
         info.append(magnetTable);
         return info;
     };
