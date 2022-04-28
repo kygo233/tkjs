@@ -132,15 +132,20 @@
     let lang = getlanguage();
 
     // 弹出提示框
-    let showAlert = (msg) => {
-        var $alert=$(`<div  class="alert-zdy" ></div>`);
+    let showAlert = (msg,close) => {
+        let $alert=$(`<div  class="alert-zdy" >${msg}</div>`);
+        if(close){
+            let $close = $(`<div style="display: inline-block;padding: 0 10px;cursor: pointer;">X</div>`);
+            $alert.append($close);
+            $close.on("click",()=>$alert.hide());
+        }
         $('body').append($alert);
-        $alert.text(msg);
         $alert.show({start:function(){
-            $(this).css({'margin-top': -$(this).height() / 2 });
-            $(this).css({'margin-left': -$(this).width() / 2 });
-        }}).delay(3000).fadeOut();
+            $(this).css({'margin-top': -$(this).height() / 2  ,'margin-left': -$(this).width() / 2 });
+        }});
+        if(!close){$alert.delay(3000).fadeOut()};
     }
+
     //图片加载时的回调函数
     let imgCallback =  (img)=> {
         if (Status.isHalfImg()) {
@@ -444,7 +449,7 @@
             $(elem).addClass("svg-loading");
             getAvImg(avid,tagName).then(($img)=>{
                 myModal.append($img).show();
-            }).catch(err=>showAlert(err)).then(()=>{
+            }).catch(err=>err && showAlert(err)).then(()=>{
                 $(elem).removeClass("svg-loading");
             });
         }
@@ -455,9 +460,7 @@
                 method: "GET",
                 url: url,
                 timeout: 20000,
-                onload: (r)=>{ 
-                    r.status==200?resolve(r.responseText):reject(lang.getAvImg_norespond);
-                },
+                onload: (r)=>resolve(r),
                 onerror : (r)=> reject(`error`),
                 ontimeout : (r)=> reject(`timeout`)
             });
@@ -465,8 +468,14 @@
     }
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
     async function getAvImg(avid,tagName) {
-        const doc = await getRequest(`https://blogjav.net/?s=${avid}`);
-        let resultList = $($.parseHTML(doc)).find(blogjavSelector).toArray().map((v)=> {return {title:v.innerHTML,href:v.href} });
+        const r = await getRequest(`https://blogjav.net/?s=${avid}`);
+        if(r.status == 503){
+            showAlert(`blogjav.net 有防攻击机制, <a target="_blank"  href="https://blogjav.net">点击跳转</a>解除 `,`close`);
+            return Promise.reject();
+        }else if(r.status != 200){
+            return Promise.reject(lang.getAvImg_norespond);
+        }
+        let resultList = $($.parseHTML(r.responseText)).find(blogjavSelector).toArray().map((v)=> {return {title:v.innerHTML,href:v.href} });
         if (resultList.length==0) {
            return Promise.reject(lang.getAvImg_none);
         }
@@ -513,7 +522,7 @@
         }
         async getScreenshotUrl(imgUrl){
             const result = await getRequest(imgUrl);
-            let img_src = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(result);
+            let img_src = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(result.responseText);
             let src = $(img_src[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
             console.log(src);
             return src;
@@ -835,8 +844,8 @@
         async loadNextPage(url){
             this.showStatus('request');
             console.log(url);
-            let respondText = await fetch(url, { credentials: 'same-origin' }).then(respond=>respond.text());
-            let $body = $(new DOMParser().parseFromString(respondText, 'text/html'));
+            let responseText = await fetch(url, { credentials: 'same-origin' }).then(respond=>respond.text());
+            let $body = $(new DOMParser().parseFromString(responseText, 'text/html'));
             let elems = GridPanel.parseItems($body.find(currentObj.itemSelector));
             if (currentWeb != "javdb" && location.pathname.includes('/star/') && elems) {
                 elems=elems.slice(1);
