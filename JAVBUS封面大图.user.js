@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20220417
+// @version      20220429
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -27,6 +27,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-04-29 适配javdb的新页面; 查看视频截图: 增加blogjav的防攻击跳转提示
 // 2022-04-17 调整javdb的磁力元素选择器;查看视频截图：显示所有的结果
 // 2022-03-28 匹配dmmbus;修复标题不可点击的bug
 // 2022-03-18 修复欧美区磁力按钮打开重复的问题；javlibrary添加将左侧菜单上移的功能
@@ -248,8 +249,7 @@
         onChange = {
             autoPage: function() {
                 if (scroller) {
-                    scroller.destroy();
-                    scroller = null;
+                    scroller.destroy();scroller = null;
                 } else {
                     scroller = new ScrollerPlugin($('#waterfall-zdy'), lazyLoad);
                 }
@@ -266,7 +266,7 @@
                     imgCallback(el);
                 });
                 var columnNum = Status.getColumnNum();
-                GM_addStyle('#waterfall-zdy .item-b{ width: ' + 100 / columnNum + '%;}');
+                GM_addStyle(`#waterfall-zdy .item-b{ width: ${100/columnNum}%;}`);
                 $("#columnNum_range").val(columnNum);
                 $("#columnNum_range+span").text(columnNum);
             },
@@ -276,12 +276,10 @@
             avInfo: function() {},
             menutoTop : function() {location.reload();},
             columnNum: function(columnNum) {
-                GM_addStyle('#waterfall-zdy .item-b{ width: ' + 100 / columnNum + '%;}');
+                GM_addStyle(`#waterfall-zdy .item-b{ width: ${100/columnNum}%;}`);
             },
             waterfallWidth: function(width) {
-                var widthSelctor = currentObj.widthSelector;
-                $(widthSelctor).css("width", width + "%");
-                $(widthSelctor).css("margin", "0 " + (width > 100 ? (100 - width) / 2 + "%" : "auto"));
+                $(currentObj.widthSelector).css({"width":`${width}%`,"margin": `0 ${width>100?(100-width)/2+"%":"auto"}`});
             }
         }
         constructor() {
@@ -470,7 +468,7 @@
     async function getAvImg(avid,tagName) {
         const r = await getRequest(`https://blogjav.net/?s=${avid}`);
         if(r.status == 503){
-            showAlert(`blogjav.net 有防攻击机制, <a target="_blank"  href="https://blogjav.net">点击跳转</a>解除 `,`close`);
+            showAlert(`blogjav.net有防攻击机制, <a target="_blank"  href="https://blogjav.net">点击跳转</a>解除 `,`close`);
             return Promise.reject();
         }else if(r.status != 200){
             return Promise.reject(lang.getAvImg_norespond);
@@ -571,39 +569,31 @@
                 var AVID = elem.find("date").eq(0).text();
                 var date = elem.find("date").eq(1).text();
                 var itemTag = "";elem.find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
-                return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
+                return {AVID,href,src,title,date,itemTag};
             }
         },
         javdb: {
             domainReg: /(javdb)[0-9]*\./i,
             excludePages: ['/users/'],
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
-            gridSelector: 'div#videos>.grid',
-            itemSelector: 'div#videos>.grid div.grid-item',
+            gridSelector: 'div.movie-list.h',
+            itemSelector: 'div.movie-list.h>div.item',
             widthSelector : '#waterfall-zdy',
             pageNext: 'a.pagination-next',
             pageSelector:'.pagination-list',
             init_Style: function(){
-                var local_color=$(".box").css("background-color");
-                let css = `.pop-up-tag[name$='${AVINFO_SUFFIX}'] {background-color: rgb(255 255 255 / 90%);}`;
-                //判断是否为暗色主题
-                if(local_color=="rgb(18, 18, 18)"){
-                    css=`.scroll-request span{background:white;}#waterfall-zdy .movie-box-b a:link {color : inherit;}#waterfall-zdy  .movie-box-b{background-color:${local_color};}.alert-zdy {color: black;background-color: white;}`;
-                }
-                GM_addStyle(`${css} #myModal #modal-div article.message {margin-bottom: 0}`);
+                GM_addStyle(`#waterfall-zdy .info-bottom-two{flex-grow:1}[data-theme=light] .pop-up-tag[name$='${AVINFO_SUFFIX}'] {background-color: rgb(255 255 255 / 90%);}[data-theme=dark] .scroll-request span{background:white;}[data-theme=dark] #waterfall-zdy .movie-box-b a:link {color : inherit;}[data-theme=dark] #waterfall-zdy  .movie-box-b{background-color:#222;}[data-theme=dark] .alert-zdy {color: black;background-color: rgb(255 255 255 / 90%);}#myModal #modal-div article.message {margin-bottom: 0}`);
             },
             maxWidth: 150,//javdb允许的最大宽度为150%，其他网站默认最大宽度为100%
             getAvItem: function (elem) {
                 var href = elem.find("a")[0].href;
-                var img = elem.find("div.item-image>img").eq(0);
-                var src = img.attr("data-src").replace(/thumbs/, "covers") ;
-                var title = elem.find("div.video-title").eq(0).text();
-                if(!title) {title = elem.find("div.video-title2").eq(0).text()};
-                var AVID = elem.find("div.uid").eq(0).text();
-                if(!AVID) {AVID = elem.find("div.uid2").eq(0).text()};
+                var src = elem.find("div.cover>img").eq(0).attr("src");
+                var title = elem.find("a")[0].title;
+                var AVID = elem.find("div.video-title>strong").eq(0).text();
                 var date = elem.find("div.meta").eq(0).text();
+                var score = elem.find("div.score").html();
                 var itemTag = elem.find(".tags.has-addons").html();
-                return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
+                return {AVID,href,src,title,date,itemTag,score};
             }
             //init: function(){ if(location.href.includes("/users/")){ this.widthSelector="div.section";} }
         },
@@ -624,7 +614,7 @@
                 var AVID = elem.find("date").eq(0).text();
                 var date = elem.find("date").eq(1).text();
                 var itemTag = "";elem.find("div.photo-info .btn").toArray().forEach( x=> itemTag+=x.outerHTML);
-                return {AVID: AVID,href: href,src: src,title: title,date: date,itemTag:itemTag};
+                return {AVID,href,src,title,date,itemTag};
             }
         },
         javlibrary: {
@@ -642,7 +632,7 @@
                 }
                 var title = elem.find("div.title").eq(0).text();
                 var AVID = elem.find("div.id").eq(0).text();
-                return {AVID: AVID,href: href,src: src,title: title,date: '',itemTag:''};
+                return {AVID,href,src,title,date: '',itemTag:''};
             },
             init_Style: function(){
                 GM_addStyle(`${Status.get("menutoTop")?`#leftmenu {width : 100%;float: none;}#leftmenu>table { display : none;}#leftmenu .menul1,#leftmenu .menul1>ul{display: flex;align-items: center;justify-content: center;flex-wrap: wrap;}#leftmenu .menul1{padding: 5px;}#rightcolumn{margin: 0 5px;padding : 10px 5px;}`:``}#waterfall-zdy div{box-sizing: border-box;}`);
@@ -787,6 +777,7 @@
                                       <div class="info-bottom-one">
                                           <a  href="${AvItem.href}" target="_blank"><span class="svg-span copy-svg ${copyBtn?'':'jlt-hidden'}"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</a>
                                       </div>
+                                      ${AvItem.score?`<a  href="${AvItem.href}" target="_blank"><div class="score">${AvItem.score}</div></a>`:``}
                                       <div class="info-bottom-two">
                                         <div class="item-tag">${AvItem.itemTag}</div>
                                         <div class="func-div ${toolBar?'':'jlt-hidden'}" item-id="${AvItem.AVID}${Math.random().toString(16).slice(2)}"  >
