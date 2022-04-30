@@ -466,6 +466,7 @@
     }
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
     async function getAvImg(avid,tagName) {
+        //const r = await getRequest(`http://testjav.com/s=ssni-845.html`);
         const r = await getRequest(`https://blogjav.net/?s=${avid}`);
         if(r.status == 503){
             showAlert(`blogjav.net有防攻击机制, <a target="_blank"  href="https://blogjav.net">点击跳转</a>解除 `,`close`);
@@ -474,17 +475,17 @@
             return Promise.reject(lang.getAvImg_norespond);
         }
         let resultList = $($.parseHTML(r.responseText)).find(blogjavSelector).toArray().map((v)=> {return {title:v.innerHTML,href:v.href} });
-        if (resultList.length==0) {
+        if(resultList.length==0) {
            return Promise.reject(lang.getAvImg_none);
         }
-        let $img = new ScreenshotPanel(tagName,resultList);
+        let $img = new ScreenshotPanel(tagName,resultList,avid);
         let findIndex = resultList.findIndex(v=> v.title.search(/FHD/i)>0);//默认显示FHD
         let index_show = findIndex>-1?findIndex:0;
         $img.find(`li.imgResult-li[index=${index_show}]`).trigger('click');
         return $img;
     };
     class ScreenshotPanel{
-        constructor(tagName,resultList){
+        constructor(tagName,resultList,avid){
             let me =this;
             let $img = $(`<div name="${tagName}" class="pop-up-tag" style="min-height:${$(window).height()}px;">
                         <ul style="${resultList.length==1?'display:none':''}">
@@ -514,11 +515,24 @@
                 }
             })
             $img.find("span.download-icon").click(function(){
-                GM_download($img.find("img:visible").attr(`src`), `${avid}.jpg`);
+                if ($(this).hasClass("svg-loading")) {return;}
+                $(this).addClass("svg-loading");
+                Promise.resolve({
+                    then :(resolve,reject)=>{
+                        GM_download({
+                            url :$img.find("img:visible").attr(`src`),
+                            name: `${avid || "screenshot"}.jpg`,
+                            onerror  :r => reject("error"),
+                            ontimeout :r => reject("timeout"),
+                            onload :() => resolve()
+                        });
+                    }
+                }).catch(err=>err && showAlert(err)).then(()=>$(this).removeClass("svg-loading"));
             });
             return $img;
         }
         async getScreenshotUrl(imgUrl){
+            //return `http://testjav.com/big2.jpg`;
             const result = await getRequest(imgUrl);
             let img_src = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(result.responseText);
             let src = $(img_src[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
