@@ -251,32 +251,32 @@
                 if (scroller) {
                     scroller.destroy();scroller = null;
                 } else {
-                    scroller = new ScrollerPlugin($('#waterfall-zdy'), lazyLoad);
+                    scroller = new ScrollerPlugin($('#grid-b'), lazyLoad);
                 }
             },
             copyBtn: function() {
-                $("#waterfall-zdy .copy-svg").toggle();
+                $("#grid-b .copy-span").toggle();
             },
             toolBar: function() {
-                $("#waterfall-zdy .func-div").toggle();
+                $("#grid-b .toolbar-b").toggle();
             },
             halfImg: function() {
                 let me = this;
-                $("#waterfall-zdy .movie-box-b img.loaded").each(function(index, el) {
+                $("#grid-b .box-b img.loaded").each(function(index, el) {
                     imgCallback(el);
                 });
                 var columnNum = Status.getColumnNum();
-                GM_addStyle(`#waterfall-zdy .item-b{ width: ${100/columnNum}%;}`);
+                GM_addStyle(`#grid-b .item-b{ width: ${100/columnNum}%;}`);
                 $("#columnNum_range").val(columnNum);
                 $("#columnNum_range+span").text(columnNum);
             },
             fullTitle: function() {
-                $("#waterfall-zdy a[name='av-title']").toggleClass("titleNowrap");
+                $("#grid-b a[name='av-title']").toggleClass("titleNowrap");
             },
             avInfo: function() {},
             menutoTop : function() {location.reload();},
             columnNum: function(columnNum) {
-                GM_addStyle(`#waterfall-zdy .item-b{ width: ${100/columnNum}%;}`);
+                GM_addStyle(`#grid-b .item-b{ width: ${100/columnNum}%;}`);
             },
             waterfallWidth: function(width) {
                 $(currentObj.widthSelector).css({"width":`${width}%`,"margin": `0 ${width>100?(100-width)/2+"%":"auto"}`});
@@ -330,13 +330,13 @@
     }
 
     function showMagnetTable(itemID,avid,href,elem) {
-        if ($(elem).hasClass("svg-loading")) {return;}
+        if ($(elem).hasClass("span-loading")) {return;}
         let tagName = `${itemID}${AVINFO_SUFFIX}`;
         let $el=$(`.pop-up-tag[name='${tagName}']`);
         if ($el.length > 0) {
             $el.show();myModal.show();
         } else {
-            $(elem).addClass("svg-loading");
+            $(elem).addClass("span-loading");
             Promise.resolve().then(()=>{
                 switch(currentWeb) {
                     case "javbus": {
@@ -348,7 +348,7 @@
                 }
             }).then((dom)=>{
                 myModal.append(dom).show();
-            }).catch(err=>alert(err)).then(()=>$(elem).removeClass("svg-loading"));
+            }).catch(err=>alert(err)).then(()=>$(elem).removeClass("span-loading"));
         }
     }
     //获取javdb的演员磁力信息
@@ -437,18 +437,18 @@
 
     //弹出视频截图
     function showBigImg(itemID,avid,elem) {
-        if ($(elem).hasClass("svg-loading")) {return;}
+        if ($(elem).hasClass("span-loading")) {return;}
         let tagName = `${itemID}${SCREENSHOT_SUFFIX}`;
         let $selector = $(`.pop-up-tag[name='${tagName}']`);
         if ($selector.length > 0) {
             $selector.show();
             myModal.show();
         } else {
-            $(elem).addClass("svg-loading");
+            $(elem).addClass("span-loading");
             getAvImg(avid,tagName).then(($img)=>{
                 myModal.append($img).show();
             }).catch(err=>err && showAlert(err)).then(()=>{
-                $(elem).removeClass("svg-loading");
+                $(elem).removeClass("span-loading");
             });
         }
     }
@@ -514,8 +514,8 @@
                 }
             })
             $img.find("span.download-icon").click(function(){
-                if ($(this).hasClass("svg-loading")) {return;}
-                $(this).addClass("svg-loading");
+                if ($(this).hasClass("span-loading")) {return;}
+                $(this).addClass("span-loading");
                 Promise.resolve({
                     then :(resolve,reject)=>{
                         GM_download({
@@ -526,7 +526,7 @@
                             onload :() => resolve()
                         });
                     }
-                }).catch(err=>err && showAlert(err)).then(()=>$(this).removeClass("svg-loading"));
+                }).catch(err=>err && showAlert(err)).then(()=>$(this).removeClass("span-loading"));
             });
             return $img;
         }
@@ -564,7 +564,7 @@
             halfImg_block_Pages:['/uncensored','javbus.one','mod=uc','javbus.red'],
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
-            widthSelector : '#waterfall-zdy',
+            widthSelector : '#grid-b',
             pageNext:'a#next',
             pageSelector:'.pagination',
             getAvItem: function (elem) {
@@ -590,15 +590,15 @@
             halfImg_block_Pages:['/uncensored','/western','/video_uncensored','/video_western'],
             gridSelector: 'div.movie-list.h',
             itemSelector: 'div.movie-list.h>div.item',
-            widthSelector : '#waterfall-zdy',
+            widthSelector : '#grid-b',
             pageNext: 'a.pagination-next',
             pageSelector:'.pagination-list',
             init_Style: function(){
-                GM_addStyle(`#waterfall-zdy .info-bottom-two{flex-grow:1}
+                GM_addStyle(`#grid-b .info-bottom-two{flex-grow:1}
                 [data-theme=light] .pop-up-tag[name$='${AVINFO_SUFFIX}'] {background-color: rgb(255 255 255 / 90%);}
                 [data-theme=dark] .scroll-request span{background:white;}
-                [data-theme=dark] #waterfall-zdy .movie-box-b a:link {color : inherit;}
-                [data-theme=dark] #waterfall-zdy  .movie-box-b{background-color:#222;}
+                [data-theme=dark] #grid-b .box-b a:link {color : inherit;}
+                [data-theme=dark] #grid-b  .box-b{background-color:#222;}
                 [data-theme=dark] .alert-zdy {color: black;background-color: rgb(255 255 255 / 90%);}
                 #myModal #modal-div article.message {margin-bottom: 0}`);
             },
@@ -620,7 +620,7 @@
             excludePages: ['/actresses'],
             gridSelector: 'div#waterfall',
             itemSelector: 'div#waterfall div.item',
-            widthSelector : '#waterfall-zdy',
+            widthSelector : '#grid-b',
             pageNext: 'a[name="nextpage"]',
             pageSelector:'.pagination',
             getAvItem: function (elem) {
@@ -639,7 +639,7 @@
             domainReg: /javlibrary\./i,
             gridSelector: 'div.videothumblist',
             itemSelector: 'div.videos div.video',
-            widthSelector : '#waterfall-zdy',
+            widthSelector : '#grid-b',
             pageNext: 'a.page.next',
             pageSelector:'.page_selector',
             getAvItem: function (elem) {
@@ -659,7 +659,7 @@
                 #leftmenu .menul1,#leftmenu .menul1>ul{display: flex;align-items: center;justify-content: center;flex-wrap: wrap;}
                 #leftmenu .menul1{padding: 5px;}
                 #rightcolumn{margin: 0 5px;padding : 10px 5px;}`:``}
-                #waterfall-zdy div{box-sizing: border-box;}`);
+                #grid-b div{box-sizing: border-box;}`);
             },
         }
     };
@@ -753,9 +753,8 @@
     }
     class GridPanel{
         constructor($items,lazyLoad){
-            this.$dom=$(`<div id= 'waterfall-zdy'></div>`);
-            $(currentObj.gridSelector).hide();//隐藏源页面列表
-            $(currentObj.gridSelector).eq(0).before(this.$dom);
+            this.$dom=$(`<div id= 'grid-b'></div>`);
+            $(currentObj.gridSelector).hide().eq(0).before(this.$dom);
             let $elems = this.constructor.parseItems($items);
             this.$dom.append($elems);
             lazyLoad.update();
@@ -775,23 +774,23 @@
                 }else{
                     let AvItem = parseFunc(tag);
                     html = `<div class="item-b">
-                                <div class="movie-box-b">
-                                <div class="photo-frame-b">
+                                <div class="box-b">
+                                <div class="cover-b">
                                     <a  href="${AvItem.href}" target="_blank"><img style="${imgStyle}" class="lazy minHeight-200"  data-src="${AvItem.src}" ></a>
                                 </div>
-                                <div class="photo-info-b">
-                                    <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="${fullTitle?'':'titleNowrap'}"><span class="svg-span copy-svg ${copyBtn?'':'jlt-hidden'}" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
+                                <div class="detail-b">
+                                    <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="${fullTitle?'':'titleNowrap'}"><span class="tool-span copy-span ${copyBtn?'':'hidden-b'}" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
                                     <div class="info-bottom">
                                       <div class="info-bottom-one">
-                                          <a  href="${AvItem.href}" target="_blank"><span class="svg-span copy-svg ${copyBtn?'':'jlt-hidden'}"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</a>
+                                          <a  href="${AvItem.href}" target="_blank"><span class="tool-span copy-span ${copyBtn?'':'hidden-b'}"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</a>
                                       </div>
                                       ${AvItem.score?`<a  href="${AvItem.href}" target="_blank"><div class="score">${AvItem.score}</div></a>`:``}
                                       <div class="info-bottom-two">
                                         <div class="item-tag">${AvItem.itemTag}</div>
-                                        <div class="func-div ${toolBar?'':'jlt-hidden'}" item-id="${AvItem.AVID}${Math.random().toString(16).slice(2)}"  >
-                                        <span name="magnet" class="svg-span  ${magnet?'':'jlt-hidden'}" title="${lang.tool_magnetTip}" AVID="${AvItem.AVID}" data-href="${AvItem.href}">${magnet_Svg}</span>
-                                        <span name="download" class="svg-span" title="${lang.tool_downloadTip}" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
-                                        <span name="picture" class="svg-span" title="${lang.tool_pictureTip}" AVID="${AvItem.AVID}" >${picture_Svg}</span>
+                                        <div class="toolbar-b ${toolBar?'':'hidden-b'}" item-id="${AvItem.AVID}${Math.random().toString(16).slice(2)}"  >
+                                        <span name="magnet" class="tool-span  ${magnet?'':'hidden-b'}" title="${lang.tool_magnetTip}" AVID="${AvItem.AVID}" data-href="${AvItem.href}">${magnet_Svg}</span>
+                                        <span name="download" class="tool-span" title="${lang.tool_downloadTip}" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
+                                        <span name="picture" class="tool-span" title="${lang.tool_pictureTip}" AVID="${AvItem.AVID}" >${picture_Svg}</span>
                                        </div>
                                      </div>
                                    </div>
@@ -875,26 +874,29 @@
         let waterfallWidth=Status.get("waterfallWidth");
         let css_waterfall = `
 ${currentObj.widthSelector}{width:${waterfallWidth}%;margin:0 ${waterfallWidth>100?(100-waterfallWidth)/2+'%':'auto'};transition:.5s ;}
-#waterfall-zdy{display:flex;flex-direction:row;flex-wrap:wrap;}
-#waterfall-zdy .item-b{padding:5px;width:${100 / columnNum}%;transition:.5s ;animation: fadeInUp .5s ease-out;}
-#waterfall-zdy .movie-box-b{border-radius:5px;background-color:white;border:1px solid rgba(0,0,0,0.2);box-shadow:0 2px 3px 0 rgba(0,0,0,0.1);overflow:hidden}
-#waterfall-zdy .movie-box-b a:link{color:black}
-#waterfall-zdy .movie-box-b a:visited{color:gray}
-#waterfall-zdy .movie-box-b .photo-frame-b{text-align:center}
-#waterfall-zdy .movie-box-b .photo-info-b{padding:7px}
-#waterfall-zdy .movie-box-b .photo-info-b a{display:block}
-#waterfall-zdy .info-bottom,.info-bottom-two{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
-#waterfall-zdy .avatar-box-b{display:flex;flex-direction:column;background-color:white;border-radius:5px;align-items:center;border:1px solid rgba(0,0,0,0.2)}
-#waterfall-zdy .avatar-box-b p{margin:0 !important}
-#waterfall-zdy date:first-of-type{font-size:18px !important}
-#waterfall-zdy .func-div{float:right;padding:2px;white-space:nowrap}
-#waterfall-zdy .func-div span{margin-right:2px}
-#waterfall-zdy .copy-svg{vertical-align:middle;display:inline-block}
-#waterfall-zdy span.svg-span{cursor:pointer;opacity:.3}
-#waterfall-zdy span.svg-span:hover{opacity:1}
-#waterfall-zdy .item-tag{display:inline-block;white-space:nowrap}
-#waterfall-zdy .jlt-hidden{display:none}
-#waterfall-zdy .minHeight-200{min-height:200px}
+#grid-b{display:flex;flex-direction:row;flex-wrap:wrap;}
+#grid-b .item-b{padding:5px;width:${100 / columnNum}%;transition:.5s ;animation: fadeInUp .5s ease-out;}
+#grid-b .box-b{border-radius:5px;background-color:white;border:1px solid rgba(0,0,0,0.2);box-shadow:0 2px 3px 0 rgba(0,0,0,0.1);overflow:hidden}
+#grid-b .box-b a:link{color:black}
+#grid-b .box-b a:visited{color:gray}
+#grid-b .box-b .cover-b{text-align:center}
+#grid-b .box-b .detail-b{padding:7px}
+#grid-b .box-b .detail-b a{display:block}
+#grid-b .info-bottom,.info-bottom-two{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+#grid-b .avatar-box-b{display:flex;flex-direction:column;background-color:white;border-radius:5px;align-items:center;border:1px solid rgba(0,0,0,0.2)}
+#grid-b .avatar-box-b p{margin:0 !important}
+#grid-b date:first-of-type{font-size:18px !important}
+#grid-b .toolbar-b{float:right;padding:2px;white-space:nowrap}
+#grid-b .toolbar-b span{margin-right:2px}
+#grid-b .copy-span{vertical-align:middle;display:inline-block}
+#grid-b span.tool-span{cursor:pointer;opacity:.3}
+#grid-b span.tool-span:hover{opacity:1}
+#grid-b .item-tag{display:inline-block;white-space:nowrap}
+#grid-b .hidden-b{display:none}
+#grid-b .minHeight-200{min-height:200px}
+svg.tool-svg{fill:currentColor;width:22px;height:22px;vertical-align:middle}
+span.span-loading{display:inline-block;animation:span-loading 2s infinite}
+
 #myModal{overflow-x:hidden;overflow-y:auto;display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1050;background-color:rgba(0,0,0,0.5)}
 #myModal #modal-div{position:relative;width:80%;margin:0 auto;background-color:rgb(6 6 6 / 50%);border-radius:8px;animation:fadeInDown .5s}
 #modal-div .pop-up-tag{border-radius:8px;overflow:hidden}
@@ -904,8 +906,7 @@ ${currentObj.widthSelector}{width:${waterfallWidth}%;margin:0 ${waterfallWidth>1
 #modal-div .avatar-box-zdy .photo-frame{overflow:hidden;height:120px;margin:10px}
 #modal-div .avatar-box-zdy img{height:120px}
 #modal-div .avatar-box-zdy span{font-weight:bold;text-align:center;word-wrap:break-word;display:flex;justify-content:center;align-items:center;padding:5px;line-height:22px;color:#333;background-color:#fafafa;border-top:1px solid #f2f2f2}
-svg.tool-svg{fill:currentColor;width:22px;height:22px;vertical-align:middle}
-span.svg-loading{display:inline-block;animation:svg-loading 2s infinite}
+
 #menu-div{white-space:nowrap;background-color:white;color:black;display:none;min-width:200px;border-radius:5px;padding:10px;box-shadow:0 10px 20px 0 rgb(0 0 0 / 50%)}
 #menu-div>div:hover{background-color:gainsboro}
 #menu-div .switch-div{display:flex;align-items:center;font-size:large;font-weight:bold}
@@ -920,10 +921,10 @@ span.svg-loading{display:inline-block;animation:svg-loading 2s infinite}
 @keyframes fadeInUp{0%{transform:translate3d(0,10%,0);opacity:.5}100%{transform:none;opacity:1}}
 @keyframes fadeInDown{0%{transform:translate3d(0,-100%,0);opacity:0}100%{transform:none;opacity:1}}
 @keyframes itemShow{0%{transform:scale(0)}100%{transform:scale(1)}}
-@keyframes svg-loading{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes span-loading{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
 .scroll-request{text-align:center;height:15px;margin:15px auto}
-.scroll-request span{display:inline-block;width:15px;height:100%;margin-right:8px;border-radius:50%;background:rgb(16,19,16);animation:load 1s ease infinite}
-@keyframes load{0%,100%{transform:scale(1)} 50%{transform:scale(0)}}
+.scroll-request span{display:inline-block;width:15px;height:100%;margin-right:8px;border-radius:50%;background:rgb(16,19,16);animation:scroll-load 1s ease infinite}
+@keyframes scroll-load{0%,100%{transform:scale(1)} 50%{transform:scale(0)}}
 .scroll-request span:nth-child(2){animation-delay:0.125s}
 .scroll-request span:nth-child(3){animation-delay:0.25s}
 .scroll-request span:nth-child(4){animation-delay:0.375s}
