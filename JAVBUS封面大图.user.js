@@ -895,6 +895,7 @@ ${currentObj.widthSelector}{width:${waterfallWidth}%;margin:0 ${waterfallWidth>1
 #grid-b .item-tag{display:inline-block;white-space:nowrap}
 #grid-b .hidden-b{display:none}
 #grid-b .minHeight-200{min-height:200px}
+#grid-b .cover-b img:not([src]) {visibility: hidden;}
 svg.tool-svg{fill:currentColor;width:22px;height:22px;vertical-align:middle}
 span.span-loading{display:inline-block;animation:span-loading 2s infinite}
 
