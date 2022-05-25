@@ -1,0 +1,27 @@
+.fixdHeight{
+    display:block;
+    position: relative;
+}
+.full-b .fixdHeight{
+    padding-top: 67.5%;
+}
+.half-b .fixdHeight{
+    padding-top: 142.6%;
+}
+.fixdHeight a{
+    position: absolute;
+    inset:0;
+}
+.fixdHeight img{
+    transition:.5s ;
+    object-fit: contain;
+    height: 100%;
+}
+.fixdHeight img.full-img {
+    width: 100%;
+    height: 100%;
+}
+.fixdHeight img.half-img {
+    float: right;
+    height: 100%;
+}
