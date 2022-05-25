@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20220429
+// @version      20220526
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-05-26 调整lazyload插件为本地加载
 // 2022-04-29 适配javdb的新页面; 查看视频截图: 增加blogjav的防攻击跳转提示
 // 2022-04-17 调整javdb的磁力元素选择器;查看视频截图：显示所有的结果
 // 2022-03-28 匹配dmmbus;修复标题不可点击的bug
@@ -762,9 +763,17 @@
         }
         static parseItems(elems){
             let elemsHtml = "";
-            let imgStyle = Status.isHalfImg() ? halfImgCSS : fullImgCSS;
-            let parseFunc = currentObj.getAvItem;
-            let [toolBar,copyBtn,fullTitle,magnet] =[Status.get("toolBar"),Status.get("copyBtn"),Status.get("fullTitle"),['javbus','javdb'].includes(currentWeb)];
+            let {imgStyle,getAvItem,toolBar,copyBtn,fullTitle,magnet,magnetTip,downloadTip,pictureTip} = {
+                imgStyle: Status.isHalfImg() ? halfImgCSS : fullImgCSS,
+                getAvItem: currentObj.getAvItem,
+                toolBar: Status.get("toolBar")?'':'hidden-b',
+                copyBtn: Status.get("copyBtn")?'':'hidden-b',
+                fullTitle: Status.get("fullTitle")?'':'titleNowrap',
+                magnet: ['javbus','javdb'].includes(currentWeb)?'':'hidden-b',
+                magnetTip : lang.tool_magnetTip,
+                downloadTip: lang.tool_downloadTip,
+                pictureTip: lang.tool_pictureTip,
+            };
             for (let i = 0; i < elems.length; i++) {
                 let tag = elems.eq(i);
                 let html = "";
@@ -773,25 +782,25 @@
                     tag.find(".avatar-box").addClass("avatar-box-b").removeClass("avatar-box");
                     html = `<div class='item-b'>${tag.html()}</div>`;
                 }else{
-                    let AvItem = parseFunc(tag);
+                    let AvItem = getAvItem(tag);
                     html = `<div class="item-b">
                                 <div class="box-b">
                                 <div class="cover-b">
                                     <a  href="${AvItem.href}" target="_blank"><img style="${imgStyle}" class="lazy minHeight-200"  data-src="${AvItem.src}" ></a>
                                 </div>
                                 <div class="detail-b">
-                                    <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="${fullTitle?'':'titleNowrap'}"><span class="tool-span copy-span ${copyBtn?'':'hidden-b'}" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
+                                    <a name="av-title" href="${AvItem.href}" target="_blank" title="${AvItem.title}" class="${fullTitle}"><span class="tool-span copy-span ${copyBtn}" name="copy">${copy_Svg}</span> <span>${AvItem.title}</span></a>
                                     <div class="info-bottom">
                                       <div class="info-bottom-one">
-                                          <a  href="${AvItem.href}" target="_blank"><span class="tool-span copy-span ${copyBtn?'':'hidden-b'}"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</a>
+                                          <a  href="${AvItem.href}" target="_blank"><span class="tool-span copy-span ${copyBtn}"  name="copy">${copy_Svg}</span><date name="avid">${AvItem.AVID}</date>${AvItem.date?` / ${AvItem.date}`:""}</a>
                                       </div>
                                       ${AvItem.score?`<a  href="${AvItem.href}" target="_blank"><div class="score">${AvItem.score}</div></a>`:``}
                                       <div class="info-bottom-two">
                                         <div class="item-tag">${AvItem.itemTag}</div>
-                                        <div class="toolbar-b ${toolBar?'':'hidden-b'}" item-id="${AvItem.AVID}${Math.random().toString(16).slice(2)}"  >
-                                        <span name="magnet" class="tool-span  ${magnet?'':'hidden-b'}" title="${lang.tool_magnetTip}" AVID="${AvItem.AVID}" data-href="${AvItem.href}">${magnet_Svg}</span>
-                                        <span name="download" class="tool-span" title="${lang.tool_downloadTip}" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
-                                        <span name="picture" class="tool-span" title="${lang.tool_pictureTip}" AVID="${AvItem.AVID}" >${picture_Svg}</span>
+                                        <div class="toolbar-b ${toolBar}" item-id="${AvItem.AVID}${Math.random().toString(16).slice(2)}"  >
+                                        <span name="magnet" class="tool-span  ${magnet}" title="${magnetTip}" AVID="${AvItem.AVID}" data-href="${AvItem.href}">${magnet_Svg}</span>
+                                        <span name="download" class="tool-span" title="${downloadTip}" src="${AvItem.src}" src-title="${AvItem.AVID} ${AvItem.title}">${download_Svg}</span>
+                                        <span name="picture" class="tool-span" title="${pictureTip}" AVID="${AvItem.AVID}" >${picture_Svg}</span>
                                        </div>
                                      </div>
                                    </div>
