@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-05-28 下载功能: 加载插件方法loadJS增加备用源
 // 2022-05-26 调整lazyload插件为本地加载
 // 2022-04-29 适配javdb的新页面; 查看视频截图: 增加blogjav的防攻击跳转提示
 // 2022-04-17 调整javdb的磁力元素选择器;查看视频截图：显示所有的结果
@@ -974,25 +975,43 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
         constructor(){
             this.addPanel();
         }
-        loadJS(){
-            let jsArray =["https://cdn.jsdelivr.net/npm/jszip@3.6.0/dist/jszip.min.js","https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"];
-            let head = document.getElementsByTagName("head")[0];
-            for (let url of jsArray.values()) {
-                let script = document.createElement("script");
-                script.src = url;
-                head.appendChild(script);
+        async loadJS(){
+            let me =this;
+            const urlList = [['https://unpkg.com/jszip@3.6.0/dist/jszip.min.js','https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js'],
+                            ['https://cdn.jsdelivr.net/npm/jszip@3.6.0/dist/jszip.min.js','https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js'],
+                            ['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js','https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js']];
+            const getJSFile = url => {
+                return new Promise((resolve, reject) => {
+                    console.log(url);
+                    GM_xmlhttpRequest({
+                        method: "GET",
+                        url: url,
+                        timeout: 10000,
+                        responseType: 'text',
+                        onload: (r) => resolve(r.responseText),
+                        onerror: (r) => reject('error'),
+                        ontimeout: (r) => reject('timeout')
+                    });
+                })
             }
-        }
-        js_wait(){
-            if (typeof JSZip === 'undefined' || typeof FileSaver === 'undefined') {
-                setTimeout(this.js_wait.bind(this), 200);
-            }else{
-                this.element.find("button[name=download]").attr("disabled",false);
+            let index = GM_getValue('downloadPanel_url',0);
+            for (let k = 0; k < urlList.length; k++) {
+                const values = await Promise.all([getJSFile(urlList[index][0]), getJSFile(urlList[index][1])])
+                                     .catch(reason => {console.log(reason); return false});
+                if(values == false) {
+                    index++;
+                    if(index>=urlList.length){ index = urlList.length-index; }
+                    continue;
+                }else{
+                    values.forEach(v=> eval(v));
+                    me.element.find("button[name=download]").attr("disabled",false);
+                    GM_setValue('downloadPanel_url',index);
+                    break;
+                }
             }
         }
         addPanel(){
             let me=this;
-            me.loadJS();
             GM_addStyle(`#downloadPanel{margin:5px;}#downloadPanel button[name="download"]{height:38px;border:1px solid #ce9c9c;padding:0 9px;border-radius:4px;font-size:20px;}#downloadPanel input{height:30px;padding:4px;border-radius:4px;border:1px solid #ce9c9c;font-size:20px;}#downloadPanel input:focus{outline:0px;}#downloadPanel button[disabled]{color:#0006;cursor:not-allowed !important}.downloadform{font-size:20px;display:flex;height:40px;align-items:center;}#file-Info div[name=filename]{width:70%;display:inline-block;text-align:right}#file-Info div[name=state]{width:30%;display:inline}`)
             me.element = $(`<div  id="downloadPanel">
                           <div class="downloadform">
@@ -1005,7 +1024,7 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
                           </div>
                           <div id="file-Info"></div>
                        </div>`);
-            me.js_wait();
+            me.loadJS();
             me.element.find("button[name=download]").on("click", function () {
                 let button = this;
                 button.disabled= true;
@@ -1024,7 +1043,7 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
             let list =[];
             let key = this.element.find("input[name=key]").val().toUpperCase();
             let keyArray = key.replace("，",",").split(",").filter(k=> k && k.trim());
-            $("div.movie-box-b").each(function () {
+            $("div.box-b").each(function () {
                 let avid = $(this).find("date[name=avid]").text();
                 if(keyArray.length && (! keyArray.find(k=> avid.toUpperCase().indexOf(k)>-1)) ){
                     return ;
@@ -1190,5 +1209,6 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
             }
             return this.instance;
         }
-    }    new Page();
+    }    
+    new Page();
 })();
