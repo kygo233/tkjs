@@ -474,16 +474,16 @@
             });
         }
     }
-    const getRequest = (url) => {
+    const getRequest = (url,params) => {
         return new Promise((resolve, reject)=>{
-            GM_xmlhttpRequest({
+            GM_xmlhttpRequest(Object.assign({
                 method: "GET",
                 url: url,
                 timeout: 20000,
                 onload: (r)=>resolve(r),
                 onerror : (r)=> reject(`error`),
                 ontimeout : (r)=> reject(`timeout`)
-            });
+            },params));
         })
     }
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
@@ -981,32 +981,22 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
                             ['https://cdn.jsdelivr.net/npm/jszip@3.6.0/dist/jszip.min.js','https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js'],
                             ['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js','https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js']];
             const getJSFile = url => {
-                return new Promise((resolve, reject) => {
-                    console.log(url);
-                    GM_xmlhttpRequest({
-                        method: "GET",
-                        url: url,
-                        timeout: 10000,
-                        responseType: 'text',
-                        onload: (r) => resolve(r.responseText),
-                        onerror: (r) => reject('error'),
-                        ontimeout: (r) => reject('timeout')
-                    });
-                })
+                console.log(url);
+                return getRequest(url,{timeout: 10000,responseType: 'text'})
             }
             let index = GM_getValue('downloadPanel_url',0);
             for (let k = 0; k < urlList.length; k++) {
                 const values = await Promise.all([getJSFile(urlList[index][0]), getJSFile(urlList[index][1])])
                                      .catch(reason => {console.log(reason); return false});
-                if(values == false) {
-                    index++;
-                    if(index>=urlList.length){ index = urlList.length-index; }
-                    continue;
-                }else{
-                    values.forEach(v=> eval(v));
+                if(values) {
+                    values.forEach(v=> eval(v.responseText));
                     me.element.find("button[name=download]").attr("disabled",false);
                     GM_setValue('downloadPanel_url',index);
                     break;
+                }else{
+                    index++;
+                    if(index>=urlList.length){ index = urlList.length-index; }
+                    continue;
                 }
             }
         }
@@ -1073,17 +1063,7 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
             }).then(() => zip.generateAsync({type:"blob"}).then(blob => saveAs(blob, "download.zip") ))
         }
         getImgResource(url){
-            return new Promise((resolve, reject)=>{
-                GM_xmlhttpRequest({
-                    method: "GET",
-                    url: url,
-                    timeout: 20000,
-                    responseType : 'blob',
-                    onload: (r)=>resolve(r),
-                    onerror : (r)=> reject(),
-                    ontimeout : (r)=> reject()
-                });
-            })
+            return getRequest(url,{timeout: 20000,responseType: 'blob'})
         }
         //https://blog.csdn.net/ghostlpx/article/details/106431837
         async asyncPool(poolLimit, array, iteratorFn) {
