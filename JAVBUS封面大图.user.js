@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20220526
+// @version      20220918
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2022-09-18 修复视频截图报错
 // 2022-05-26 调整lazyload插件为本地加载
 // 2022-04-29 适配javdb的新页面; 查看视频截图: 增加blogjav的防攻击跳转提示
 // 2022-04-17 调整javdb的磁力元素选择器;查看视频截图：显示所有的结果
@@ -534,8 +535,8 @@
         }
         async getScreenshotUrl(imgUrl){
             const result = await getRequest(imgUrl);
-            let img_src = /<img .*data-lazy-src="https:\/\/.*pixhost.to\/thumbs\/.*>/.exec(result.responseText);
-            let src = $(img_src[0]).attr("data-lazy-src").replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
+            let img_src = /<noscript>.*src="(.*pixhost.to\/thumbs[\S]+)".*<\/noscript>/.exec(result.responseText);
+            let src = img_src[1].replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
             console.log(src);
             return src;
         }
