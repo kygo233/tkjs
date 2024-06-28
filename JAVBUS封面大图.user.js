@@ -71,6 +71,8 @@
         columnNumHalf:4,
         menutoTop : false
     };
+    const VERSION = "20240629";
+    const NOTICE = "2024-06-29: 修复图片下载失败的问题";
     const SCREENSHOT_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "h2.entry-title>a";
@@ -139,7 +141,7 @@
     let showAlert = (msg,close) => {
         let $alert=$(`<div  class="alert-zdy" >${msg}</div>`);
         if(close){
-            let $close = $(`<div style="display: inline-block;padding: 0 10px;cursor: pointer;">X</div>`);
+            let $close = $(`<div style="display: inline-block;padding: 0 0 0 10px;color:gray;cursor: pointer;">X</div>`);
             $alert.append($close);
             $close.on("click",()=>$alert.hide());
         }
@@ -301,13 +303,11 @@
             }
             $menu.append(this.creatRange("columnNum", lang.menu_columnNum, columnNum, 8));
             $menu.append(this.creatRange("waterfallWidth", '%', Status.get("waterfallWidth") , currentObj.maxWidth ? currentObj.maxWidth : 100));
-            let $circle = $(`<div style="position: ${currentWeb=="javlibrary"?"absolute":"fixed"};z-index: 1030;left:0;top:${currentWeb=="javlibrary"?"36px":"0px"};"><div style="width: 40px;height: 40px;background-color: rgb(208 176 176 / 90%);border-radius: 20px;"></div></div>`);
+            let $circle = $(`<div style="position: ${currentWeb=="javlibrary"?"absolute":"fixed"};z-index: 1030;left:0;top:${currentWeb=="javlibrary"?"36px":"0px"};"><div style="width: 40px;height: 40px;background-color: rgb(208 176 176 / 60%);border-radius: 20px;"></div></div>`);
             $circle.append($menu);
             $circle.mouseenter(() => $menu.show()).mouseleave(() => $menu.hide());
             $("body").append($circle);
-            if(!Status.get("notice")){
-                $menu.slideDown();Status.set("notice",true);
-            }
+            notice($menu);
         }
         creatCheckbox(tagName, name, disabled) {
             let me =this;
@@ -331,7 +331,16 @@
             return $range;
         }
     }
-
+    const notice = ($menu)=>{
+        let version = Status.get("version");
+        if(version != VERSION){
+            if(!version){
+                $menu.slideDown();
+            }
+            showAlert(NOTICE,true);
+            Status.set("version",VERSION);
+        }
+    }
     function showMagnetTable(itemID,avid,href,elem) {
         if ($(elem).hasClass("span-loading")) {return;}
         let tagName = `${itemID}${AVINFO_SUFFIX}`;
