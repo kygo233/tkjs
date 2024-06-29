@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图 测试
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails-test
-// @version      20220918
+// @version      20240629
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2024-06-29 修复图片下载失败的问题;新增更新内容通知弹窗
 // 2022-09-18 修复视频截图报错
 // 2022-05-26 调整lazyload插件为本地加载; 加载插件方法loadJS增加备用源
 // 2022-04-29 适配javdb的新页面; 查看视频截图: 增加blogjav的防攻击跳转提示
@@ -76,6 +77,8 @@
 		hiddenWord :[],
 		hiddenAvid :[]
     };
+    const VERSION = "20240629";
+    const NOTICE = "2024-06-29: 修复图片下载失败的问题";
     const SCREENSHOT_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "h2.entry-title>a";
@@ -144,7 +147,7 @@
     let showAlert = (msg,close) => {
         let $alert=$(`<div  class="alert-zdy" >${msg}</div>`);
         if(close){
-            let $close = $(`<div style="display: inline-block;padding: 0 10px;cursor: pointer;">X</div>`);
+            let $close = $(`<div style="display: inline-block;padding: 0 0 0 10px;color:gray;cursor: pointer;">X</div>`);
             $alert.append($close);
             $close.on("click",()=>$alert.hide());
         }
@@ -318,9 +321,7 @@
             $circle.append($menu);
             $circle.mouseenter(() => $menu.show()).mouseleave(() => $menu.hide());
             $("body").append($circle);
-            if(!Status.get("notice")){
-                $menu.slideDown();Status.set("notice",true);
-            }
+            notice($menu);
         }
         creatCheckbox(tagName, name, disabled) {
             let me =this;
@@ -350,7 +351,16 @@
             return $button;
         }
     }
-
+    const notice = ($menu)=>{
+        let version = Status.get("version");
+        if(version != VERSION){
+            if(!version){
+                $menu.slideDown();
+            }
+            showAlert(NOTICE,true);
+            Status.set("version",VERSION);
+        }
+    }
     function showMagnetTable(itemID,avid,href,elem) {
         if ($(elem).hasClass("span-loading")) {return;}
         let tagName = `${itemID}${AVINFO_SUFFIX}`;
@@ -486,6 +496,21 @@
             },params));
         })
     }
+    const  downloadImg =  (url,name,elem) => {
+        if ($(elem).hasClass("span-loading")) return;
+        $(elem).addClass("span-loading");
+        new Promise((resolve, reject)=>{
+            GM_download({
+                url: url,
+                name :name,
+                headers : {Referer : url},
+                onload: (r)=>resolve(r),
+                onerror : (error,detail)=> reject(`error 错误`),
+                ontimeout : (r)=> reject(`timeout 超时`)
+            })})
+        .catch(err=>showAlert(err))
+        .then(()=>$(elem).removeClass("span-loading"));
+    }
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
     async function getAvImg(avid,tagName) {
         const r = await getRequest(`https://blogjav.net/?s=${avid}`);
@@ -536,19 +561,9 @@
                 }
             })
             $img.find("span.download-icon").click(function(){
-                if ($(this).hasClass("span-loading")) {return;}
-                $(this).addClass("span-loading");
-                Promise.resolve({
-                    then :(resolve,reject)=>{
-                        GM_download({
-                            url :$img.find("img:visible").attr(`src`),
-                            name: `${avid || "screenshot"}.jpg`,
-                            onerror  :r => reject("error"),
-                            ontimeout :r => reject("timeout"),
-                            onload :() => resolve()
-            });
-                    }
-                }).catch(err=>err && showAlert(err)).then(()=>$(this).removeClass("span-loading"));
+                let url = $img.find("img:visible").attr(`src`);
+                let name = `${avid || "screenshot"}.jpg`;
+                downloadImg(url,name,this);
             });
             return $img;
         }
@@ -839,7 +854,9 @@
                 let name = $(this).attr("name");
                 switch (name) {
                     case "copy":GM_setClipboard($(this).next().text());showAlert(lang.copySuccess);return false;
-                    case "download":GM_download($(this).attr("src"), $(this).attr("src-title")+".jpg");break;
+                    case "download":
+                        let [url,name] = [$(this).attr("src"),$(this).attr("src-title")+".jpg"];
+                        downloadImg(url,name,this);break;
                     case "magnet":showMagnetTable($(this).parent("div").attr("item-id"),$(this).attr("AVID").replace(/\./g, '-'),$(this).attr("data-href"),this);break;
                     case "picture":showBigImg($(this).parent("div").attr("item-id"),$(this).attr("AVID"),this);break;
                     default:break;
