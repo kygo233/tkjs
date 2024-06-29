@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails
-// @version      20220918
+// @version      20240629
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2024-06-29 修复图片下载失败的问题;新增更新内容通知弹窗
 // 2022-09-18 修复视频截图报错
 // 2022-05-26 调整lazyload插件为本地加载
 // 2022-04-29 适配javdb的新页面; 查看视频截图: 增加blogjav的防攻击跳转提示
@@ -476,6 +477,21 @@
             });
         })
     }
+    const  downloadImg =  (url,name,elem) => {
+        if ($(elem).hasClass("span-loading")) return;
+        $(elem).addClass("span-loading");
+        new Promise((resolve, reject)=>{
+            GM_download({
+                url: url,
+                name :name,
+                headers : {Referer : url},
+                onload: (r)=>resolve(r),
+                onerror : (error,detail)=> reject(`error 错误`),
+                ontimeout : (r)=> reject(`timeout 超时`)
+            })})
+        .catch(err=>showAlert(err))
+        .then(()=>$(elem).removeClass("span-loading"));
+    }
     /**根据番号获取blogjav的视频截图，使用fetch会产生跨域问题*/
     async function getAvImg(avid,tagName) {
         const r = await getRequest(`https://blogjav.net/?s=${avid}`);
@@ -526,19 +542,9 @@
                 }
             })
             $img.find("span.download-icon").click(function(){
-                if ($(this).hasClass("span-loading")) {return;}
-                $(this).addClass("span-loading");
-                Promise.resolve({
-                    then :(resolve,reject)=>{
-                        GM_download({
-                            url :$img.find("img:visible").attr(`src`),
-                            name: `${avid || "screenshot"}.jpg`,
-                            onerror  :r => reject("error"),
-                            ontimeout :r => reject("timeout"),
-                            onload :() => resolve()
-                        });
-                    }
-                }).catch(err=>err && showAlert(err)).then(()=>$(this).removeClass("span-loading"));
+                let url = $img.find("img:visible").attr(`src`);
+                let name = `${avid || "screenshot"}.jpg`;
+                downloadImg(url,name,this);
             });
             return $img;
         }
@@ -825,7 +831,9 @@
                 let name = $(this).attr("name");
                 switch (name) {
                     case "copy":GM_setClipboard($(this).next().text());showAlert(lang.copySuccess);return false;
-                    case "download":GM_download($(this).attr("src"), $(this).attr("src-title")+".jpg");break;
+                    case "download":
+                        let [url,name] = [$(this).attr("src"),$(this).attr("src-title")+".jpg"];
+                        downloadImg(url,name,this);break;
                     case "magnet":showMagnetTable($(this).parent("div").attr("item-id"),$(this).attr("AVID").replace(/\./g, '-'),$(this).attr("data-href"),this);break;
                     case "picture":showBigImg($(this).parent("div").attr("item-id"),$(this).attr("AVID"),this);break;
                     default:break;
