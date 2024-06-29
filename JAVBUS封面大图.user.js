@@ -772,7 +772,7 @@
                 scroller=new ScrollerPlugin(gridPanel.$dom,lazyLoad);
             }
          }
-                }
+    }
     class GridPanel{
         constructor($items,lazyLoad){
             this.$dom=$(`<div id= 'grid-b'></div>`);
@@ -1040,7 +1040,7 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
                 }
                 let url = $(this).find("img.lazy").attr("data-src");
                 let title = $(this).find("a[name='av-title']").attr("title");
-                let filename = `${avid} ${title}.jpg`;
+                let filename = `${avid} ${title.replace(/\//g,'_')}.jpg`;//标题中含有斜杠时，压缩包创建文件夹
                 list.push({avid:avid,url:url,filename:filename});
             });
             return list;
@@ -1063,7 +1063,7 @@ span.span-loading{display:inline-block;animation:span-loading 2s infinite}
             }).then(() => zip.generateAsync({type:"blob"}).then(blob => saveAs(blob, "download.zip") ))
         }
         getImgResource(url){
-            return getRequest(url,{timeout: 20000,responseType: 'blob'})
+            return getRequest(url,{responseType: 'blob',headers : {Referer : url}})
         }
         //https://blog.csdn.net/ghostlpx/article/details/106431837
         async asyncPool(poolLimit, array, iteratorFn) {
