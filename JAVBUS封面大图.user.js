@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图 测试
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails-test
-// @version      20240629
+// @version      20250215
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2025-02-15 调整部分大图的替换规则siro-5418
 // 2024-06-29 修复图片下载失败的问题;新增更新内容通知弹窗
 // 2022-09-18 修复视频截图报错
 // 2022-05-26 调整lazyload插件为本地加载; 加载插件方法loadJS增加备用源
@@ -77,8 +78,8 @@
 		hiddenWord :[],
 		hiddenAvid :[]
     };
-    const VERSION = "20240629";
-    const NOTICE = "2024-06-29: 修复图片下载失败的问题";
+    const VERSION = "20250215";
+    const NOTICE = "2025-02-15 调整部分大图的替换规则";
     const SCREENSHOT_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "h2.entry-title>a";
@@ -317,7 +318,7 @@
             $menu.append(this.creatRange("waterfallWidth", '%', Status.get("waterfallWidth") , currentObj.maxWidth ? currentObj.maxWidth : 100));
             $menu.append(this.creatButton("downloadPanel","批量下载封面"));
             $menu.append(this.creatButton("addHiddenWords","添加屏蔽词"));
-            let $circle = $(`<div style="position: ${currentWeb=="javlibrary"?"absolute":"fixed"};z-index: 1030;left:0;top:${currentWeb=="javlibrary"?"36px":"0px"};"><div style="width: 40px;height: 40px;background-color: rgb(208 176 176 / 90%);border-radius: 20px;"></div></div>`);
+            let $circle = $(`<div style="position: ${currentWeb=="javlibrary"?"absolute":"fixed"};z-index: 1030;left:0;top:${currentWeb=="javlibrary"?"36px":"0px"};"><div style="width: 36px;height: 36px;background-color: rgb(208 176 176 / 30%);border-radius: 18px;"></div></div>`);
             $circle.append($menu);
             $circle.mouseenter(() => $menu.show()).mouseleave(() => $menu.hide());
             $("body").append($circle);
@@ -611,6 +612,8 @@
                 var src = img.src;
                 if (src.match(/pics.dmm.co.jp/)) {
                     src = src.replace(/ps.jpg/, "pl.jpg");
+                }else if(src.match(/image.mgstage.com/)){
+                    src = src.replace(/pf_o1_|pb_p_/, "pb_e_");
                 } else {
                     src = src.replace(/thumbs/, "cover").replace(/thumb/, "cover").replace(/.jpg/, "_b.jpg");
                 }
