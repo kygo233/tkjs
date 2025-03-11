@@ -3,7 +3,7 @@
 // @name:zh-CN   JAVBUS封面大图 测试
 // @namespace    https://github.com/kygo233/tkjs
 // @homepage     https://sleazyfork.org/zh-CN/scripts/409874-javbus-larger-thumbnails-test
-// @version      20250215
+// @version      20250311
 // @author       kygo233
 // @license      MIT
 // @description          replace thumbnails of javbus,javdb,javlibrary and avmoo with source images
@@ -25,6 +25,7 @@
 // @grant        GM_setClipboard
 // @connect *
 
+// 2025-03-11 修复视频截图的报错
 // 2025-02-15 调整部分大图的替换规则siro-5418
 // 2024-06-29 修复图片下载失败的问题;新增更新内容通知弹窗
 // 2022-09-18 修复视频截图报错
@@ -78,8 +79,8 @@
 		hiddenWord :[],
 		hiddenAvid :[]
     };
-    const VERSION = "20250215";
-    const NOTICE = "2025-02-15 调整部分大图的替换规则";
+    const VERSION = "20250311";
+    const NOTICE = "2025-03-11 修复视频截图的报错";
     const SCREENSHOT_SUFFIX = "-screenshot-tag";
     const AVINFO_SUFFIX = "-avInfo-tag";
     const blogjavSelector= "h2.entry-title>a";
@@ -525,55 +526,92 @@
         if (resultList.length==0) {
            return Promise.reject(lang.getAvImg_none);
         }
-        let $img = new ScreenshotPanel(tagName,resultList,avid);
-        let findIndex = resultList.findIndex(v=> v.title.search(/FHD/i)>0);//默认显示FHD
-        let index_show = findIndex>-1?findIndex:0;
-        $img.find(`li.imgResult-li[index=${index_show}]`).trigger('click');
+        let indexTo = -1;
+        for (let i = 0; i < resultList.length; i++) {
+            const r = resultList[i];
+            let src = await ScreenshotPanel.getScreenshotUrl(r.href);
+            if(src) {
+                r.src = src;
+                indexTo = i;
+                break;
+            }
+        }
+        if(indexTo == -1) {
+            return Promise.reject(lang.getAvImg_none);
+        }
+        let $img = new ScreenshotPanel(tagName,resultList.slice(indexTo),avid);
         return $img;
     };
     class ScreenshotPanel{
         constructor(tagName,resultList,avid){
             let me =this;
-            let $img = $(`<div name="${tagName}" class="pop-up-tag" style="min-height:${$(window).height()}px;">
-                        <ul style="${resultList.length==1?'display:none':''}">
-                        ${resultList.map((v,i)=>`<li class="imgResult-li" index=${i} data="${v.href}">${v.title}</li>`).join('')}</ul>
+            let liHtml = resultList.map((v,i) => {
+                if(i==0){
+                    return `<li class="imgResult-li imgResult-Current" index=${i}>${v.title}</li>`
+                } else {
+                    return `<li class="imgResult-li" index=${i}>${v.title}</li>`
+                }
+            }).join('');
+            let imgsHtml = resultList.map((v,i)=> {
+                if(i==0){
+                    return `<img index=${i} src="${v.src}"  name="screenshot" style="width:100%" />`
+                } else {
+                    return `<img index=${i}  name="screenshot" style="display:none;width:100%" />`
+                }
+            }).join('');
+            let $panel = $(`<div name="${tagName}" class="pop-up-tag" style="min-height:${$(window).height()}px;">
+                        <ul>${liHtml}</ul>
                         <span class="download-icon" >${download_Svg}</span>
-                        ${resultList.map((v,i)=>`<img index=${i}  name="screenshot" style="display:none;width:100%" />`).join('')}
-                        </div>`);
-            $img.find("li.imgResult-li").click(function(){
+                        ${imgsHtml}</div>`);
+            $panel.find("li.imgResult-li").click(async function(){
                 if ($(this).hasClass("imgResult-loading")) {return;}
                 let index_to = $(this).attr('index');
-                let index_from =  $img.find("img:visible").attr(`index`);
+                let index_from =  $panel.find("img:visible").attr(`index`);
                 if( index_to != index_from){
-                    $img.find("li.imgResult-li.imgResult-Current").removeClass('imgResult-Current');
+                    $panel.find("li.imgResult-li.imgResult-Current").removeClass('imgResult-Current');
                     $(this).addClass(`imgResult-loading`).addClass("imgResult-Current");
-                    $img.find("img").hide();
-                    let $img_to = $img.find(`img[index=${index_to}]`);
+                    $panel.find("img").hide();
+                    let $img_to = $panel.find(`img[index=${index_to}]`);
                     $img_to.show();
-                    Promise.resolve().then(()=>{
-                        if($img_to.attr(`src`)){
-                            return true;
-                        }else{
-                            return me.getScreenshotUrl($(this).attr('data')).then((r)=>{
-                                $img_to.attr(`src`,r);
-                            });
+                    try {
+                        let data = resultList[index_to];
+                        if(!data.src){
+                            if(data.src === undefined){
+                                let src =  await me.constructor.getScreenshotUrl(data.href);
+                                data.src = src;
+                                if(src === null){
+                                    throw lang.getAvImg_none;
+                                }
+                                $img_to.attr(`src`,src);
+                            }else if(data.src === null){
+                                throw lang.getAvImg_none;
+                            }
                         }
-                    }).catch((err)=>{showAlert(err)}).then((r)=>{$(this).removeClass(`imgResult-loading`);});
+
+                    } catch (error) {
+                        showAlert(error)
+                    }finally{
+                        $(this).removeClass(`imgResult-loading`);
+                    }
                 }
             })
-            $img.find("span.download-icon").click(function(){
-                let url = $img.find("img:visible").attr(`src`);
+            $panel.find("span.download-icon").click(function(){
+                let url = $panel.find("img:visible").attr(`src`);
                 let name = `${avid || "screenshot"}.jpg`;
                 downloadImg(url,name,this);
             });
-            return $img;
+            return $panel;
         }
-        async getScreenshotUrl(imgUrl){
+        static async getScreenshotUrl(imgUrl){
             const result = await getRequest(imgUrl);
-            let img_src = /<noscript>.*src="(.*pixhost.to\/thumbs[\S]+)".*<\/noscript>/.exec(result.responseText);
-            let src = img_src[1].replace('thumbs', 'images').replace('//t', '//img').replace('"', '');
-            console.log(src);
-            return src;
+            const $img = $($.parseHTML(result.responseText)).find(`#primary .entry-content>p img[src*="pixhost.to/thumbs"]`);
+            if ($img.length == 0) {
+                return null;
+            }else{
+                let src = $img[0].src.replace('thumbs', 'images').replace('//t', '//img');
+                console.log(src);
+                return src;
+            }
         }
     }
 
