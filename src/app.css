@@ -1,81 +1,60 @@
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+.hidden-b {
+    display: none !important;
+}
+.alert-zdy {
+    position: fixed;
+    white-space: nowrap;
+    top: 50%;
+    left: 50%;
+    padding: 10px;
+    font-size: 20px;
+    color: white;
+    background-color: rgb(0, 0, 0, 0.75);
+    border-radius: 5px;
+    z-index: 1051;
+    transform: translate(-50%, -50%);
+}
+.alert-close {
+    display: inline-block;
+    padding: 0 0 0 10px;
+    color: gray;
+    cursor: pointer;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.btn-copy {
+    display: block;
+    margin: auto;
+    border: none;
+    color: #fff;
+    text-wrap: nowrap;
+    background-color: #dc3545;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+[data-theme="dark"] {
+    .scroll-request span {
+        background: white;
+    }
+    #grid-b a.box-b {
+        color: #d1d1d1;
+        background-color: #222;
+    }
+    .alert-zdy {
+        color: black;
+        background-color: rgb(255 255 255 / 90%);
+    }
 }
-
-.card {
-  padding: 2em;
+#myModal #modal-div {
+    .modal-content-b[id^="magnet"] {
+        [data-theme="light"]& {
+            background-color: rgb(255 255 255 / 90%);
+        }
+    }
+    article.message {
+        margin-bottom: 0;
+    }
 }
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.max-width-100 {
+    max-width: 100% !important;
 }
