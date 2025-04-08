@@ -1,28 +1,27 @@
 <script lang="ts">
     import { GM_setValue } from "$";
-    import LANG from "../utils/language";
-    import { Page, JAVDB, JAVFREE, BLOGJAV, defaultConfig } from "../utils/siteConfigs";
-    import { status } from "../utils/status.svelte";
+    import LANG from "../../utils/language";
+    import { defaultConfigMissav, MISSAV } from "../../utils/siteConfigs";
 
-    type ConfigKeys = keyof typeof defaultConfig;
+    let { config } = $props();
+
+    type ConfigKeys = keyof typeof defaultConfigMissav;
     type CheckboxItem = { text: string; disabled: boolean };
     type Checkboxs = Record<ConfigKeys, CheckboxItem>;
 
     let isVisible = $state(false);
-
-    const config: Record<ConfigKeys, any> = status.config;
     let checkboxs = $state<Checkboxs>({} as Checkboxs);
-    (Object.keys(defaultConfig) as ConfigKeys[]).forEach(key => {
-        if (typeof defaultConfig[key] === "boolean") {
-            if (key === "maxWidth" && Page.name !== JAVDB) return;
+
+    (Object.keys(defaultConfigMissav) as ConfigKeys[]).forEach(key => {
+        if (typeof defaultConfigMissav[key] === "boolean") {
             checkboxs[key] = {
                 text: LANG[`menu_${key}`],
-                disabled: key === "halfImg" && status.isHalfImgBlock,
+                disabled: false,
             };
         }
     });
     $effect(() => {
-        GM_setValue("config", config);
+        GM_setValue(`config_${MISSAV}`, config);
     });
 </script>
 
@@ -36,28 +35,6 @@
                 <label for={key + "_checkbox"}>{item.text}</label>
             </div>
         {/each}
-
-        {#if config.halfImg}
-            <div class="range-div">
-                <input type="range" disabled={config.autoColumn || status.isHalfImgBlock} bind:value={config.columnNumHalf} min="1" max="8" step="1" />
-                <span>{config.columnNumHalf}</span>
-            </div>
-        {:else}
-            <div class="range-div">
-                <input type="range" disabled={config.autoColumn} bind:value={config.columnNumFull} min="1" max="8" step="1" />
-                <span>{config.columnNumFull}</span>
-            </div>
-        {/if}
-        <div class="input-div">
-            <input bind:value={config.linkUrl} />
-        </div>
-        <div class="radio-div">
-            <span>{LANG.menu_previewSite}</span>&nbsp;
-            <input type="radio" id={JAVFREE + "_radio"} bind:group={config.previewSite} value={JAVFREE} />
-            <label for={JAVFREE + "_radio"}>javfree.me</label>
-            <input type="radio" id={BLOGJAV + "_radio"} bind:group={config.previewSite} value={BLOGJAV} />
-            <label for={BLOGJAV + "_radio"}>blogjav.net</label>
-        </div>
     </div>
 </div>
 
@@ -119,21 +96,6 @@
         .checkbox-div {
             label {
                 flex-grow: 1;
-            }
-        }
-        .range-div input {
-            width: 250px;
-        }
-        .input-div input {
-            border-radius: 3px;
-            border: 1px solid rgb(0, 0, 0, 0.5);
-            padding: 3px;
-            font-size: medium;
-            flex-grow: 1;
-        }
-        .radio-div {
-            label {
-                font-weight: initial;
             }
         }
     }

@@ -2,12 +2,11 @@
     import { onDestroy } from "svelte";
     import { Page } from "../utils/siteConfigs";
     import LANG from "../utils/language";
-    import { status as STATUS } from "../utils/status.svelte";
 
-    let { itemsOperations } = $props();
+    let { itemsOperations, config } = $props();
     let status = $state("");
 
-    const [REQUEST, ERROR, END] = ["1", "2", "3"];
+    const [LOAD, ERROR, END] = ["1", "2", "3"];
     class LoadMore {
         grid = Page.renderEl!;
         locked = false;
@@ -42,13 +41,13 @@
         async loadNextPage(url: string) {
             try {
                 console.log(url);
-                status = REQUEST;
+                status = LOAD;
                 let responseText = await fetch(url, { credentials: "same-origin" }).then(response => response.text());
                 let doc = new DOMParser().parseFromString(responseText, "text/html");
                 let items = itemsOperations.get(doc.body.querySelectorAll(Page.itemSelector));
                 itemsOperations.filter(items);
                 itemsOperations.update(items);
-                STATUS.config.pageHistory && history.pushState({}, "", url);
+                config.pageHistory && history.pushState({}, "", url);
                 this.nextURL = doc.body.querySelector(Page.pageNext)?.getAttribute("href");
                 status = this.nextURL ? "" : END;
             } catch (error) {
@@ -65,10 +64,10 @@
 </script>
 
 <div class="scroll-status">
-    {#if status == REQUEST}
-        <div class="scroll-request"><span></span><span></span><span></span><span></span></div>
+    {#if status == LOAD}
+        <div class="scroll-load"><span></span><span></span><span></span><span></span></div>
     {:else if status == END}
-        <h3 class="scroll-end">${LANG.autoPage_end}</h3>
+        <h3 class="scroll-end">{LANG.autoPage_end}</h3>
     {:else if status == ERROR}
         <h3 class="scroll-error">error</h3>
     {/if}
@@ -96,7 +95,7 @@
             transform: scale(0);
         }
     }
-    .scroll-request {
+    .scroll-load {
         span:nth-child(2) {
             animation-delay: 0.125s;
         }

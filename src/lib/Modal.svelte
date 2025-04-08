@@ -121,7 +121,7 @@
         position: relative;
         width: 80%;
         max-width: 1200px;
-        animation: fadeInDown 0.5s;
+        animation: fadeInDown 0.5s ease-out;
         max-height: 100vh;
 
         .modal-content-b {

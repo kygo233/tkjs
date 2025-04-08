@@ -2,13 +2,13 @@ import { getRequest, Tips } from "./index";
 import LANG from "./language";
 import { status } from "../utils/status.svelte";
 import { GM_setClipboard } from "$";
-import { JAVBUS, JAVDB, type AvItem } from "./siteConfigs";
+import { JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteConfigs";
 
 async function getMagnetFromJavbus(avid: string): Promise<HTMLTableElement[]> {
     const originUrl = "https://www.javbus.com";
     avid = avid.replace("-uncensored-leak", "").replace("-chinese-subtitle", "");
     const url = `${originUrl}/${avid}`;
-    const response = await getRequest(url).then(r => r.responseText);
+    const response = await getRequest(url);
     if (response.status == 404) {
         throw LANG.request_invalidUrl;
     }
@@ -23,7 +23,7 @@ const getGid = (doc: string): [gid: string, uc_code: string] => {
     const str = /var\s+gid\s+=\s+(\d{1,})/.exec(doc);
     const uc = /var\s+uc\s+=\s+(0|1)/.exec(doc);
     if (!str || !uc) {
-        throw new Error("error");
+        throw new Error("getGid error");
     }
     return [str[1], uc[1]];
 };
@@ -118,4 +118,5 @@ export const getMagnet = {
         }
         return resultEl;
     },
+    [MISSAV]: getMagnetFromJavbus,
 };

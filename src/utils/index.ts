@@ -1,11 +1,4 @@
 import { GM_xmlhttpRequest, GM_download, type GmDownloadOptions } from "$";
-import { mount } from "svelte";
-
-export const mountBody = (component: any) => {
-    return mount(component, {
-        target: document.body,
-    });
-};
 
 export const asyncWithLoading = async (fn: Function, item: Record<string, any>, loadingProp = "isLoading") => {
     try {

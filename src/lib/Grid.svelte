@@ -2,10 +2,10 @@
     import { status } from "../utils/status.svelte";
     import { Page, JAVBUS, type AvItem, pictureSvg, magnetSvg, linkSvg, JAVDB } from "../utils/siteConfigs";
     import LazyLoad, { type ILazyLoadInstance } from "vanilla-lazyload";
-    import { tick } from "svelte";
+    import { mount, tick } from "svelte";
     import { GM_addStyle } from "$";
     import Menu from "./Menu.svelte";
-    import { getRequest, asyncWithLoading, mountBody } from "../utils/index";
+    import { getRequest, asyncWithLoading } from "../utils/index";
     import { getMagnet } from "../utils/magnet";
     import LoadMore from "./LoadMore.svelte";
     import Preview from "./Preview.svelte";
@@ -79,7 +79,7 @@
         }
         toolbar = {
             magnet: async (item: AvItem) => {
-                return await getMagnet[Page.name](item);
+                return await getMagnet[Page.name](item as AvItem & string);
             },
             preview: async (item: AvItem) => {
                 const results = await getPreview(item.AVID);
@@ -179,8 +179,8 @@
     });
     const grid = new Grid();
     const { AvItems, itemsOperations } = grid;
-    mountBody(Menu);
-    const modal = mountBody(Modal).modal;
+    mount(Menu, { target: document.body });
+    const modal = mount(Modal, { target: document.body }).modal;
 
     $effect.pre(() => {
         setSearchOptions(config.previewSite);
@@ -238,7 +238,7 @@
     {/each}
 </div>
 {#if config.autoPage}
-    <LoadMore {itemsOperations} />
+    <LoadMore {itemsOperations} {config} />
 {/if}
 
 <style>
@@ -356,7 +356,7 @@
             opacity: 0;
             &:hover {
                 opacity: 1;
-                animation: fadeInUp 0.5s;
+                animation: fadeInUp 0.5s ease-out;
             }
 
             &:has(span.span-loading) {

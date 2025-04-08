@@ -32,7 +32,7 @@
     border-radius: 0.25rem;
 }
 
-[data-theme="dark"] {
+[data-theme="dark"] body[javdb] {
     .scroll-request span {
         background: white;
     }
@@ -45,16 +45,29 @@
         background-color: rgb(255 255 255 / 90%);
     }
 }
-#myModal #modal-div {
-    .modal-content-b[id^="magnet"] {
-        [data-theme="light"]& {
-            background-color: rgb(255 255 255 / 90%);
-        }
-    }
-    article.message {
+[data-theme="light"] body[javdb] #myModal .modal-content-b[id^="magnet"] {
+    background-color: rgb(255 255 255 / 90%);
+}
+
+body[javdb] {
+    #myModal #modal-div article.message {
         margin-bottom: 0;
     }
+    .max-width-100 {
+        max-width: 100% !important;
+    }
 }
-.max-width-100 {
-    max-width: 100% !important;
+
+body[missav] {
+    #myModal,
+    .alert-zdy,
+    .menu-b {
+        z-index: 2147483648 !important;
+    }
+    div.scroll-status {
+        color: white;
+    }
+    div.scroll-request span {
+        background: white;
+    }
 }
