@@ -201,27 +201,32 @@
         <div class="cover-b">
             <!-- svelte-ignore a11y_missing_attribute -->
             <img class="lazy" data-src={item.src} />
-            {#if config.toolbar}
+            {#if config.toolbar && config.toolbar_autoHide}
                 {@render toolbar(item)}
             {/if}
         </div>
         <div class="detail-b">
             <div class={{ titleNowrap: !config.fullTitle }}>{item.title}</div>
             <div class="info-bottom">
-                <div>
+                <div class="avid-box">
                     <span class="detail-avid">{item.AVID}</span>
                     <span> / <span>{item.date}</span></span>
                 </div>
                 {#if Page.name == JAVDB}
                     <div class="score">{@html item.score}</div>
                 {/if}
-                <div class="item-tag">{@html item.itemTag}</div>
+                <div class="tag-box">
+                    <div class="item-tag">{@html item.itemTag}</div>
+                    {#if config.toolbar && !config.toolbar_autoHide}
+                        {@render toolbar(item)}
+                    {/if}
+                </div>
             </div>
         </div>
     </a>
 {/snippet}
 
-<div id="grid-b" class={[isFullImg ? "full-b" : "half-b", config.toolbar_autoHide && "toolbar-autohide"]} bind:this={gridEL}>
+<div id="grid-b" class={isFullImg ? "full-b" : "half-b"} bind:this={gridEL}>
     {#each AvItems as item, index (index)}
         <div class="item-b">
             {#if item.AVID}
@@ -279,7 +284,6 @@
 
         .cover-b {
             position: relative;
-            overflow: hidden;
 
             img {
                 position: absolute;
@@ -301,17 +305,24 @@
         .detail-b {
             padding: 6px;
 
-            .info-bottom {
+            .info-bottom,
+            .tag-box {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 flex-wrap: wrap;
             }
 
+            .tag-box:has(.toolbar-b) {
+                flex-grow: 1;
+            }
+            .avid-box,
+            .score {
+                margin-right: 5px;
+            }
             .detail-avid {
                 font-size: 18px;
             }
-
             .titleNowrap {
                 white-space: nowrap;
                 text-overflow: ellipsis;
@@ -337,7 +348,11 @@
     .toolbar-b {
         display: flex;
 
-        #grid-b.toolbar-autohide & {
+        .cover-b & {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            padding: 6px;
             opacity: 0;
             &:hover {
                 opacity: 1;
@@ -347,32 +362,38 @@
             &:has(span.span-loading) {
                 opacity: 1;
             }
+
+            span {
+                padding: 3px;
+                border-radius: 5px;
+                color: black;
+                background-color: #b5fffc;
+            }
         }
 
-        .cover-b & {
-            position: absolute;
-            bottom: 0px;
-            right: 0px;
-            padding: 6px;
+        .tag-box & {
+            opacity: 0.75;
         }
 
         span {
             line-height: 0;
-            padding: 4px;
-            border-radius: 5px;
             margin: 0 2px;
-            color: black;
-            background-color: #b5fffc;
-
             &:hover {
                 transform: scale(1.1);
             }
 
             :global(svg) {
                 vertical-align: -3px;
-                width: 24px;
-                height: 24px;
+                width: 22px;
+                height: 22px;
             }
+            &[data-name="preview"] {
+                :global(svg) {
+                    width: 23.5px;
+                    height: 23.5px;
+                }
+            }
+
             &.span-loading {
                 animation: span-loading 1s infinite;
             }
