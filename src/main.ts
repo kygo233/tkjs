@@ -1,4 +1,4 @@
-import { GRID, MISSAV, Page, VIDEO } from "./utils/siteList";
+import { GRID, VIDEO, MISSAV } from "./utils/siteList";
 import { mount } from "svelte";
 import "./app.css";
 import Grid from "./lib/Grid.svelte";
@@ -6,6 +6,7 @@ import Grid from "./lib/Grid.svelte";
 import GridMissav from "./lib/missav/Grid.svelte";
 import MagnetMissav from "./lib/missav/Magnet.svelte";
 import Modal from "./lib/Modal.svelte";
+import { Page } from "./utils/page";
 
 function missav() {
     if (Page.pageType == GRID) {

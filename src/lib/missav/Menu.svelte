@@ -1,7 +1,8 @@
 <script lang="ts">
     import { GM_setValue } from "$";
+    import { defaultConfigMissav } from "../../utils";
     import LANG from "../../utils/language";
-    import { defaultConfigMissav, MISSAV } from "../../utils/siteList";
+    import { MISSAV } from "../../utils/siteList";
 
     let { config } = $props();
 

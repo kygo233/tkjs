@@ -1,19 +1,6 @@
 export const [JAVBUS, JAVDB, MISSAV, JAVFREE, BLOGJAV] = ["javbus", "javdb", "missav", "javfree", "blogjav"];
 export const [GRID, VIDEO] = ["grid", "video"];
 
-interface Page {
-    name: string;
-    domainReg: RegExp;
-    excludePages?: string[];
-    halfImgBlockPages?: string[];
-    itemSelector: string;
-    itemSelectorObj?: Record<string, string>;
-    pageNext: string;
-    getAvItem?: (elem: Element) => { [propName: string]: any };
-    rawItemsEl?: NodeListOf<Element>;
-    renderEl?: Element;
-    pageType?: string;
-}
 export interface AvItem {
     id: string;
     AVID: string;
@@ -29,36 +16,8 @@ export interface AvItem {
     html: string;
 }
 
-function isMobile(): boolean {
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
-}
-
-export const defaultConfig = {
-    autoPage: false,
-    pageHistory: false,
-    toolbar: true,
-    toolbar_autoHide: !isMobile(),
-    previewSite: JAVFREE,
-    linkUrl: "https://missav.ws/",
-    avInfo: false,
-    newWindow: true,
-    halfImg: false,
-    fullTitle: false,
-    maxWidth: true,
-    autoColumn: true,
-    columnNumFull: 3,
-    columnNumHalf: 4,
-};
-
-export const defaultConfigMissav = {
-    autoPage: false,
-    pageHistory: false,
-    toolbar: true,
-    uncensoredFilter: false,
-};
-
 const id = () => Math.random().toString(16).slice(2);
-export const siteConfigsList = [
+export const siteList = [
     {
         name: JAVBUS,
         domainReg: /^https?:\/\/.*(javbus|busjav|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|dmmbus|javsee|seejav)\..*$/,
@@ -117,33 +76,3 @@ export const siteConfigsList = [
         pageNext: "a[rel=next]",
     },
 ];
-
-//首先判断当前是什么网站
-export const Page = siteConfigsList.find(v => v.domainReg.test(location.href)) as Page;
-if (!Page) {
-    throw new Error(`domain not matched`);
-}
-//排除页面的判断
-if (Page.excludePages?.find(page => location.pathname.includes(page))) {
-    throw new Error(`excluded Page`);
-}
-
-let rawItemsEl;
-if (Page.itemSelector) {
-    rawItemsEl = document.body.querySelectorAll(Page.itemSelector);
-} else if (Page.itemSelectorObj) {
-    for (const [pageType, itemSelector] of Object.entries(Page.itemSelectorObj)) {
-        rawItemsEl = document.body.querySelectorAll(itemSelector);
-        if (rawItemsEl.length > 0) {
-            Page.pageType = pageType;
-            Page.itemSelector = itemSelector;
-            break;
-        }
-    }
-}
-if (!rawItemsEl || rawItemsEl.length < 1) {
-    throw new Error("No items found");
-}
-Page.rawItemsEl = rawItemsEl;
-
-document.body.setAttribute(Page.name, "");

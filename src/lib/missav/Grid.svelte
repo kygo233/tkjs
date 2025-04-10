@@ -1,11 +1,13 @@
 <script lang="ts">
     import { mount, tick } from "svelte";
-    import { MISSAV, Page, defaultConfigMissav } from "../../utils/siteList";
+    import { MISSAV } from "../../utils/siteList";
     import MagnetMissav from "./Magnet.svelte";
     import Menu from "./Menu.svelte";
     import LoadMore from "../LoadMore.svelte";
     import Modal from "../Modal.svelte";
     import { GM_getValue } from "$";
+    import { Page } from "../../utils/page";
+    import { defaultConfigMissav } from "../../utils";
 
     let config = $state(Object.assign(defaultConfigMissav, GM_getValue(`config_${MISSAV}`, {})));
 

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { status } from "../utils/status.svelte";
-    import { Page, JAVBUS, type AvItem, JAVDB } from "../utils/siteList";
+    import { JAVBUS, JAVDB, type AvItem } from "../utils/siteList";
     import LazyLoad, { type ILazyLoadInstance } from "vanilla-lazyload";
     import { mount, tick } from "svelte";
     import { GM_addStyle } from "$";
@@ -12,6 +12,7 @@
     import LANG from "../utils/language";
     import Modal from "./Modal.svelte";
     import { setSearchOptions, getPreview } from "../utils/preview";
+    import { Page } from "../utils/page";
 
     let gridEL: HTMLElement;
     let isFullImg = $derived(status.isHalfImgBlock || !status.config.halfImg);

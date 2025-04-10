@@ -1,7 +1,9 @@
 <script lang="ts">
     import { GM_setValue } from "$";
+    import { defaultConfig } from "../utils";
     import LANG from "../utils/language";
-    import { Page, JAVDB, JAVFREE, BLOGJAV, defaultConfig } from "../utils/siteList";
+    import { Page } from "../utils/page";
+    import { JAVDB, JAVFREE, BLOGJAV } from "../utils/siteList";
     import { status } from "../utils/status.svelte";
 
     type ConfigKeys = keyof typeof defaultConfig;

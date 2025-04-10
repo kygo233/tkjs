@@ -1,7 +1,8 @@
 <script lang="ts">
     import { asyncWithLoading, magnetSvg } from "../../utils";
     import { getMagnet } from "../../utils/magnet";
-    import { GRID, VIDEO, Page } from "../../utils/siteList";
+    import { Page } from "../../utils/page";
+    import { GRID, VIDEO } from "../../utils/siteList";
 
     let { AVID, modal, config = {} } = $props();
     const id = "magnet" + Math.random().toString(16).slice(2);

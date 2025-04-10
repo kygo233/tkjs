@@ -1,4 +1,5 @@
 import { GM_xmlhttpRequest, GM_download, type GmDownloadOptions } from "$";
+import { JAVFREE } from "./siteList";
 
 export const asyncWithLoading = async (fn: Function, item: Record<string, any>, loadingProp = "isLoading") => {
     try {
@@ -71,3 +72,31 @@ export const downloadSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" h
 export const pictureSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>`;
 export const magnetSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a7 7 0 0 0-7 7v3h4V8a3 3 0 0 1 6 0v3h4V8a7 7 0 0 0-7-7m7 11h-4v3h4zM5 12H1v3h4zM0 8a8 8 0 1 1 16 0v8h-6V8a2 2 0 1 0-4 0v8H0z"/></svg>`;
 export const linkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/></svg>`;
+
+function isMobile(): boolean {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
+}
+
+export const defaultConfig = {
+    autoPage: false,
+    pageHistory: false,
+    toolbar: true,
+    toolbar_autoHide: !isMobile(),
+    previewSite: JAVFREE,
+    linkUrl: "https://missav.ws/",
+    avInfo: false,
+    newWindow: true,
+    halfImg: false,
+    fullTitle: false,
+    maxWidth: true,
+    autoColumn: true,
+    columnNumFull: 3,
+    columnNumHalf: 4,
+};
+
+export const defaultConfigMissav = {
+    autoPage: false,
+    pageHistory: false,
+    toolbar: true,
+    uncensoredFilter: false,
+};

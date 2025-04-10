@@ -1,7 +1,8 @@
 <script lang="ts">
     import { GM_addStyle } from "$";
     import { mount } from "svelte";
-    import { JAVBUS, Page } from "../utils/siteList";
+    import { JAVBUS } from "../utils/siteList";
+    import { Page } from "../utils/page";
 
     let modalEl: HTMLDivElement;
     class Modal {
