@@ -1,13 +1,10 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import monkey from "vite-plugin-monkey";
+import { siteList } from "./src/utils/siteList";
 
 export default defineConfig(({ mode }) => {
-    const includes: Array<RegExp | string> = [
-        /^https?:\/\/.*(javbus|busjav|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|dmmbus|javsee|seejav)\..*$/,
-        /^https?:\/\/.*(javdb)[0-9]*\..*$/,
-        /^https?:\/\/.*(missav)\..*$/,
-    ];
+    const includes = siteList.map(v => v.domainReg);
     if (mode === "development") {
         includes.push(/(localhost|192.168.*)\/jav\/*/);
     }

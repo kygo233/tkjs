@@ -1,5 +1,21 @@
-import { GM_xmlhttpRequest, GM_download, type GmDownloadOptions } from "$";
+import { GM_xmlhttpRequest, GM_download, type GmDownloadOptions, GM_getValue, GM_setValue } from "$";
 import { JAVFREE } from "./siteList";
+
+const release = {
+    version: "2025.04.10",
+    notes: "增加了missav的grid和video模式",
+};
+
+export const notice = (fn: Function) => {
+    let version = GM_getValue("version");
+    if (version != release.version) {
+        if (!version) {
+            fn();
+        }
+        Tips.show(release.notes, Tips.TYPE.SUCCESS, true);
+        GM_setValue("version", release.version);
+    }
+};
 
 export const asyncWithLoading = async (fn: Function, item: Record<string, any>, loadingProp = "isLoading") => {
     try {

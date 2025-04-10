@@ -129,29 +129,6 @@
                 });
             });
         }
-        // changeSearchOption(event) {
-        //     const site = event.target.dataset.site;
-        //     if (site !== null) {
-        //         status.config.previewSearch = site;
-        //     }
-        // }
-        // dragToDownload: (item) => ({
-        //     "@dragend": () => {
-        //         asyncWithLoading(async () => {
-        //             await getDownload(item.src, `${item.AVID} ${item.title}.jpg`);
-        //         }, item, 'imgDownloading');
-        //     },
-        //     ":draggable": () => true,
-        //     ":class": () => ({ 'imgDownloading': item.imgDownloading }),
-        // })
-        // showSearchOption(event, hide) {
-        //     const el = event.target.closest('span[name=preview]');
-        //     if (hide) {
-        //         el.querySelector('.preview-search')?.remove();
-        //         return;
-        //     }
-        //     el.insertAdjacentHTML(`beforeend`, previewOptionTemplate);
-        // }
     }
 
     const setcolumnNum = () => {
