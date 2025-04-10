@@ -1,6 +1,6 @@
 import { getRequest } from ".";
 import LANG from "./language";
-import { BLOGJAV, JAVFREE } from "./siteConfigs";
+import { BLOGJAV, JAVFREE } from "./siteList";
 
 export interface Preview {
     title: string;

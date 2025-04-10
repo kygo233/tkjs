@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onDestroy } from "svelte";
-    import { Page } from "../utils/siteConfigs";
+    import { Page } from "../utils/siteList";
     import LANG from "../utils/language";
 
     let { itemsOperations, config } = $props();

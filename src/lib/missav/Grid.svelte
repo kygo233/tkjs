@@ -1,6 +1,6 @@
 <script lang="ts">
     import { mount, tick } from "svelte";
-    import { MISSAV, Page, defaultConfigMissav } from "../../utils/siteConfigs";
+    import { MISSAV, Page, defaultConfigMissav } from "../../utils/siteList";
     import MagnetMissav from "./Magnet.svelte";
     import Menu from "./Menu.svelte";
     import LoadMore from "../LoadMore.svelte";

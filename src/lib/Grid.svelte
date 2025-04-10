@@ -1,11 +1,11 @@
 <script lang="ts">
     import { status } from "../utils/status.svelte";
-    import { Page, JAVBUS, type AvItem, pictureSvg, magnetSvg, linkSvg, JAVDB } from "../utils/siteConfigs";
+    import { Page, JAVBUS, type AvItem, JAVDB } from "../utils/siteList";
     import LazyLoad, { type ILazyLoadInstance } from "vanilla-lazyload";
     import { mount, tick } from "svelte";
     import { GM_addStyle } from "$";
     import Menu from "./Menu.svelte";
-    import { getRequest, asyncWithLoading } from "../utils/index";
+    import { getRequest, asyncWithLoading, magnetSvg, linkSvg, pictureSvg } from "../utils/index";
     import { getMagnet } from "../utils/magnet";
     import LoadMore from "./LoadMore.svelte";
     import Preview from "./Preview.svelte";

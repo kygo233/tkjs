@@ -1,4 +1,4 @@
-import { Page, defaultConfig } from "./siteConfigs";
+import { Page, defaultConfig } from "./siteList";
 import { GM_getValue } from "$";
 
 let config = Object.assign(defaultConfig, GM_getValue("config", {}));

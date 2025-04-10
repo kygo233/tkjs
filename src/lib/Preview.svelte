@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { asyncWithLoading, getDownload } from "../utils";
+    import { asyncWithLoading, getDownload, downloadSvg } from "../utils";
     import LANG from "../utils/language";
     import { getPreviewUrl } from "../utils/preview";
-    import { downloadSvg } from "../utils/siteConfigs";
 
     let props = $props();
     let results = $state(props.results);

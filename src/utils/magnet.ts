@@ -2,7 +2,7 @@ import { getRequest, Tips } from "./index";
 import LANG from "./language";
 import { status } from "../utils/status.svelte";
 import { GM_setClipboard } from "$";
-import { JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteConfigs";
+import { JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteList";
 
 async function getMagnetFromJavbus(avid: string): Promise<HTMLTableElement[]> {
     const originUrl = "https://www.javbus.com";

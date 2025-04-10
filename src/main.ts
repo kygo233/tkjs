@@ -1,4 +1,4 @@
-import { GRID, MISSAV, Page, VIDEO } from "./utils/siteConfigs";
+import { GRID, MISSAV, Page, VIDEO } from "./utils/siteList";
 import { mount } from "svelte";
 import "./app.css";
 import Grid from "./lib/Grid.svelte";
