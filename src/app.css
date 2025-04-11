@@ -33,7 +33,7 @@
 }
 
 [data-theme="dark"] body[javdb] {
-    .scroll-request span {
+    .scroll-load span {
         background: white;
     }
     #grid-b a.box-b {
@@ -67,7 +67,7 @@ body[missav] {
     div.scroll-status {
         color: white;
     }
-    div.scroll-request span {
+    div.scroll-load span {
         background: white;
     }
 }

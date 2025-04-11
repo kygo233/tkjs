@@ -12,6 +12,8 @@ interface Page {
     rawItemsEl?: NodeListOf<Element>;
     renderEl?: Element;
     pageType?: string;
+    defaultConfig?: Record<string, any>;
+    configValueName?: string;
 }
 
 //首先判断当前是什么网站

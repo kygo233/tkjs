@@ -1,6 +1,6 @@
 import { getRequest, Tips } from "./index";
 import LANG from "./language";
-import { status } from "../utils/status.svelte";
+import { config } from "./config.svelte";
 import { GM_setClipboard } from "$";
 import { JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteList";
 
@@ -60,7 +60,7 @@ export const getMagnet = {
         const doc = await fetch(item.href).then(response => response.text());
         const [gid, uc_code] = getGid(doc);
         const resultEl = [];
-        if (status.config.avInfo) {
+        if (config.avInfo) {
             const docParsed = new DOMParser().parseFromString(doc, "text/html");
             const sample = docParsed.querySelector("#sample-waterfall");
             const avatar = docParsed.querySelector("#avatar-waterfall");
@@ -93,7 +93,7 @@ export const getMagnet = {
         const response = await fetch(item.href).then(response => response.text());
         const docParsed = new DOMParser().parseFromString(response, "text/html");
         const resultEl = [];
-        if (status.config.avInfo) {
+        if (config.avInfo) {
             const actors = docParsed.querySelector("div.video-meta-panel .panel-block a[href^='/actors/']")?.closest(".panel-block");
             if (actors) {
                 //actors.querySelectorAll("a").forEach((a) => {});

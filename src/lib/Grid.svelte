@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { status } from "../utils/status.svelte";
+    import { config } from "../utils/config.svelte";
     import { JAVBUS, JAVDB, type AvItem } from "../utils/siteList";
     import LazyLoad, { type ILazyLoadInstance } from "vanilla-lazyload";
     import { mount, tick } from "svelte";
@@ -15,8 +15,9 @@
     import { Page } from "../utils/page";
 
     let gridEL: HTMLElement;
-    let isFullImg = $derived(status.isHalfImgBlock || !status.config.halfImg);
-    let config = status.config;
+    const isHalfImgBlock = Boolean(Page.halfImgBlockPages?.find(page => location.href.includes(page)));
+    let isFullImg = $derived(isHalfImgBlock || !config.halfImg);
+    let windowWidth = $state(window.innerWidth);
 
     class Grid {
         AvItems: Array<AvItem> = $state([]);
@@ -33,7 +34,7 @@
             this.itemsOperations.update(items);
             this.watchConfig();
             window.addEventListener("resize", () => {
-                status.windowWidth = window.innerWidth;
+                windowWidth = window.innerWidth;
             });
         }
         itemsOperations = {
@@ -134,7 +135,7 @@
     const setcolumnNum = () => {
         let columnNum;
         if (config.autoColumn) {
-            columnNum = Math.round(status.windowWidth / (isFullImg ? 500 : 350));
+            columnNum = Math.round(windowWidth / (isFullImg ? 500 : 350));
         } else {
             columnNum = isFullImg ? config.columnNumFull : config.columnNumHalf;
         }
@@ -157,7 +158,7 @@
     });
     const grid = new Grid();
     const { AvItems, itemsOperations } = grid;
-    mount(Menu, { target: document.body });
+    mount(Menu, { target: document.body, props: { config, isHalfImgBlock } });
     const modal = mount(Modal, { target: document.body }).modal;
 
     $effect.pre(() => {
