@@ -65,45 +65,28 @@
 
 <div class="scroll-status">
     {#if status == LOAD}
-        <div class="scroll-load"><span></span><span></span><span></span><span></span></div>
+        <div class="scroll-load"></div>
     {:else if status == END}
-        <h3 class="scroll-end">{LANG.autoPage_end}</h3>
+        <div class="scroll-end">{LANG.autoPage_end}</div>
     {:else if status == ERROR}
-        <h3 class="scroll-error">error</h3>
+        <div class="scroll-error">error</div>
     {/if}
 </div>
 
 <style>
     .scroll-status {
-        text-align: center;
-        span {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            margin-right: 8px;
-            border-radius: 50%;
-            background: rgba(16, 19, 16, 0.7);
-            animation: scroll-load 1s ease infinite;
-        }
-    }
-    @keyframes scroll-load {
-        0%,
-        100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(0);
-        }
-    }
-    .scroll-load {
-        span:nth-child(2) {
-            animation-delay: 0.125s;
-        }
-        span:nth-child(3) {
-            animation-delay: 0.25s;
-        }
-        span:nth-child(4) {
-            animation-delay: 0.375s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 15px;
+        font-size: 20px;
+
+        .scroll-load {
+            width: 100px;
+            height: 5px;
+            border-radius: 10px;
+            background: currentColor;
+            opacity: 0.5;
         }
     }
 </style>

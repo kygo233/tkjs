@@ -33,9 +33,6 @@
 }
 
 [data-theme="dark"] body[javdb] {
-    .scroll-load span {
-        background: white;
-    }
     #grid-b a.box-b {
         color: #d1d1d1;
         background-color: #222;
@@ -65,9 +62,6 @@ body[missav] {
         z-index: 2147483648 !important;
     }
     div.scroll-status {
-        color: white;
-    }
-    div.scroll-load span {
-        background: white;
+        color: rgb(219 219 219);
     }
 }
