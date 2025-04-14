@@ -1,7 +1,7 @@
 <script lang="ts">
     import { GM_setValue } from "$";
     import LANG from "../utils/language";
-    import { Page } from "../utils/page";
+    import Page from "../utils/page";
     import { JAVFREE, BLOGJAV, JAVBUS, JAVDB } from "../utils/siteList";
 
     interface Checkboxs {

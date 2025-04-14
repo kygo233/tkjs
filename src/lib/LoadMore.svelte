@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy } from "svelte";
     import LANG from "../utils/language";
-    import { Page } from "../utils/page";
+    import Page from "../utils/page";
 
     let { itemsOperations, config } = $props();
     let status = $state("");
@@ -80,7 +80,6 @@
         justify-content: center;
         height: 15px;
         font-size: 20px;
-
         .scroll-load {
             width: 100px;
             height: 5px;

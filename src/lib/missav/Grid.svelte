@@ -4,7 +4,7 @@
     import Menu from "../Menu.svelte";
     import LoadMore from "../LoadMore.svelte";
     import Modal from "../Modal.svelte";
-    import { Page } from "../../utils/page";
+    import Page from "../../utils/page";
     import { config } from "../../utils/config.svelte";
 
     class Grid {

@@ -17,7 +17,7 @@ interface Page {
 }
 
 //首先判断当前是什么网站
-export const Page = siteList.find(v => v.domainReg.test(location.href)) as Page;
+const Page = siteList.find(v => v.domainReg.test(location.href)) as Page;
 if (!Page) {
     throw new Error(`domain not matched`);
 }
@@ -45,3 +45,4 @@ if (!rawItemsEl || rawItemsEl.length < 1) {
 Page.rawItemsEl = rawItemsEl;
 
 document.body.setAttribute(Page.name, "");
+export default Page;

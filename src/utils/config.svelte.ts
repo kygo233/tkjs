@@ -1,5 +1,5 @@
 import { GM_getValue } from "$";
-import { Page } from "./page";
+import Page from "./page";
 import { JAVDB, JAVFREE, MISSAV } from "./siteList";
 
 function isMobile(): boolean {

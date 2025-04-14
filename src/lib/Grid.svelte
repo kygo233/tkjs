@@ -12,7 +12,7 @@
     import LANG from "../utils/language";
     import Modal from "./Modal.svelte";
     import { setSearchOptions, getPreview } from "../utils/preview";
-    import { Page } from "../utils/page";
+    import Page from "../utils/page";
 
     let gridEL: HTMLElement;
     const isHalfImgBlock = Boolean(Page.halfImgBlockPages?.find(page => location.href.includes(page)));
