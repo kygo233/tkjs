@@ -5,6 +5,7 @@ interface Page {
     domainReg: RegExp;
     excludePages?: string[];
     halfImgBlockPages?: string[];
+    gridSelector: string;
     itemSelector: string;
     itemSelectorObj?: Record<string, string>;
     pageNext: string;
@@ -43,6 +44,11 @@ if (!rawItemsEl || rawItemsEl.length < 1) {
     throw new Error("No items found");
 }
 Page.rawItemsEl = rawItemsEl;
-Page.rawGridEl = Page.rawItemsEl[0].parentElement!;
+//javbus有2个grid，第一个grid会影响布局
+if (Page.gridSelector) {
+    Page.rawGridEl = document.body.querySelector(Page.gridSelector) as HTMLElement;
+} else {
+    Page.rawGridEl = Page.rawItemsEl[0].parentElement!;
+}
 document.body.setAttribute(Page.name, "");
 export default Page;

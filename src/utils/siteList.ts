@@ -23,6 +23,7 @@ export const siteList = [
         domainReg: /^https?:\/\/.*(javbus|busjav|busfan|fanbus|buscdn|cdnbus|dmmsee|seedmm|busdmm|dmmbus|javsee|seejav)\..*$/,
         excludePages: ["/actresses", "mdl=favor&sort=1", "mdl=favor&sort=2", "mdl=favor&sort=3", "mdl=favor&sort=4", "searchstar"],
         halfImgBlockPages: ["/uncensored", "mod=uc", "javbus.hair"],
+        gridSelector: "div#waterfall",
         itemSelector: "div#waterfall>div.item",
         pageNext: "a#next",
         getAvItem: function (elem: Element) {
@@ -30,20 +31,21 @@ export const siteList = [
             if (!AVID) return { html: elem.innerHTML };
             let href = elem.querySelector("a")?.href;
             let img = elem.querySelector<HTMLImageElement>("div.photo-frame>img");
-            let src = img?.src || "";
+            let src = img?.src!;
             if (src.match(/pics.dmm.co.jp/)) {
                 src = src.replace(/ps.jpg/, "pl.jpg");
             } else if (src.match(/image.mgstage.com/)) {
                 src = src.replace(/pf_o1_|pb_p_/, "pb_e_");
+                //} else if (src.endsWith("nopic.jpg")) {
             } else {
                 src = src
                     .replace(/thumbs/, "cover")
                     .replace(/thumb/, "cover")
                     .replace(/.jpg/, "_b.jpg");
             }
-            let title = img?.title || "";
-            let date = elem.querySelectorAll("date")[1]?.textContent || "";
-            let itemTag = elem.querySelector("div.photo-info div:first-of-type")?.innerHTML || "";
+            let title = img?.title;
+            let date = elem.querySelectorAll("date")[1]?.textContent;
+            let itemTag = elem.querySelector("div.photo-info div:first-of-type")?.innerHTML;
             return { id: id(), AVID, href, src, title, date, itemTag, score: "" };
         },
     },
