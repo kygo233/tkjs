@@ -5,10 +5,9 @@
 
     let { itemsOperations, config } = $props();
     let status = $state("");
-
+    let el: HTMLElement;
     const [LOAD, ERROR, END] = ["1", "2", "3"];
     class LoadMore {
-        grid = Page.renderEl!;
         locked = false;
         nextURL;
         domWatchFuc;
@@ -31,7 +30,7 @@
             history.scrollRestoration = "auto";
         }
         domWatch() {
-            if (this.grid.getBoundingClientRect().bottom - window.innerHeight < 300 && !this.locked && this.nextURL) {
+            if (el.getBoundingClientRect().top - window.innerHeight < 300 && !this.locked && this.nextURL) {
                 this.locked = true;
                 this.loadNextPage(this.nextURL).then(() => {
                     this.locked = false;
@@ -45,7 +44,7 @@
                 let responseText = await fetch(url, { credentials: "same-origin" }).then(response => response.text());
                 let doc = new DOMParser().parseFromString(responseText, "text/html");
                 let items = itemsOperations.get(doc.body.querySelectorAll(Page.itemSelector));
-                itemsOperations.filter(items);
+                itemsOperations.filter?.(items);
                 itemsOperations.update(items);
                 config.pageHistory && history.pushState({}, "", url);
                 this.nextURL = doc.body.querySelector(Page.pageNext)?.getAttribute("href");
@@ -63,7 +62,7 @@
     });
 </script>
 
-<div class="scroll-status">
+<div class="scroll-status" bind:this={el}>
     {#if status == LOAD}
         <div class="scroll-load"></div>
     {:else if status == END}
