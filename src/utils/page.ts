@@ -10,7 +10,7 @@ interface Page {
     pageNext: string;
     getAvItem?: (elem: Element) => { [propName: string]: any };
     rawItemsEl?: NodeListOf<Element>;
-    renderEl?: Element;
+    rawGridEl?: HTMLElement;
     pageType?: string;
     defaultConfig?: Record<string, any>;
     configValueName?: string;
@@ -43,6 +43,6 @@ if (!rawItemsEl || rawItemsEl.length < 1) {
     throw new Error("No items found");
 }
 Page.rawItemsEl = rawItemsEl;
-
+Page.rawGridEl = Page.rawItemsEl[0].parentElement!;
 document.body.setAttribute(Page.name, "");
 export default Page;

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { mount, tick } from "svelte";
-    import MagnetMissav from "./Magnet.svelte";
+    import Magnet from "./Magnet.svelte";
     import Menu from "../Menu.svelte";
     import LoadMore from "../LoadMore.svelte";
     import Modal from "../Modal.svelte";
@@ -24,7 +24,7 @@
                 for (let i = 0; i < raw.length; i++) {
                     const el = raw[i];
                     const AVID = el.querySelector("a")?.getAttribute("alt");
-                    mount(MagnetMissav, {
+                    mount(Magnet, {
                         target: el.querySelector("div.thumbnail>div:first-child")!,
                         props: { AVID, type: Page.pageType, modal, config },
                     });
@@ -42,7 +42,7 @@
                 }
             },
             update: (items: NodeListOf<HTMLDivElement>) => {
-                Page.renderEl!.append(...items);
+                Page.rawGridEl!.append(...items);
                 tick().then(() => {
                     this.lozad.observe();
                 });

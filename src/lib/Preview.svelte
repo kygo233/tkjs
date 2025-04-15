@@ -73,8 +73,8 @@
             background-color: #3333338d;
             color: aliceblue;
             :global(> svg) {
-                width: 30px;
-                height: 30px;
+                width: 25px;
+                height: 25px;
                 vertical-align: middle;
             }
             &.span-loading {

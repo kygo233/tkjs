@@ -168,9 +168,30 @@
         .javbus-table {
             width: 100%;
             background-color: #ffffff;
-            margin: 0;
             border-radius: 5px;
             overflow: hidden;
+            tr:hover {
+                background-color: #d4d4d4 !important;
+            }
+
+            a.btn {
+                [jable] &,
+                [missav] & {
+                    color: #fff;
+                    padding: 2px 3px;
+                    white-space: nowrap;
+                    border-radius: 0.25rem;
+                    opacity: 0.65;
+                }
+                [missav] & {
+                    &.btn-primary {
+                        background-color: #007bff;
+                    }
+                    &.btn-warning {
+                        background-color: #ffc107;
+                    }
+                }
+            }
         }
     }
 

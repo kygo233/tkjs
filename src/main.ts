@@ -1,41 +1,38 @@
-import { GRID, VIDEO, MISSAV } from "./utils/siteList";
-import { mount } from "svelte";
+import { GRID, VIDEO, MISSAV, JABLE } from "./utils/siteList";
+import { mount, type Component } from "svelte";
 import "./app.css";
 import Grid from "./lib/Grid.svelte";
-
 import GridMissav from "./lib/missav/Grid.svelte";
-import MagnetMissav from "./lib/missav/Magnet.svelte";
+import GridJable from "./lib/jable/Grid.svelte";
+import Magnet from "./lib/missav/Magnet.svelte";
 import Modal from "./lib/Modal.svelte";
 import Page from "./utils/page";
 
-function missav() {
+function render(GridCompoment: Component) {
     if (Page.pageType == GRID) {
-        const rawGridEl = Page.rawItemsEl![0].parentElement!;
         const target = document.createElement("div");
-        rawGridEl.insertAdjacentElement("afterend", target);
-        Page.renderEl = rawGridEl;
-        mount(GridMissav, { target });
+        Page.rawGridEl!.insertAdjacentElement("afterend", target);
+        mount(GridCompoment, { target });
     } else if (Page.pageType == VIDEO) {
-        const target = Page.rawItemsEl![0].parentElement!;
-        const AVID = location.pathname.split("/").slice(-1)[0];
+        const AVID = location.pathname.split("/").filter(Boolean).slice(-1)[0];
         const modal = mount(Modal, { target: document.body }).modal;
-        mount(MagnetMissav, {
-            target,
+        mount(Magnet, {
+            target: Page.rawGridEl!,
             props: { AVID, modal },
         });
     }
 }
 
 function main() {
-    const rawGridEl = Page.rawItemsEl![0].parentElement!;
     const target = document.createElement("div");
-    rawGridEl.style.display = "none";
-    rawGridEl.insertAdjacentElement("beforebegin", target);
-    Page.renderEl = target;
+    Page.rawGridEl!.style.display = "none";
+    Page.rawGridEl!.insertAdjacentElement("beforebegin", target);
     mount(Grid, { target });
 }
 if (Page.name == MISSAV) {
-    missav();
+    render(GridMissav);
+} else if (Page.name == JABLE) {
+    render(GridJable);
 } else {
     main();
 }

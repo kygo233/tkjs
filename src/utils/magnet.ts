@@ -2,11 +2,11 @@ import { getRequest, Tips } from "./index";
 import LANG from "./language";
 import { config } from "./config.svelte";
 import { GM_setClipboard } from "$";
-import { JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteList";
+import { JABLE, JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteList";
 
 async function getMagnetFromJavbus(avid: string): Promise<HTMLTableElement[]> {
     const originUrl = "https://www.javbus.com";
-    avid = avid.replace("-uncensored-leak", "").replace("-chinese-subtitle", "");
+    avid = avid.replace(/(-uncensored-leak|-chinese-subtitle|-c)$/, "");
     const url = `${originUrl}/${avid}`;
     const response = await getRequest(url);
     if (response.status == 404) {
@@ -119,4 +119,5 @@ export const getMagnet = {
         return resultEl;
     },
     [MISSAV]: getMagnetFromJavbus,
+    [JABLE]: getMagnetFromJavbus,
 };
