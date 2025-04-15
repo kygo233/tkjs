@@ -47,9 +47,9 @@
             let targetNode;
             if (location.pathname.includes("/my/")) {
                 //收藏页面
-                targetNode = document.querySelector("#site-content>.container");
+                targetNode = document.body.querySelector("#site-content>.container");
             } else {
-                targetNode = document.querySelector("#site-content");
+                targetNode = document.body.querySelector("#site-content");
             }
             const config_page_turn = {
                 targetNode,
@@ -57,7 +57,7 @@
                     addedNodes.forEach((addNode: Node) => {
                         if (/list_videos.*_videos/.test((addNode as HTMLElement).id)) {
                             requestAnimationFrame(() => {
-                                me.parseItems(document.querySelectorAll(Page.itemSelector));
+                                me.parseItems(document.body.querySelectorAll(Page.itemSelector));
                             });
                         }
                     });

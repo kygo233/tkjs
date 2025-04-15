@@ -11,6 +11,7 @@ const LOCALE = {
     menu_uncensoredFilter: ["去掉未经审查的泄露", "Remove uncensored leaks"],
     menu_maxWidth: ["最大宽度", "Max width"],
     menu_previewSite: ["预览图", "Preview image website"],
+    menu_linkUrl: ["跳转到", "Jump to"],
     copyButton: ["复制", "Copy"],
     copySuccess: ["复制成功", "Copy successful"],
     preview_norespond: ["无法响应或网络错误", "No respond"],

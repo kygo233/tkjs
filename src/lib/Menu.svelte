@@ -57,6 +57,7 @@
         </div>
     {/if}
     <div class="input-div">
+        <span>{LANG.menu_linkUrl}</span>
         <input bind:value={config.linkUrl} />
     </div>
     <div class="radio-div">
@@ -137,6 +138,7 @@
             padding: 3px;
             font-size: medium;
             flex-grow: 1;
+            outline: none;
         }
         .radio-div {
             label {
