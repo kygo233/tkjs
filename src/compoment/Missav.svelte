@@ -1,11 +1,11 @@
 <script lang="ts">
     import { mount, tick } from "svelte";
-    import Magnet from "./Magnet.svelte";
-    import Menu from "../Menu.svelte";
-    import LoadMore from "../LoadMore.svelte";
-    import Modal from "../Modal.svelte";
-    import Page from "../../utils/page";
-    import { config } from "../../utils/config.svelte";
+    import Magnet from "./common/Magnet.svelte";
+    import Menu from "./common/Menu.svelte";
+    import LoadMore from "./common/LoadMore.svelte";
+    import Modal from "./common/Modal.svelte";
+    import Page from "../utils/page";
+    import { config } from "../utils/config.svelte";
 
     class Grid {
         lozad: any;

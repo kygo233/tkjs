@@ -1,9 +1,9 @@
 <script lang="ts">
     import { mount } from "svelte";
-    import Magnet from "../missav/Magnet.svelte";
-    import Modal from "../Modal.svelte";
-    import Page from "../../utils/page";
-    import { config } from "../../utils/config.svelte";
+    import Magnet from "./common/Magnet.svelte";
+    import Modal from "./common/Modal.svelte";
+    import Page from "../utils/page";
+    import { config } from "../utils/config.svelte";
 
     class DomObserver {
         observer;

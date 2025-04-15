@@ -4,13 +4,13 @@
     import LazyLoad, { type ILazyLoadInstance } from "vanilla-lazyload";
     import { mount, tick } from "svelte";
     import { GM_addStyle } from "$";
-    import Menu from "./Menu.svelte";
+    import Menu from "./common/Menu.svelte";
     import { getRequest, asyncWithLoading, magnetSvg, linkSvg, pictureSvg } from "../utils/index";
     import { getMagnet } from "../utils/magnet";
-    import LoadMore from "./LoadMore.svelte";
-    import Preview from "./Preview.svelte";
+    import LoadMore from "./common/LoadMore.svelte";
+    import Preview from "./common/Preview.svelte";
     import LANG from "../utils/language";
-    import Modal from "./Modal.svelte";
+    import Modal from "./common/Modal.svelte";
     import { setSearchOptions, getPreview } from "../utils/preview";
     import Page from "../utils/page";
 
