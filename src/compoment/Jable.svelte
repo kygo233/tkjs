@@ -66,6 +66,6 @@
             new DomObserver(config_page_turn);
         }
     }
-    const modal = mount(Modal, { target: document.body }).modal;
+    const modal = mount(Modal, { target: document.body });
     new Grid();
 </script>

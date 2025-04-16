@@ -32,21 +32,21 @@
     border-radius: 0.25rem;
 }
 
-[data-theme="dark"] body[javdb] {
-    #grid-b a.box-b {
-        color: #d1d1d1;
-        background-color: #222;
+body[javdb] {
+    [data-theme="dark"] & {
+        #grid-b a.box-b {
+            color: #d1d1d1;
+            background-color: #222;
+        }
+        .alert-zdy {
+            color: black;
+            background-color: rgb(255 255 255 / 90%);
+        }
     }
-    .alert-zdy {
-        color: black;
+    [data-theme="light"] & #myModal .modal-content-b[id^="magnet"] {
         background-color: rgb(255 255 255 / 90%);
     }
-}
-[data-theme="light"] body[javdb] #myModal .modal-content-b[id^="magnet"] {
-    background-color: rgb(255 255 255 / 90%);
-}
 
-body[javdb] {
     #myModal #modal-div article.message {
         margin-bottom: 0;
     }

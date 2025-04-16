@@ -5,96 +5,93 @@
     import Page from "../../utils/page";
 
     let modalEl: HTMLDivElement;
-    class Modal {
-        isFirst = true;
-        creatEl(id: string, innerHTML = "") {
-            const div = document.createElement("div");
-            div.classList.add("modal-content-b");
-            div.setAttribute("id", id);
-            div.innerHTML = innerHTML;
-            return div;
+    let isFirst = true;
+    function creatEl(id: string, innerHTML = "") {
+        const div = document.createElement("div");
+        div.classList.add("modal-content-b");
+        div.setAttribute("id", id);
+        div.innerHTML = innerHTML;
+        return div;
+    }
+    function append(id: string, content: string | Element[] | { props: any; component: any }) {
+        if (isFirst) {
+            isFirst = false;
+            init();
         }
-        append(id: string, content: string | Element[] | { props: any; component: any }) {
-            if (this.isFirst) {
-                this.isFirst = false;
-                this.init();
-            }
-            let el;
-            if (typeof content === "string") {
-                el = this.creatEl(id, content);
-            } else if (Array.isArray(content)) {
-                el = this.creatEl(id);
-                el.append(...content);
-            } else if (content instanceof Object && content.props) {
-                el = this.creatEl(id);
-                mount(content.component, {
-                    target: el,
-                    props: content.props,
-                });
-            } else {
-                throw new Error("content can't be parsed");
-            }
-            modalEl.querySelector("#modal-div")!.append(el);
-            this.show();
+        let el;
+        if (typeof content === "string") {
+            el = creatEl(id, content);
+        } else if (Array.isArray(content)) {
+            el = creatEl(id);
+            el.append(...content);
+        } else if (content instanceof Object && content.props) {
+            el = creatEl(id);
+            mount(content.component, {
+                target: el,
+                props: content.props,
+            });
+        } else {
+            throw new Error("content can't be parsed");
         }
-        show(id?: string) {
-            document.documentElement.classList.add("scrollBarHide");
-            if (id) {
-                modalEl.querySelector(`#${id}`)?.classList.remove("hidden-b");
-            }
-            modalEl.classList.remove("hidden-b");
-            modalEl.focus();
-            modalEl.scrollTop = 0;
+        modalEl.querySelector("#modal-div")!.append(el);
+        show();
+    }
+    function show(id?: string) {
+        document.documentElement.classList.add("scrollBarHide");
+        if (id) {
+            modalEl.querySelector(`#${id}`)?.classList.remove("hidden-b");
         }
-        hide() {
-            document.documentElement.classList.remove("scrollBarHide");
-            modalEl.classList.add("hidden-b");
-            modalEl.querySelectorAll(".modal-content-b").forEach(el => el.classList.add("hidden-b"));
-        }
-        onclick(e: Event) {
-            (e.target as HTMLElement).id === "myModal" && this.hide();
-        }
-        onkeydown(e: KeyboardEvent) {
-            if (e.key === "Escape") {
-                this.hide();
-            }
-        }
-        init() {
-            this.setScrollBarWidth();
-            //加载javbus的图片浏览插件
-            if (Page.name == JAVBUS) {
-                //@ts-ignore
-                globalThis.$(modalEl).magnificPopup({
-                    delegate: "a.sample-box-zdy:visible",
-                    type: "image",
-                    closeOnContentClick: false,
-                    closeBtnInside: false,
-                    mainClass: "mfp-with-zoom mfp-img-mobile",
-                    image: { verticalFit: true },
-                    gallery: { enabled: true },
-                    zoom: {
-                        enabled: true,
-                        duration: 300,
-                        opener: function (element: any) {
-                            return element.find("img");
-                        },
-                    },
-                });
-            }
-        }
-        //获取滚动条的宽度
-        setScrollBarWidth() {
-            const el = document.createElement("p");
-            Object.assign(el.style, { position: "absolute", top: "-1000px", width: "100px", height: "100px", overflowY: "scroll" });
-            document.body.appendChild(el);
-            const scrollBarWidth = el.offsetWidth - el.clientWidth;
-            el.remove();
-            GM_addStyle(`.scrollBarHide{ padding-right: ${scrollBarWidth}px;overflow:hidden;}`);
+        modalEl.classList.remove("hidden-b");
+        modalEl.focus();
+        modalEl.scrollTop = 0;
+    }
+    function hide() {
+        document.documentElement.classList.remove("scrollBarHide");
+        modalEl.classList.add("hidden-b");
+        modalEl.querySelectorAll(".modal-content-b").forEach(el => el.classList.add("hidden-b"));
+    }
+    function onclick(e: Event) {
+        (e.target as HTMLElement).id === "myModal" && hide();
+    }
+    function onkeydown(e: KeyboardEvent) {
+        if (e.key === "Escape") {
+            hide();
         }
     }
-    export const modal = new Modal();
-    let onclick = modal.onclick.bind(modal);
-    let onkeydown = modal.onkeydown.bind(modal);
+    function init() {
+        setScrollBarWidth();
+        //加载javbus的图片浏览插件
+        if (Page.name == JAVBUS) {
+            //@ts-ignore
+            globalThis.$(modalEl).magnificPopup({
+                delegate: "a.sample-box-zdy:visible",
+                type: "image",
+                closeOnContentClick: false,
+                closeBtnInside: false,
+                mainClass: "mfp-with-zoom mfp-img-mobile",
+                image: { verticalFit: true },
+                gallery: { enabled: true },
+                zoom: {
+                    enabled: true,
+                    duration: 300,
+                    opener: function (element: any) {
+                        return element.find("img");
+                    },
+                },
+            });
+        }
+    }
+    //获取滚动条的宽度
+    function setScrollBarWidth() {
+        const el = document.createElement("p");
+        Object.assign(el.style, { position: "absolute", top: "-1000px", width: "100px", height: "100px", overflowY: "scroll" });
+        document.body.appendChild(el);
+        const scrollBarWidth = el.offsetWidth - el.clientWidth;
+        el.remove();
+        GM_addStyle(`.scrollBarHide{ padding-right: ${scrollBarWidth}px;overflow:hidden;}`);
+    }
+
+    export { append, show };
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events,a11y_no_static_element_interactions -->

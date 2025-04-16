@@ -15,7 +15,7 @@ function render(GridCompoment: Component) {
         mount(GridCompoment, { target });
     } else if (Page.pageType == VIDEO) {
         const AVID = location.pathname.split("/").filter(Boolean).slice(-1)[0];
-        const modal = mount(Modal, { target: document.body }).modal;
+        const modal = mount(Modal, { target: document.body });
         mount(Magnet, {
             target: Page.rawGridEl!,
             props: { AVID, modal },

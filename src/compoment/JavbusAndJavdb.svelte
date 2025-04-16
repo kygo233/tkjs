@@ -159,7 +159,7 @@
     const grid = new Grid();
     const { AvItems, itemsOperations } = grid;
     mount(Menu, { target: document.body, props: { config, isHalfImgBlock } });
-    const modal = mount(Modal, { target: document.body }).modal;
+    const modal = mount(Modal, { target: document.body });
 
     $effect.pre(() => {
         setSearchOptions(config.previewSite);
@@ -282,7 +282,7 @@
         }
 
         .detail-b {
-            padding: 6px;
+            padding: 6px 8px;
 
             .info-bottom,
             .tag-box {
