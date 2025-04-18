@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { config } from "../utils/config.svelte";
+    import config from "../utils/config.svelte";
     import { JAVBUS, JAVDB, type AvItem } from "../utils/siteList";
     import LazyLoad, { type ILazyLoadInstance } from "vanilla-lazyload";
     import { mount, tick } from "svelte";

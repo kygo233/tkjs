@@ -46,4 +46,6 @@ function merge(target: Record<string, any>, source: Record<string, any>) {
     return result;
 }
 let obj = merge(Page.defaultConfig, GM_getValue(Page.configValueName, {}));
-export const config = $state(obj);
+const config = $state(obj);
+
+export default config;

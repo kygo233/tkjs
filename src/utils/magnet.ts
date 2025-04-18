@@ -1,6 +1,6 @@
 import { getRequest, Tips } from "./index";
 import LANG from "./language";
-import { config } from "./config.svelte";
+import config from "./config.svelte";
 import { GM_setClipboard } from "$";
 import { JABLE, JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteList";
 

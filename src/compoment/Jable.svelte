@@ -3,7 +3,6 @@
     import Magnet from "./common/Magnet.svelte";
     import Modal from "./common/Modal.svelte";
     import Page from "../utils/page";
-    import { config } from "../utils/config.svelte";
 
     class DomObserver {
         observer;
@@ -37,7 +36,7 @@
                 const AVID = href.split("/").filter(Boolean).slice(-1)[0];
                 mount(Magnet, {
                     target: imgBox,
-                    props: { AVID, type: Page.pageType, modal, config },
+                    props: { AVID, type: Page.pageType, modal },
                 });
             }
             return raw;

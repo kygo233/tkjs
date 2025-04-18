@@ -5,7 +5,7 @@
     import LoadMore from "./common/LoadMore.svelte";
     import Modal from "./common/Modal.svelte";
     import Page from "../utils/page";
-    import { config } from "../utils/config.svelte";
+    import config from "../utils/config.svelte";
 
     class Grid {
         lozad: any;
