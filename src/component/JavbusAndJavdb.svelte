@@ -18,117 +18,109 @@
     const isHalfImgBlock = Boolean(Page.halfImgBlockPages?.find(page => location.href.includes(page)));
     let isFullImg = $derived(isHalfImgBlock || !config.halfImg);
     let windowWidth = $state(window.innerWidth);
+    let AvItems: Array<AvItem> = $state([]);
+    let lazyLoad: ILazyLoadInstance;
 
-    class Grid {
-        AvItems: Array<AvItem> = $state([]);
-        lazyLoad: ILazyLoadInstance;
-        getAvItem = Page.getAvItem!;
-        constructor() {
-            let me = this;
-            this.lazyLoad = new LazyLoad({
-                callback_loaded: function (img) {
-                    me.imgResize(img as HTMLImageElement);
-                },
+    function init() {
+        lazyLoad = new LazyLoad({
+            callback_loaded: img => imgResize(img as HTMLImageElement),
+        });
+        itemsOperations.update(itemsOperations.get(Page.rawItemsEl!));
+        watchConfig();
+        window.addEventListener("resize", () => {
+            windowWidth = window.innerWidth;
+        });
+    }
+    const itemsOperations = {
+        get: (raw: NodeListOf<Element>): Array<AvItem> => {
+            return Array.from(raw).map(el => Page.getAvItem!(el) as AvItem);
+        },
+        filter: (items: Array<AvItem>) => {
+            if (Page.name == JAVBUS && location.pathname.includes("/star/") && items) {
+                items.splice(0, 1);
+            }
+        },
+        update: (items: Array<AvItem>) => {
+            AvItems.push(...items);
+            tick().then(() => {
+                lazyLoad.update();
             });
-            let items = this.itemsOperations.get(Page.rawItemsEl!);
-            this.itemsOperations.update(items);
-            this.watchConfig();
-            window.addEventListener("resize", () => {
-                windowWidth = window.innerWidth;
-            });
+        },
+    };
+    function handleClick(event: Event, item: AvItem) {
+        event.preventDefault();
+        const name = (event.target as Element).closest("span[data-name]")?.getAttribute("data-name");
+        if (!name || !(name in toolbarFunc)) return;
+        const loadingName = `${name}Loading`;
+        const contentId = `${name}-${item.id}`;
+        if (item[loadingName]) return;
+        if (item.hasOwnProperty(contentId)) {
+            modal.show(contentId);
+            return;
         }
-        itemsOperations = {
-            get: (raw: NodeListOf<Element>): Array<AvItem> => {
-                return Array.from(raw).map(el => this.getAvItem(el) as AvItem);
-            },
-            filter: (items: Array<AvItem>) => {
-                if (Page.name == JAVBUS && location.pathname.includes("/star/") && items) {
-                    items.splice(0, 1);
+        asyncWithLoading(
+            async () => {
+                const toolbarMethod = toolbarFunc[name as keyof typeof toolbarFunc];
+                if (!toolbarMethod) return;
+                const content = await toolbarMethod(item);
+                if (content) {
+                    modal.append(contentId, content);
+                    item[contentId] = contentId;
                 }
             },
-            update: (items: Array<AvItem>) => {
-                this.AvItems.push(...items);
-                tick().then(() => {
-                    this.lazyLoad.update();
-                });
-            },
-        };
-        handleClick(event: Event, item: AvItem) {
-            event.preventDefault();
-            const name = (event.target as Element).closest("span[data-name]")?.getAttribute("data-name");
-            if (!name || !(name in this.toolbar)) return;
-            const loadingName = `${name}Loading`;
-            const contentId = `${name}-${item.id}`;
-            if (item[loadingName]) return;
-            if (item.hasOwnProperty(contentId)) {
-                modal.show(contentId);
+            item,
+            loadingName,
+        );
+    }
+    const toolbarFunc = {
+        magnet: async (item: AvItem) => {
+            return await getMagnet[Page.name](item as AvItem & string);
+        },
+        preview: async (item: AvItem) => {
+            const results = await getPreview(item.AVID);
+            return {
+                component: Preview,
+                props: {
+                    results,
+                },
+            };
+        },
+        link: async (item: AvItem) => {
+            const url = `${config.linkUrl}${item.AVID}`;
+            const response = await getRequest(url, { method: "HEAD" });
+            if (response.status === 404) {
+                throw new Error(LANG.request_invalidUrl);
+            } else {
+                window.open(url, "_blank");
+            }
+        },
+    };
+    function imgResize(img: HTMLImageElement) {
+        const imgRatio = img.naturalHeight / img.naturalWidth;
+        if (imgRatio > 0.8) {
+            if (isFullImg) {
+                img.style = "object-fit: contain;";
+            } else {
+                if (imgRatio < 1.3) {
+                    img.style = "object-position: bottom;object-fit:contain";
+                } else {
+                    img.style = "object-position: center;object-fit:cover";
+                }
+            }
+        }
+    }
+    function watchConfig() {
+        let isFirst = true;
+        $effect(() => {
+            config.halfImg;
+            if (isFirst) {
+                isFirst = false;
                 return;
             }
-            asyncWithLoading(
-                async () => {
-                    const toolbarMethod = this.toolbar[name as keyof typeof this.toolbar];
-                    if (!toolbarMethod) return;
-                    const content = await toolbarMethod(item);
-                    if (content) {
-                        modal.append(contentId, content);
-                        item[contentId] = contentId;
-                    }
-                },
-                item,
-                loadingName,
-            );
-        }
-        toolbar = {
-            magnet: async (item: AvItem) => {
-                return await getMagnet[Page.name](item as AvItem & string);
-            },
-            preview: async (item: AvItem) => {
-                const results = await getPreview(item.AVID);
-                return {
-                    component: Preview,
-                    props: {
-                        results,
-                    },
-                };
-            },
-            link: async (item: AvItem) => {
-                const url = `${config.linkUrl}${item.AVID}`;
-                const response = await getRequest(url, { method: "HEAD" });
-                if (response.status === 404) {
-                    throw new Error(LANG.request_invalidUrl);
-                } else {
-                    window.open(url, "_blank");
-                }
-            },
-        };
-        imgResize(img: HTMLImageElement) {
-            const imgRatio = img.naturalHeight / img.naturalWidth;
-            if (imgRatio > 0.8) {
-                if (isFullImg) {
-                    img.style = "object-fit: contain;";
-                } else {
-                    if (imgRatio < 1.3) {
-                        img.style = "object-position: bottom;object-fit:contain";
-                    } else {
-                        img.style = "object-position: center;object-fit:cover";
-                    }
-                }
-            }
-        }
-        watchConfig() {
-            let me = this;
-            let isFirst = true;
-            $effect(() => {
-                config.halfImg;
-                if (isFirst) {
-                    isFirst = false;
-                    return;
-                }
-                gridEL.querySelectorAll(".box-b img.loaded").forEach(element => {
-                    me.imgResize(element as HTMLImageElement);
-                });
+            gridEL.querySelectorAll(".box-b img.loaded").forEach(element => {
+                imgResize(element as HTMLImageElement);
             });
-        }
+        });
     }
 
     const setcolumnNum = () => {
@@ -155,8 +147,7 @@
     $effect.pre(() => {
         setcolumnNum();
     });
-    const grid = new Grid();
-    const { AvItems, itemsOperations } = grid;
+    init();
     mount(Menu, { target: document.body, props: { config, isHalfImgBlock } });
     const modal = mount(Modal, { target: document.body });
 
@@ -167,7 +158,7 @@
 
 {#snippet toolbar(item: AvItem)}
     <!-- svelte-ignore a11y_click_events_have_key_events,a11y_no_static_element_interactions -->
-    <div class="toolbar-b" onclick={event => grid.handleClick(event, item)}>
+    <div class="toolbar-b" onclick={event => handleClick(event, item)}>
         <span data-name="magnet" class={{ "span-loading": item.magnetLoading }} title={LANG.tip_magnet}>{@html magnetSvg}</span>
         <span data-name="preview" class={{ "span-loading": item.previewLoading }} title={LANG.tip_preview}>{@html pictureSvg}</span>
         <span data-name="link" class={{ "span-loading": item.linkLoading }} title={LANG.tip_link}>{@html linkSvg}</span>
