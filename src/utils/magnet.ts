@@ -96,7 +96,9 @@ export const getMagnet = {
         if (config.avInfo) {
             const actors = docParsed.querySelector("div.video-meta-panel .panel-block a[href^='/actors/']")?.closest(".panel-block");
             if (actors) {
-                //actors.querySelectorAll("a").forEach((a) => {});
+                actors.querySelectorAll("a").forEach(a => {
+                    a.setAttribute("target", "_blank");
+                });
                 resultEl.push(actors);
             }
             const previewImages = docParsed.querySelector(".columns .tile-images.preview-images")?.closest(".columns");

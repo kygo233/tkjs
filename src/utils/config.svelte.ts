@@ -16,6 +16,7 @@ const defaultConfig: Record<string, any> = {
     newWindow: true,
     halfImg: false,
     fullTitle: false,
+    clickToCopy: true,
     autoColumn: true,
     columnNumFull: 3,
     columnNumHalf: 4,

@@ -5,7 +5,7 @@
     import { mount, tick } from "svelte";
     import { GM_addStyle } from "$";
     import Menu from "./common/Menu.svelte";
-    import { getRequest, asyncWithLoading, magnetSvg, linkSvg, pictureSvg } from "../utils/index";
+    import { getRequest, asyncWithLoading, magnetSvg, linkSvg, pictureSvg, clickToCopy } from "../utils/index";
     import { getMagnet } from "../utils/magnet";
     import LoadMore from "./common/LoadMore.svelte";
     import Preview from "./common/Preview.svelte";
@@ -69,7 +69,6 @@
                     const toolbarMethod = this.toolbar[name as keyof typeof this.toolbar];
                     if (!toolbarMethod) return;
                     const content = await toolbarMethod(item);
-                    //const content = await (this[methodName as keyof Grid] as (item: AvItem) => Promise<any>)(item);
                     if (content) {
                         modal.append(contentId, content);
                         item[contentId] = contentId;
@@ -174,7 +173,7 @@
         <span data-name="link" class={{ "span-loading": item.linkLoading }} title={LANG.tip_link}>{@html linkSvg}</span>
     </div>
 {/snippet}
-
+<!-- svelte-ignore a11y_click_events_have_key_events,a11y_no_static_element_interactions -->
 {#snippet box(item: AvItem)}
     <a class="box-b" href={item.href} target={config.newWindow ? "_blank" : "_self"}>
         <div class="cover-b">
@@ -185,10 +184,10 @@
             {/if}
         </div>
         <div class="detail-b">
-            <div class={{ titleNowrap: !config.fullTitle }}>{item.title}</div>
+            <div class={{ titleNowrap: !config.fullTitle }} onclick={config.clickToCopy ? event => clickToCopy(event) : undefined}>{item.title}</div>
             <div class="info-bottom">
                 <div class="avid-box">
-                    <span class="detail-avid">{item.AVID}</span>
+                    <span class="detail-avid" onclick={config.clickToCopy ? event => clickToCopy(event) : undefined}>{item.AVID}</span>
                     <span> / <span>{item.date}</span></span>
                 </div>
                 {#if Page.name == JAVDB}
@@ -382,12 +381,12 @@
     @keyframes -global-span-loading {
         0%,
         100% {
-            transform: translateY(-25%);
-            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-        }
-        50% {
             transform: none;
             animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+        50% {
+            transform: translateY(-15%);
+            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
         }
     }
 

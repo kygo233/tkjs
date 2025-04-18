@@ -49,7 +49,7 @@
             },
         };
     }
-    const modal = mount(Modal, { target: document.body }).modal;
+    const modal = mount(Modal, { target: document.body });
     const grid = new Grid();
     mount(Menu, { target: document.body, props: { config } });
     let itemsOperations = grid.itemsOperations;
