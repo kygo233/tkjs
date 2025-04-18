@@ -1,19 +1,19 @@
 import { GRID, VIDEO, MISSAV, JABLE, AV123, JAVBUS, JAVDB } from "./utils/siteList";
 import { mount, type Component } from "svelte";
 import "./app.css";
-import Grid from "./compoment/JavbusAndJavdb.svelte";
-import Missav from "./compoment/Missav.svelte";
-import Jable from "./compoment/Jable.svelte";
-import Av123 from "./compoment/Av123.svelte";
-import Magnet from "./compoment/common/Magnet.svelte";
-import Modal from "./compoment/common/Modal.svelte";
+import Grid from "./component/JavbusAndJavdb.svelte";
+import Missav from "./component/Missav.svelte";
+import Jable from "./component/Jable.svelte";
+import Av123 from "./component/Av123.svelte";
+import Magnet from "./component/common/Magnet.svelte";
+import Modal from "./component/common/Modal.svelte";
 import Page from "./utils/page";
 
-function render(GridCompoment: Component) {
+function render(GridComponent: Component) {
     if (Page.pageType == GRID) {
         const target = document.createElement("div");
         Page.rawGridEl!.insertAdjacentElement("afterend", target);
-        mount(GridCompoment, { target });
+        mount(GridComponent, { target });
     } else if (Page.pageType == VIDEO) {
         const AVID = location.pathname.split("/").filter(Boolean).slice(-1)[0];
         const modal = mount(Modal, { target: document.body });

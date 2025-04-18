@@ -27,7 +27,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events,a11y_no_static_element_interactions -->
 {#if Page.pageType == GRID}
-    <span class={["magnet-grid", loadState.isLoading && "span-loading", !config.toolbar && "hidden-b"]} onclick={showMagnet}>{@html magnetSvg}</span>
+    <span class={["magnet-grid", loadState.isLoading && "span-loading", config.toolbar === false && "hidden-b"]} onclick={showMagnet}>{@html magnetSvg}</span>
 {:else if Page.pageType == VIDEO}
     <span class={["magnet-video", loadState.isLoading && "span-loading"]} onclick={event => showMagnet(event)}>{@html magnetSvg}</span>
 {/if}
