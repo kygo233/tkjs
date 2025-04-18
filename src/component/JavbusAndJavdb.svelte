@@ -87,12 +87,8 @@
         },
         link: async (item: AvItem) => {
             const url = `${config.linkUrl}${item.AVID}`;
-            const response = await getRequest(url, { method: "HEAD" });
-            if (response.status === 404) {
-                throw new Error(LANG.request_invalidUrl);
-            } else {
-                window.open(url, "_blank");
-            }
+            await getRequest(url, { method: "HEAD" });
+            window.open(url, "_blank");
         },
     };
     function imgResize(img: HTMLImageElement) {

@@ -22,7 +22,9 @@ export function getRequest(url: string, params?: Record<string, any>): Promise<a
                     url: url,
                     timeout: 10000,
                     headers: { Referer: url },
-                    onload: (r: any) => resolve(r),
+                    onload: (r: any) => {
+                        r.status >= 200 && r.status < 300 ? resolve(r) : reject(`${r.status} ${LANG.request_error}`);
+                    },
                     onerror: () => reject(`error错误`),
                     ontimeout: () => reject(`timeout超时`),
                 },

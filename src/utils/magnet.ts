@@ -9,9 +9,6 @@ async function getMagnetFromJavbus(avid: string): Promise<HTMLTableElement[]> {
     avid = avid.replace(/(-uncensored-leak|-uncensored-leaked|-chinese-subtitle|-c)$/, "");
     const url = `${originUrl}/${avid}`;
     const response = await getRequest(url);
-    if (response.status == 404) {
-        throw LANG.request_invalidUrl;
-    }
     const [gid, uc_code] = getGid(response.responseText);
     const magnetUrl = `${originUrl}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
     const magnetDoc = await getRequest(magnetUrl).then(r => r.responseText);

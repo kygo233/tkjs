@@ -30,9 +30,6 @@ export const setSearchOptions = (site: string) => {
 };
 export async function getPreview(avid: string) {
     const r = await getRequest(searchOptions.urlPrefix + avid, { timeout: 20000 });
-    if (r.status != 200) {
-        throw new Error(LANG.preview_norespond);
-    }
     const doc = new DOMParser().parseFromString(r.responseText, "text/html");
     const results: Preview[] = Array.from(doc.querySelectorAll(searchOptions.resultSelector) as NodeListOf<HTMLAnchorElement>).map(v => ({
         title: v.innerHTML,

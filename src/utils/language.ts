@@ -15,13 +15,12 @@ const LOCALE = {
     menu_linkUrl: ["跳转到", "Jump to"],
     copyButton: ["复制", "Copy"],
     copySuccess: ["复制成功", "Copy successful"],
-    preview_norespond: ["无法响应或网络错误", "No respond"],
     preview_none: ["未搜索到", "No results found"],
     tip_magnet: ["磁力", "Magnet"],
     tip_preview: ["视频截图", "Video screenshot"],
     tip_link: ["跳转", "link to url"],
     autoPage_end: ["完", "End"],
-    request_invalidUrl: ["无效的网址", "invalid Url"],
+    request_error: ["错误", "Error"],
 };
 const language = navigator.language.toLowerCase().replace("_", "-").split("-")[0];
 const LOCALE_INDEX = language === "zh" ? 0 : 1;
