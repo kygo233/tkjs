@@ -1,6 +1,6 @@
 <script lang="ts">
     import { asyncWithLoading, magnetSvg } from "../../utils";
-    import { getMagnet } from "../../utils/magnet";
+    import getMagnet from "../../utils/magnet";
     import Page from "../../utils/page";
     import { GRID, VIDEO } from "../../utils/siteList";
 

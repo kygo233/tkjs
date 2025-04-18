@@ -54,7 +54,7 @@ const addCopybutton = (table: HTMLTableElement) => {
     });
 };
 
-export const getMagnet = {
+const getMagnet = {
     [JAVBUS]: async (item: AvItem): Promise<Element[]> => {
         //获取详情页面的 演员表和样品图元素
         const doc = await fetch(item.href).then(response => response.text());
@@ -124,3 +124,4 @@ export const getMagnet = {
     [JABLE]: getMagnetFromJavbus,
     [AV123]: getMagnetFromJavbus,
 };
+export default getMagnet;

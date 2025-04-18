@@ -6,7 +6,7 @@
     import { GM_addStyle } from "$";
     import Menu from "./common/Menu.svelte";
     import { getRequest, asyncWithLoading, magnetSvg, linkSvg, pictureSvg, clickToCopy } from "../utils/index";
-    import { getMagnet } from "../utils/magnet";
+    import getMagnet from "../utils/magnet";
     import LoadMore from "./common/LoadMore.svelte";
     import Preview from "./common/Preview.svelte";
     import LANG from "../utils/language";
