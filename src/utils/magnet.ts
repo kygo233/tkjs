@@ -2,11 +2,11 @@ import { getRequest, Tips } from "./index";
 import LANG from "./language";
 import config from "./config.svelte";
 import { GM_setClipboard } from "$";
-import { JABLE, JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteList";
+import { AV123, JABLE, JAVBUS, JAVDB, MISSAV, type AvItem } from "./siteList";
 
 async function getMagnetFromJavbus(avid: string): Promise<HTMLTableElement[]> {
     const originUrl = "https://www.javbus.com";
-    avid = avid.replace(/(-uncensored-leak|-chinese-subtitle|-c)$/, "");
+    avid = avid.replace(/(-uncensored-leak|-uncensored-leaked|-chinese-subtitle|-c)$/, "");
     const url = `${originUrl}/${avid}`;
     const response = await getRequest(url);
     if (response.status == 404) {
@@ -16,6 +16,9 @@ async function getMagnetFromJavbus(avid: string): Promise<HTMLTableElement[]> {
     const magnetUrl = `${originUrl}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
     const magnetDoc = await getRequest(magnetUrl).then(r => r.responseText);
     const table = getMagnetTable(magnetDoc);
+    table.querySelectorAll("a.btn").forEach(a => {
+        //a.setAttribute("class", "btn-zdy");
+    });
     return [table];
 }
 
@@ -122,4 +125,5 @@ export const getMagnet = {
     },
     [MISSAV]: getMagnetFromJavbus,
     [JABLE]: getMagnetFromJavbus,
+    [AV123]: getMagnetFromJavbus,
 };

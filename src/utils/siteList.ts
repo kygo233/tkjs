@@ -1,4 +1,4 @@
-export const [JAVBUS, JAVDB, MISSAV, JABLE, JAVFREE, BLOGJAV] = ["javbus", "javdb", "missav", "jable", "javfree", "blogjav"];
+export const [JAVBUS, JAVDB, MISSAV, AV123, JABLE, JAVFREE, BLOGJAV] = ["javbus", "javdb", "missav", "av123", "jable", "javfree", "blogjav"];
 export const [GRID, VIDEO] = ["grid", "video"];
 
 export interface AvItem {
@@ -76,6 +76,17 @@ export const siteList = [
             [VIDEO]: "button[\\@click\\.prevent=\"togglePanel('share')\"]",
         },
         pageNext: "a[rel=next]",
+    },
+
+    {
+        name: AV123,
+        domainReg: /^https?:\/\/.*(123av|\.1av)\..*$/,
+        pageType: null,
+        itemSelectorObj: {
+            [GRID]: "#page-list .box-item-list>div",
+            [VIDEO]: "button.btn.favourite",
+        },
+        pageNext: ".pagination .active + li a",
     },
     {
         name: JABLE,

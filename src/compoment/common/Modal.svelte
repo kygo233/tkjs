@@ -173,15 +173,15 @@
 
             a.btn {
                 color: #fff;
-                padding: 2px 3px;
+                padding: 1px 3px;
                 white-space: nowrap;
                 border-radius: 0.25rem;
                 opacity: 0.65;
                 &.btn-primary {
-                    background-color: #007bff;
+                    background-color: rgb(38, 90, 136);
                 }
                 &.btn-warning {
-                    background-color: #ffc107;
+                    background-color: rgb(235, 147, 22);
                 }
             }
         }

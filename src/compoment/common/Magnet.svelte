@@ -57,6 +57,12 @@
                 top: 5px;
                 background-color: rgba(31, 41, 55, 0.75);
             }
+            body[av123] & {
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                background-color: rgba(0, 0, 0, 0.4);
+            }
             body[jable] & {
                 position: absolute;
                 right: 15px;
@@ -69,6 +75,12 @@
     .magnet-video {
         color: rgb(236, 239, 244);
         cursor: pointer;
+
+        :global {
+            body[av123] & {
+                margin-left: 10px;
+            }
+        }
     }
     span.span-loading {
         opacity: 1;

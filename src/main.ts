@@ -1,9 +1,10 @@
-import { GRID, VIDEO, MISSAV, JABLE } from "./utils/siteList";
+import { GRID, VIDEO, MISSAV, JABLE, AV123, JAVBUS, JAVDB } from "./utils/siteList";
 import { mount, type Component } from "svelte";
 import "./app.css";
 import Grid from "./compoment/JavbusAndJavdb.svelte";
-import GridMissav from "./compoment/Missav.svelte";
-import GridJable from "./compoment/Jable.svelte";
+import Missav from "./compoment/Missav.svelte";
+import Jable from "./compoment/Jable.svelte";
+import Av123 from "./compoment/Av123.svelte";
 import Magnet from "./compoment/common/Magnet.svelte";
 import Modal from "./compoment/common/Modal.svelte";
 import Page from "./utils/page";
@@ -29,10 +30,18 @@ function main() {
     Page.rawGridEl!.insertAdjacentElement("beforebegin", target);
     mount(Grid, { target });
 }
-if (Page.name == MISSAV) {
-    render(GridMissav);
-} else if (Page.name == JABLE) {
-    render(GridJable);
-} else {
-    main();
+
+const pageComponentMap: Record<string, Component> = {
+    [MISSAV]: Missav,
+    [AV123]: Av123,
+    [JABLE]: Jable,
+    [JAVBUS]: Grid,
+    [JAVDB]: Grid,
+};
+if (pageComponentMap[Page.name]) {
+    if (Page.name === JAVBUS || Page.name === JAVDB) {
+        main();
+    } else {
+        render(pageComponentMap[Page.name]);
+    }
 }

@@ -1,6 +1,6 @@
 import { GM_getValue } from "$";
 import Page from "./page";
-import { JAVDB, JAVFREE, MISSAV } from "./siteList";
+import { AV123, JAVDB, JAVFREE, MISSAV } from "./siteList";
 
 function isMobile(): boolean {
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -27,9 +27,17 @@ const missav = {
     toolbar: true,
     uncensoredFilter: false,
 };
+const av123 = {
+    autoPage: false,
+    pageHistory: false,
+    toolbar: true,
+};
 const configValueName = "config";
 if (Page.name == MISSAV) {
     Page.defaultConfig = missav;
+    Page.configValueName = configValueName + "-" + Page.name;
+} else if (Page.name == AV123) {
+    Page.defaultConfig = av123;
     Page.configValueName = configValueName + "-" + Page.name;
 } else {
     if (Page.name == JAVDB) {
