@@ -16,9 +16,6 @@ async function getMagnetFromJavbus(avid: string): Promise<HTMLTableElement[]> {
     const magnetUrl = `${originUrl}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
     const magnetDoc = await getRequest(magnetUrl).then(r => r.responseText);
     const table = getMagnetTable(magnetDoc);
-    table.querySelectorAll("a.btn").forEach(a => {
-        //a.setAttribute("class", "btn-zdy");
-    });
     return [table];
 }
 
@@ -53,7 +50,7 @@ const addCopybutton = (table: HTMLTableElement) => {
             Tips.show(LANG.copySuccess, Tips.TYPE.SUCCESS);
         });
         td.appendChild(button);
-        tr.prepend(td);
+        tr.firstElementChild?.after(td);
     });
 };
 

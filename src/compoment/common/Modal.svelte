@@ -167,6 +167,9 @@
             background-color: #ffffff;
             border-radius: 5px;
             overflow: hidden;
+            tr td:first-child {
+                padding-left: 10px;
+            }
             tr:hover {
                 background-color: #d4d4d4 !important;
             }
