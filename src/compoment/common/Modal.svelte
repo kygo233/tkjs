@@ -172,21 +172,16 @@
             }
 
             a.btn {
-                [jable] &,
-                [missav] & {
-                    color: #fff;
-                    padding: 2px 3px;
-                    white-space: nowrap;
-                    border-radius: 0.25rem;
-                    opacity: 0.65;
+                color: #fff;
+                padding: 2px 3px;
+                white-space: nowrap;
+                border-radius: 0.25rem;
+                opacity: 0.65;
+                &.btn-primary {
+                    background-color: #007bff;
                 }
-                [missav] & {
-                    &.btn-primary {
-                        background-color: #007bff;
-                    }
-                    &.btn-warning {
-                        background-color: #ffc107;
-                    }
+                &.btn-warning {
+                    background-color: #ffc107;
                 }
             }
         }
