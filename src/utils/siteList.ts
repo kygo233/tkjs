@@ -70,18 +70,15 @@ export const siteList = [
     {
         name: MISSAV,
         domainReg: /^https?:\/\/.*(missav)\..*$/,
-        pageType: null,
         itemSelectorObj: {
             [GRID]: "div.grid[x-init]>div",
             [VIDEO]: "button[\\@click\\.prevent=\"togglePanel('share')\"]",
         },
         pageNext: "a[rel=next]",
     },
-
     {
         name: AV123,
         domainReg: /^https?:\/\/.*(123av|\.1av)\..*$/,
-        pageType: null,
         itemSelectorObj: {
             [GRID]: "#page-list .box-item-list>div",
             [VIDEO]: "button.btn.favourite",
