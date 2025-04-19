@@ -2,7 +2,7 @@ import { getRequest } from ".";
 import LANG from "./language";
 import { BLOGJAV, JAVFREE } from "./siteList";
 
-export interface Preview {
+interface Preview {
     title: string;
     href: string;
     src?: string[] | null;
@@ -28,36 +28,29 @@ let searchOptions = searchOptionsAll[JAVFREE];
 export const setSearchOptions = (site: string) => {
     searchOptions = searchOptionsAll[site];
 };
-export async function getPreview(avid: string) {
+export async function getPreviewSearchResult(avid: string) {
     const r = await getRequest(searchOptions.urlPrefix + avid, { timeout: 20000 });
     const doc = new DOMParser().parseFromString(r.responseText, "text/html");
-    const results: Preview[] = Array.from(doc.querySelectorAll(searchOptions.resultSelector) as NodeListOf<HTMLAnchorElement>).map(v => ({
+    const resultsEl = doc.querySelectorAll<HTMLAnchorElement>(searchOptions.resultSelector);
+    const results: Preview[] = Array.from(resultsEl).map(v => ({
         title: v.innerHTML,
         href: v.href,
     }));
     //const results=  [{title:'1r3rffh',href:'f'},{title:'2ggrredf',href:'ff'}];
-    if (results.length == 0) {
-        throw new Error(LANG.preview_none);
-    }
-    let indexTo = -1;
+    // 找到第一个有效结果，直接返回从该结果开始的数组
     for (let i = 0; i < results.length; i++) {
-        const r = results[i] as Preview;
-        r.src = await getPreviewUrl(r.href);
-        if (r.src) {
-            indexTo = i;
-            break;
+        results[i].src = await getPreviewUrl(results[i].href);
+        if (results[i].src) {
+            return results.slice(i);
         }
     }
-    if (indexTo == -1) {
-        throw new Error(LANG.preview_none);
-    }
-    return results.slice(indexTo);
+    throw new Error(LANG.preview_none);
 }
 export async function getPreviewUrl(href: string) {
     //return [`http://localhost/jav/test/START-264-1080p.jpeg`]
     const r = await getRequest(href);
     const doc = new DOMParser().parseFromString(r.responseText, "text/html");
-    const imgElements = doc.querySelectorAll(searchOptions.imgSelector) as NodeListOf<HTMLImageElement>;
+    const imgElements = doc.querySelectorAll<HTMLImageElement>(searchOptions.imgSelector);
     if (imgElements.length === 0) {
         return null;
     }

@@ -11,7 +11,7 @@
     import Preview from "./common/Preview.svelte";
     import LANG from "../utils/language";
     import Modal from "./common/Modal.svelte";
-    import { setSearchOptions, getPreview } from "../utils/preview";
+    import { setSearchOptions, getPreviewSearchResult } from "../utils/preview";
     import Page from "../utils/page";
 
     let gridEL: HTMLElement;
@@ -77,7 +77,7 @@
             return await getMagnet[Page.name](item as AvItem & string);
         },
         preview: async (item: AvItem) => {
-            const results = await getPreview(item.AVID);
+            const results = await getPreviewSearchResult(item.AVID);
             return {
                 component: Preview,
                 props: {
@@ -86,6 +86,10 @@
             };
         },
         link: async (item: AvItem) => {
+            new URL(config.linkUrl);
+            if (!config.linkUrl.endsWith("/")) {
+                config.linkUrl += "/";
+            }
             const url = `${config.linkUrl}${item.AVID}`;
             await getRequest(url, { method: "HEAD" });
             window.open(url, "_blank");
