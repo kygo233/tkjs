@@ -11,7 +11,7 @@
     const showImage = (index: number) => {
         const item = results[index];
         current = index;
-        if (item.isLoading || item.src != undefined) {
+        if (item.isLoading || item.src) {
             return;
         } else {
             asyncWithLoading(async () => {
@@ -41,9 +41,9 @@
     {#each results as item, index}
         {#if current == index}
             <div>
-                {#if item.src === null}
-                    <span style="background-color:white;">{LANG.preview_none}</span>
-                {:else if item.src}
+                {#if item.src && item.src.length == 0}
+                    <div class="img-none">{LANG.preview_none}</div>
+                {:else if item.src && item.src.length > 0}
                     {#each item.src as src}
                         <img {src} class={["preview-img", item.zoom && "img-zoom"]} onclick={() => (item.zoom = !item.zoom)} />
                     {/each}
@@ -92,6 +92,12 @@
         }
         .preview-title-loading {
             animation: changeTextColor 1s ease-in infinite;
+        }
+
+        .img-none {
+            color: white;
+            font-size: 30px;
+            margin-left: 20px;
         }
 
         .preview-img {

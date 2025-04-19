@@ -39,8 +39,9 @@ export async function getPreviewSearchResult(avid: string) {
     //const results=  [{title:'1r3rffh',href:'f'},{title:'2ggrredf',href:'ff'}];
     // 找到第一个有效结果，直接返回从该结果开始的数组
     for (let i = 0; i < results.length; i++) {
-        results[i].src = await getPreviewUrl(results[i].href);
-        if (results[i].src) {
+        const src = await getPreviewUrl(results[i].href);
+        if (src.length > 0) {
+            results[i].src = src;
             return results.slice(i);
         }
     }
@@ -51,9 +52,6 @@ export async function getPreviewUrl(href: string) {
     const r = await getRequest(href);
     const doc = new DOMParser().parseFromString(r.responseText, "text/html");
     const imgElements = doc.querySelectorAll<HTMLImageElement>(searchOptions.imgSelector);
-    if (imgElements.length === 0) {
-        return null;
-    }
     const src = Array.from(imgElements).map(img => img.src);
     const parseSrc = searchOptions.parseSrc;
     return parseSrc ? src.map(parseSrc) : src;
