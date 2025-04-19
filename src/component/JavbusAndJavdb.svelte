@@ -175,7 +175,7 @@
             {/if}
         </div>
         <div class="detail-b">
-            <div class={{ titleNowrap: !config.fullTitle }} onclick={config.clickToCopy ? event => clickToCopy(event) : undefined}>{item.title}</div>
+            <div class={["detail-title", !config.fullTitle && "titleNowrap"]} onclick={config.clickToCopy ? event => clickToCopy(event) : undefined}>{item.title}</div>
             <div class="info-bottom">
                 <div class="avid-box">
                     <span class="detail-avid" onclick={config.clickToCopy ? event => clickToCopy(event) : undefined}>{item.AVID}</span>
@@ -289,6 +289,13 @@
             .score {
                 margin-right: 5px;
             }
+            .detail-title,
+            .detail-avid {
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+
             .detail-avid {
                 font-size: 18px;
             }

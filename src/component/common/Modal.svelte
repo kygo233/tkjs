@@ -118,7 +118,7 @@
     #modal-div :global {
         position: relative;
         width: 80%;
-        max-width: 1200px;
+        max-width: 1400px;
         animation: fadeInDown 0.5s ease-out;
         max-height: 100vh;
 
