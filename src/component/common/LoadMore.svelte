@@ -3,63 +3,51 @@
     import LANG from "../../utils/language";
     import Page from "../../utils/page";
 
+    const [LOAD, ERROR, END] = ["1", "2", "3"];
     let { itemsOperations, config } = $props();
     let status = $state("");
     let el: HTMLElement;
-    const [LOAD, ERROR, END] = ["1", "2", "3"];
-    class LoadMore {
-        locked = false;
-        nextURL;
-        domWatchFuc;
-        constructor() {
-            this.nextURL = document.body.querySelector(Page.pageNext)?.getAttribute("href");
-            if (this.nextURL) {
-                this.domWatchFuc = this.domWatch.bind(this);
-                this.addListener();
-            }
-        }
-        destroy() {
-            this.removeListener();
-        }
-        addListener() {
-            document.addEventListener("scroll", this.domWatchFuc as EventListener);
-            history.scrollRestoration = "manual"; // 防止自动恢复页面位置
-        }
-        removeListener() {
-            document.removeEventListener("scroll", this.domWatchFuc as EventListener);
-            history.scrollRestoration = "auto";
-        }
-        domWatch() {
-            if (el.getBoundingClientRect().top - window.innerHeight < 300 && !this.locked && this.nextURL) {
-                this.locked = true;
-                this.loadNextPage(this.nextURL).then(() => {
-                    this.locked = false;
-                });
-            }
-        }
-        async loadNextPage(url: string) {
-            try {
-                console.log(url);
-                status = LOAD;
-                let responseText = await fetch(url, { credentials: "same-origin" }).then(response => response.text());
-                let doc = new DOMParser().parseFromString(responseText, "text/html");
-                let items = itemsOperations.get(doc.body.querySelectorAll(Page.itemSelector));
-                itemsOperations.filter?.(items);
-                itemsOperations.update(items);
-                config.pageHistory && history.pushState({}, "", url);
-                this.nextURL = doc.body.querySelector(Page.pageNext)?.getAttribute("href");
-                status = this.nextURL ? "" : END;
-            } catch (error) {
-                console.log(error);
-                status = ERROR;
-            }
+    let locked = false;
+    let nextURL: string | null | undefined;
+    function init() {
+        nextURL = document.body.querySelector(Page.pageNext)?.getAttribute("href");
+        nextURL && addListener();
+    }
+    function addListener() {
+        document.addEventListener("scroll", domWatch);
+        history.scrollRestoration = "manual"; // 防止自动恢复页面位置
+    }
+    function removeListener() {
+        document.removeEventListener("scroll", domWatch);
+        history.scrollRestoration = "auto";
+    }
+    function domWatch() {
+        if (el.getBoundingClientRect().top - window.innerHeight < 300 && !locked && nextURL) {
+            locked = true;
+            loadNextPage(nextURL).then(() => {
+                locked = false;
+            });
         }
     }
-
-    const loadMore = new LoadMore();
-    onDestroy(() => {
-        loadMore.destroy();
-    });
+    async function loadNextPage(url: string) {
+        try {
+            console.log(url);
+            status = LOAD;
+            let responseText = await fetch(url, { credentials: "same-origin" }).then(response => response.text());
+            let doc = new DOMParser().parseFromString(responseText, "text/html");
+            let items = itemsOperations.get(doc.body.querySelectorAll(Page.itemSelector));
+            itemsOperations.filter?.(items);
+            itemsOperations.update(items);
+            config.pageHistory && history.pushState({}, "", url);
+            nextURL = doc.body.querySelector(Page.pageNext)?.getAttribute("href");
+            status = nextURL ? "" : END;
+        } catch (error) {
+            console.log(error);
+            status = ERROR;
+        }
+    }
+    init();
+    onDestroy(removeListener);
 </script>
 
 <div class="scroll-status" bind:this={el}>

@@ -144,9 +144,7 @@
         });
     }
 
-    $effect.pre(() => {
-        setcolumnNum();
-    });
+    $effect.pre(setcolumnNum);
     init();
     mount(Menu, { target: document.body, props: { config, isHalfImgBlock } });
     const modal = mount(Modal, { target: document.body });
