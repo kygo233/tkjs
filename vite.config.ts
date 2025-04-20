@@ -3,10 +3,11 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import monkey from "vite-plugin-monkey";
 import { siteList } from "./src/utils/siteList";
 
+const include = siteList.map(v => v.domainReg);
+const connect = ["javbus.com", "javfree.me", "blogjav.net", "missav.ws"];
 export default defineConfig(({ mode }) => {
-    const includes = siteList.map(v => v.domainReg);
     if (mode === "development") {
-        includes.push(/(localhost|192.168.*)\/jav\/*/);
+        include.push(/(localhost|192.168.*)\/jav\/*/);
     }
     return {
         server: {
@@ -24,7 +25,8 @@ export default defineConfig(({ mode }) => {
                     homepage: "https://sleazyfork.org/",
                     author: "kygo233",
                     license: "MIT",
-                    include: includes,
+                    include,
+                    connect,
                 },
             }),
         ],

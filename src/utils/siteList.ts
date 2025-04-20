@@ -12,9 +12,6 @@ export interface AvItem {
     score: string;
     [key: string]: any;
 }
-export interface AvItem {
-    html: string;
-}
 
 const id = () => Math.random().toString(16).slice(2);
 export const siteList = [
