@@ -170,7 +170,7 @@
         <div class="cover-b">
             <!-- svelte-ignore a11y_missing_attribute -->
             <img class="lazy" data-src={item.src} />
-            {#if config.toolbar && config.toolbar_autoHide}
+            {#if config.toolbar && config.autoHide}
                 {@render toolbar(item)}
             {/if}
         </div>
@@ -186,7 +186,7 @@
                 {/if}
                 <div class="tag-box">
                     <div class="item-tag">{@html item.itemTag}</div>
-                    {#if config.toolbar && !config.toolbar_autoHide}
+                    {#if config.toolbar && !config.autoHide}
                         {@render toolbar(item)}
                     {/if}
                 </div>

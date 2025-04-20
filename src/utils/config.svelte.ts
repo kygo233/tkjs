@@ -9,7 +9,7 @@ const defaultConfig: Record<string, any> = {
     autoPage: false,
     pageHistory: false,
     toolbar: true,
-    toolbar_autoHide: !isMobile(),
+    autoHide: !isMobile(),
     previewSite: JAVFREE,
     linkUrl: "https://missav.ws/",
     avInfo: false,
