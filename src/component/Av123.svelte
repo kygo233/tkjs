@@ -21,7 +21,7 @@
             return raw;
         },
         update: (items: NodeListOf<HTMLDivElement>) => {
-            Page.rawGridEl!.append(...items);
+            Page.rawGridEl!.append(...Array.from(items));
         },
     };
     const modal = mount(Modal, { target: document.body });

@@ -1,8 +1,8 @@
 {
     "extends": "@tsconfig/svelte/tsconfig.json",
     "compilerOptions": {
-        "target": "ESNext",
-        "useDefineForClassFields": true,
+        "target": "ES2017",
+        "lib": ["ES2017"],
         "module": "ESNext",
         "moduleDetection": "force",
         /* Linting */

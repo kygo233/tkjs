@@ -24,5 +24,6 @@ const LOCALE = {
 };
 const language = navigator.language.toLowerCase().replace("_", "-").split("-")[0];
 const LOCALE_INDEX = language === "zh" ? 0 : 1;
-const LANG = Object.fromEntries(Object.entries(LOCALE).map(([key, value]) => [key, value[LOCALE_INDEX]]));
+const LANG: Record<string, string> = {};
+Object.entries(LOCALE).forEach(([key, value]) => (LANG[key] = value[LOCALE_INDEX]));
 export default LANG;

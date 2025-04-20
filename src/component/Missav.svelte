@@ -41,7 +41,7 @@
             }
         },
         update: (items: NodeListOf<HTMLDivElement>) => {
-            Page.rawGridEl!.append(...items);
+            Page.rawGridEl!.append(...Array.from(items));
             tick().then(() => {
                 lozadObj.observe();
             });
