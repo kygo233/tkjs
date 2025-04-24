@@ -1,4 +1,4 @@
-import { getRequest, Tips } from "./index";
+import { getRequest, safeFetch, Tips } from "./index";
 import LANG from "./language";
 import config from "./config.svelte";
 import { GM_setClipboard } from "$";
@@ -54,7 +54,7 @@ const addCopybutton = (table: HTMLTableElement) => {
 const getMagnet = {
     [JAVBUS]: async (item: AvItem): Promise<Element[]> => {
         //获取详情页面的 演员表和样品图元素
-        const doc = await fetch(item.href).then(response => response.text());
+        const doc = await safeFetch(item.href);
         const [gid, uc_code] = getGid(doc);
         const resultEl = [];
         if (config.avInfo) {
@@ -81,13 +81,13 @@ const getMagnet = {
             }
         }
         const url = `${location.protocol}//${location.hostname}/ajax/uncledatoolsbyajax.php?gid=${gid}&lang=zh&img=&uc=${uc_code}&floor=` + Math.floor(Math.random() * 1e3 + 1);
-        const magnetDoc = await fetch(url).then(response => response.text());
+        const magnetDoc = await safeFetch(url);
         const table = getMagnetTable(magnetDoc);
         resultEl.push(table);
         return resultEl;
     },
     [JAVDB]: async (item: AvItem): Promise<Element[]> => {
-        const response = await fetch(item.href).then(response => response.text());
+        const response = await safeFetch(item.href);
         const docParsed = new DOMParser().parseFromString(response, "text/html");
         const resultEl = [];
         if (config.avInfo) {

@@ -12,6 +12,13 @@ export const asyncWithLoading = async (fn: Function, item: Record<string, any>, 
         item[loadingProp] = false;
     }
 };
+export async function safeFetch(url: string, init?: RequestInit): Promise<string> {
+    const response = await fetch(url, init);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.text();
+}
 export function getRequest(url: string, params?: Record<string, any>): Promise<any> {
     console.log(url);
     return new Promise((resolve, reject) => {
@@ -23,7 +30,7 @@ export function getRequest(url: string, params?: Record<string, any>): Promise<a
                     timeout: 10000,
                     headers: { Referer: url },
                     onload: (r: any) => {
-                        r.status >= 200 && r.status < 300 ? resolve(r) : reject(`${r.status} ${LANG.request_error}`);
+                        r.status >= 200 && r.status < 300 ? resolve(r) : reject(`HTTP error! status: ${r.status}`);
                     },
                     onerror: () => reject(`error错误`),
                     ontimeout: () => reject(`timeout超时`),

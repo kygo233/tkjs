@@ -20,7 +20,6 @@ const LOCALE = {
     tip_preview: ["预览图", "Video preview"],
     tip_link: ["跳转", "jump to url"],
     autoPage_end: ["完", "End"],
-    request_error: ["错误", "Error"],
 };
 const language = navigator.language.toLowerCase().replace("_", "-").split("-")[0];
 const LOCALE_INDEX = language === "zh" ? 0 : 1;

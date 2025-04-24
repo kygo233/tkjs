@@ -2,6 +2,7 @@
     import { onDestroy } from "svelte";
     import LANG from "../../utils/language";
     import Page from "../../utils/page";
+    import { safeFetch } from "../../utils";
 
     const [LOAD, ERROR, END] = ["1", "2", "3"];
     let { itemsOperations, config } = $props();
@@ -33,7 +34,7 @@
         try {
             console.log(url);
             status = LOAD;
-            let responseText = await fetch(url, { credentials: "same-origin" }).then(response => response.text());
+            let responseText = await safeFetch(url, { credentials: "same-origin" });
             let doc = new DOMParser().parseFromString(responseText, "text/html");
             let items = itemsOperations.get(doc.body.querySelectorAll(Page.itemSelector));
             itemsOperations.filter?.(items);
