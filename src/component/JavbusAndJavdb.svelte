@@ -218,19 +218,21 @@
             transition: width 0.5s;
             animation: fadeInUp 0.5s ease-out;
 
-            :global(.avatar-box) :global {
-                display: flex;
-                flex-direction: column;
-                border-radius: 5px;
-                align-items: center;
-                width: 100%;
-                margin: 0;
+            :global {
+                .avatar-box {
+                    display: flex;
+                    flex-direction: column;
+                    border-radius: 5px;
+                    align-items: center;
+                    width: 100%;
+                    margin: 0;
 
-                .photo-frame {
-                    margin: 5px;
-                }
-                p {
-                    margin: 0 !important;
+                    .photo-frame {
+                        margin: 5px;
+                    }
+                    p {
+                        margin: 0 !important;
+                    }
                 }
             }
         }
@@ -336,38 +338,32 @@
             &:has(span.span-loading) {
                 opacity: 1;
             }
-
             span {
-                padding: 3px;
-                border-radius: 5px;
-                color: black;
-                background-color: #b5fffc;
+                margin: 2px;
+                padding: 4px;
+                color: aqua;
+                background-color: rgb(56, 56, 56, 0.9);
             }
         }
 
         .tag-box & {
             opacity: 0.75;
+            span {
+                padding: 2px;
+                &:hover {
+                    background-color: #a7a7a7;
+                    color: black;
+                }
+            }
         }
 
         span {
-            line-height: 0;
-            margin: 0 2px;
-            &:hover {
-                transform: scale(1.1);
-            }
-
+            display: flex;
+            border-radius: 5px;
             :global(svg) {
-                vertical-align: -3px;
-                width: 22px;
-                height: 22px;
+                width: 24px;
+                height: 24px;
             }
-            &[data-name="preview"] {
-                :global(svg) {
-                    width: 23.5px;
-                    height: 23.5px;
-                }
-            }
-
             &.span-loading {
                 animation: span-loading 1s infinite;
             }
