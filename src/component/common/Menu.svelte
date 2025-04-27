@@ -95,15 +95,16 @@
     }
 
     .menu-list {
-        padding: 6px;
+        padding: 5px;
         background: linear-gradient(to left top, #f3fef4 0%, #fbfbfb 100%);
         color: black;
         border-radius: 5px;
         font-size: large;
         font-weight: 550;
-        overflow: hidden;
         box-shadow: 0 10px 20px 0 rgb(0 0 0 / 50%);
         animation: fadeInUp 0.2s ease-out;
+        max-height: calc(99vh - 30px);
+        overflow-y: auto;
 
         > div {
             display: flex;
