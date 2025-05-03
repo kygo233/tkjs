@@ -60,9 +60,7 @@
         }
         asyncWithLoading(
             async () => {
-                const toolbarMethod = toolbarFunc[name as keyof typeof toolbarFunc];
-                if (!toolbarMethod) return;
-                const content = await toolbarMethod(item);
+                const content = await toolbarFunc[name as keyof typeof toolbarFunc](item);
                 if (content) {
                     modal.append(contentId, content);
                     item[contentId] = contentId;
@@ -174,20 +172,18 @@
         </div>
         <div class="detail-b">
             <div class={["detail-title", !config.fullTitle && "titleNowrap"]} onclick={config.clickToCopy ? event => clickToCopy(event) : undefined}>{item.title}</div>
+            {#if Page.name == JAVDB}
+                <div class="score">{@html item.score}</div>
+            {/if}
             <div class="info-bottom">
-                <div class="avid-box">
+                <div>
                     <span class="detail-avid" onclick={config.clickToCopy ? event => clickToCopy(event) : undefined}>{item.AVID}</span>
                     <span> / <span>{item.date}</span></span>
                 </div>
-                {#if Page.name == JAVDB}
-                    <div class="score">{@html item.score}</div>
+                <div class="item-tag">{@html item.itemTag}</div>
+                {#if config.toolbar && !config.autoHide}
+                    {@render toolbar(item)}
                 {/if}
-                <div class="tag-box">
-                    <div class="item-tag">{@html item.itemTag}</div>
-                    {#if config.toolbar && !config.autoHide}
-                        {@render toolbar(item)}
-                    {/if}
-                </div>
             </div>
         </div>
     </a>
@@ -246,7 +242,7 @@
             overflow: hidden;
             color: black;
 
-            &:visited {
+            &:visited .detail-title {
                 color: gray;
             }
         }
@@ -274,20 +270,11 @@
         .detail-b {
             padding: 6px 8px;
 
-            .info-bottom,
-            .tag-box {
+            .info-bottom {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 flex-wrap: wrap;
-            }
-
-            .tag-box:has(.toolbar-b) {
-                flex-grow: 1;
-            }
-            .avid-box,
-            .score {
-                margin-right: 5px;
             }
             .detail-title,
             .detail-avid {
@@ -328,7 +315,7 @@
             position: absolute;
             bottom: 0px;
             right: 0px;
-            padding: 6px;
+            padding: 16px 6px 6px 16px;
             opacity: 0;
             &:hover {
                 opacity: 1;
@@ -345,15 +332,11 @@
                 background-color: rgb(56, 56, 56, 0.9);
             }
         }
-
-        .tag-box & {
-            opacity: 0.75;
-            span {
-                padding: 2px;
-                &:hover {
-                    background-color: #a7a7a7;
-                    color: black;
-                }
+        .detail-b & span {
+            opacity: 0.6;
+            padding: 0 2px;
+            &:hover {
+                opacity: 1;
             }
         }
 
