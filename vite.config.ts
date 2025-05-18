@@ -18,10 +18,16 @@ export default defineConfig(({ mode }) => {
             monkey({
                 entry: "src/main.ts",
                 userscript: {
-                    name: "JAVBUS封面大图",
+                    name: {
+                        "": "larger thumbnails v2",
+                        "zh-CN": "封面大图v2",
+                    },
                     namespace: "https://github.com/kygo233/tkjs/",
                     version: "2025.03.22",
-                    description: "javbus和javdb界面优化",
+                    description: {
+                        "": "Use larger thumbnails on javbus and javdb. 123av,jable,and missav can get magnet from javbus",
+                        "zh-CN": "javbus和javdb封面大图; 123av,jable,missav获取javbus的磁力",
+                    },
                     homepage: "https://sleazyfork.org/",
                     author: "kygo233",
                     license: "MIT",

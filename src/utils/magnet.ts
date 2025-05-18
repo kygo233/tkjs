@@ -66,16 +66,14 @@ const getMagnet = {
                 //avatar.querySelectorAll("a.avatar-box span:last-child").forEach((span) => {});
                 avatar.querySelectorAll("a.avatar-box").forEach(a => {
                     a.setAttribute("target", "_blank");
-                    a.classList.remove("avatar-box");
-                    a.classList.add("avatar-box-zdy");
+                    a.classList.replace("avatar-box", "avatar-box-zdy");
                 });
                 resultEl.push(avatar);
             }
             if (sample) {
                 sample.id = "";
                 sample.querySelectorAll(".sample-box").forEach(box => {
-                    box.classList.remove("sample-box");
-                    box.classList.add("sample-box-zdy");
+                    box.classList.replace("sample-box", "sample-box-zdy");
                 });
                 resultEl.push(sample);
             }

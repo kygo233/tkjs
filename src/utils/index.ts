@@ -54,7 +54,7 @@ export function getDownload(url: string, name?: string) {
 }
 export const Tips = {
     TYPE: {
-        SUCCESS: "✔",
+        SUCCESS: "✅",
         ERROR: "❌",
     },
     show: (msg: string, type: string, close?: Boolean | string) => {
