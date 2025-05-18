@@ -66,7 +66,7 @@ export const siteList = [
     },
     {
         name: MISSAV,
-        domainReg: /^https?:\/\/.*(missav)\..*$/,
+        domainReg: /^https?:\/\/.*(missav)\.(ws|ai).*$/,
         itemSelectorObj: {
             [GRID]: "div.grid[x-init]>div",
             [VIDEO]: "button[\\@click\\.prevent=\"togglePanel('share')\"]",
@@ -75,7 +75,7 @@ export const siteList = [
     },
     {
         name: AV123,
-        domainReg: /^https?:\/\/.*(123av|\.1av)\..*$/,
+        domainReg: /^https?:\/\/.*(123av\.com|123av\.ws|1av\.to).*$/,
         itemSelectorObj: {
             [GRID]: "#page-list .box-item-list>div",
             [VIDEO]: "button.btn.favourite",
@@ -84,7 +84,7 @@ export const siteList = [
     },
     {
         name: JABLE,
-        domainReg: /^https?:\/\/.*(jable)\..*$/,
+        domainReg: /^https?:\/\/.*(jable\.tv).*$/,
         itemSelectorObj: {
             [GRID]: "div[id^=list_videos_] div.row>div",
             [VIDEO]: ".video-info .my-3 button",
