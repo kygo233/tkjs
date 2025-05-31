@@ -4,7 +4,7 @@
     import Page from "../../utils/page";
     import { JAVFREE, BLOGJAV, JAVBUS, JAVDB } from "../../utils/siteList";
 
-    interface Checkboxs {
+    interface Checkbox {
         key: string;
         text: string;
         disabled: boolean;
@@ -12,11 +12,11 @@
     let { config, isHalfImgBlock = false } = $props();
     let isVisible = $state(false);
 
-    let checkboxsList = $state<Checkboxs[]>([]);
+    let checkboxList = $state<Checkbox[]>([]);
 
     for (const [key, value] of Object.entries(Page.defaultConfig!)) {
         if (typeof value === "boolean") {
-            checkboxsList.push({
+            checkboxList.push({
                 key,
                 text: LANG[`menu_${key}`],
                 disabled: key === "halfImg" && isHalfImgBlock,
@@ -32,7 +32,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events,a11y_no_static_element_interactions -->
     <div class={["menu-tool", isVisible && "menu-tool-opacity"]} onclick={() => (isVisible = !isVisible)}>&#x1F528;</div>
     <div class={["menu-list", !isVisible && "hidden-b"]}>
-        {#each checkboxsList as { key, text, disabled }}
+        {#each checkboxList as { key, text, disabled }}
             <div class="checkbox-div">
                 <input type="checkbox" {disabled} id={key + "_checkbox"} bind:checked={config[key]} />
                 <label for={key + "_checkbox"}>{text}</label>
@@ -132,6 +132,10 @@
         }
         .range-div input {
             width: 250px;
+
+            &:disabled + span {
+                opacity: 0.5;
+            }
         }
         .input-div input {
             border-radius: 3px;

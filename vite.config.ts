@@ -4,7 +4,7 @@ import monkey from "vite-plugin-monkey";
 import { siteList } from "./src/utils/siteList";
 
 const include = siteList.map(v => v.domainReg);
-const connect = ["javbus.com", "javfree.me", "blogjav.net", "missav.ws"];
+const connect = ["javbus.com", "javfree.me", "blogjav.net", "missav.ws", "*"];
 export default defineConfig(({ mode }) => {
     if (mode === "development") {
         include.push(/(localhost|192.168.*)\/jav\/*/);
