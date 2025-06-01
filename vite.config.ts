@@ -19,10 +19,10 @@ export default defineConfig(({ mode }) => {
                 entry: "src/main.ts",
                 userscript: {
                     name: {
-                        "": "larger thumbnails v2",
-                        "zh-CN": "封面大图v2",
+                        "": "larger thumbnails v2 Test",
+                        "zh-CN": "封面大图v2 测试版",
                     },
-                    namespace: "https://github.com/kygo233/tkjs/tree/v2",
+                    namespace: "https://github.com/kygo233/tkjs/tree/v2-test",
                     version: "2025.06.01",
                     description: {
                         "": "Show larger thumbnails on javbus and javdb. 123av,jable,and missav can get magnet from javbus",

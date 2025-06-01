@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name               larger thumbnails v2
-// @name:zh-CN         封面大图v2
-// @namespace          https://github.com/kygo233/tkjs/tree/v2
+// @name               larger thumbnails v2 Test
+// @name:zh-CN         封面大图v2 测试版
+// @namespace          https://github.com/kygo233/tkjs/tree/v2-test
 // @version            2025.06.01
 // @author             kygo233
 // @description        Show larger thumbnails on javbus and javdb. 123av,jable,and missav can get magnet from javbus
@@ -4405,6 +4405,12 @@
   }
   function main() {
     const target = document.createElement("div");
+    if (Page.name === JAVBUS) {
+      const waterfall = document.body.querySelector("#waterfall.masonry, #waterfall_h.masonry");
+      if (waterfall) {
+        waterfall.classList.remove("masonry");
+      }
+    }
     Page.rawGridEl.style.display = "none";
     Page.rawGridEl.insertAdjacentElement("beforebegin", target);
     mount(JavbusAndJavdb, { target });

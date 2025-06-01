@@ -26,6 +26,13 @@ function render(GridComponent: Component) {
 
 function main() {
     const target = document.createElement("div");
+    //屏蔽javbus的id和class
+    if (Page.name === JAVBUS) {
+        const waterfall = document.body.querySelector("#waterfall.masonry, #waterfall_h.masonry");
+        if (waterfall) {
+            waterfall.classList.remove("masonry");
+        }
+    }
     Page.rawGridEl!.style.display = "none";
     Page.rawGridEl!.insertAdjacentElement("beforebegin", target);
     mount(Grid, { target });
