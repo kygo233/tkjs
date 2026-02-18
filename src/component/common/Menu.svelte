@@ -30,7 +30,7 @@
 
 <div class="menu-b">
     <!-- svelte-ignore a11y_click_events_have_key_events,a11y_no_static_element_interactions -->
-    <div class={["menu-tool", isVisible && "menu-tool-opacity"]} onclick={() => (isVisible = !isVisible)}>&#x1F528;</div>
+    <div class="menu-tool" onclick={() => (isVisible = !isVisible)}>&#x1F528;</div>
     <div class={["menu-list", !isVisible && "hidden-b"]}>
         {#each checkboxList as { key, text, disabled }}
             <div class="checkbox-div">
@@ -83,14 +83,6 @@
             height: 30px;
             cursor: pointer;
             font-size: 20px;
-            opacity: 0;
-
-            &:hover {
-                opacity: 1;
-            }
-            &.menu-tool-opacity {
-                opacity: 1;
-            }
         }
     }
 

@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
                         "zh-CN": "封面大图v2",
                     },
                     namespace: "https://github.com/kygo233/tkjs/tree/v2",
-                    version: "2025.06.01",
+                    version: "2026.02.19",
                     description: {
                         "": "Show larger thumbnails on javbus and javdb. 123av,jable,and missav can get magnet from javbus",
                         "zh-CN": "javbus和javdb显示大图封面; 123av,jable,missav获取javbus的磁力",
